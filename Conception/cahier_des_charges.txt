@@ -1,0 +1,86 @@
+# Cahier des Charges - 2Round
+
+## 1. User Stories (US)
+
+### Acheteur (Fighter Buyer)
+* **US.A.1 :** En tant qu'acheteur, je souhaite naviguer via un guide interactif pour identifier l'équipement nécessaire à ma pratique (boxe anglaise, muay-thaï, etc.).
+* **US.A.2 :** En tant qu'acheteur, je veux négocier le prix directement dans la messagerie via une offre chiffrée.
+* **US.A.3 :** En tant qu'acheteur, je veux créer un Pack d'articles chez un même vendeur pour réduire mes frais de port.
+* **US.A.4 :** En tant qu'acheteur, je veux signaler une non-conformité sous 48h pour geler les fonds.
+
+### Vendeur (Fighter Seller)
+* **US.V.1 :** En tant que vendeur, je veux créer un compte Stripe Express pour recevoir mes gains de manière sécurisée et légale (KYC).
+* **US.V.2 :** En tant que vendeur, je veux recevoir une étiquette Mondial Relay prépayée dès que la vente est confirmée.
+* **US.V.3 :** En tant que vendeur, je veux pouvoir accepter ou refuser une offre de prix reçue par message en un clic.
+
+### Administrateur (Referee)
+* **US.AD.1 :** En tant qu'admin, je veux accéder aux preuves photos lors d'un litige pour trancher entre remboursement ou paiement.
+* **US.AD.2 :** En tant qu'admin, je veux suivre le statut des transactions via un dashboard synchronisé avec l'API Stripe.
+
+## 2. Architecture API & États de Commande
+
+L'utilisation d'API Platform 3 permet de définir des ressources liées à une machine à états (Workflow Component de Symfony).
+
+### États de la Commande (TransactionStatus)
+Le cycle de vie d'une transaction est géré par un automate fini :
+* **CREATED :** Offre acceptée ou panier validé.
+* **PAYMENT_PENDING :** En attente du succès du webhook Stripe.
+* **SHIPPING_PENDING :** Étiquette Mondial Relay générée, en attente de dépôt.
+* **SHIPPED :** Scanné par le transporteur.
+* **DELIVERED :** Scanné au point relais final.
+* **DISPUTED :** Litige ouvert par l'acheteur (fonds gelés).
+* **COMPLETED :** Fonds libérés vers le vendeur (après 48h sans litige).
+* **CANCELLED :** Annulation ou retour.
+
+## 3. Modèle de Données (MCD)
+
+Le modèle doit supporter la notion de "Pack" qui est une collection d'items liés à une seule transaction financière et logistique.
+
+### Entités Clés :
+* **User :** Gère les rôles, les adresses et le `stripe_account_id`.
+* **Product :** Description, prix, poids, état, et lien vers un Pack.
+* **Pack :** Regroupe 1 à N produits. Porte le `weight_total` calculé et le `mondial_relay_expedition_number`.
+* **Offer :** Liée à une Conversation. Contient `amount` et `status` (pending, accepted, rejected).
+* **Transaction :** Référence le Pack, le PaymentIntent Stripe et le statut du workflow.
+
+## 4. Logique Métier & Workflows Spécifiques
+
+### Messagerie Temps Réel & Négociation
+L'intégration de Symfony Mercure permet de pousser des updates UI instantanés.
+Lorsqu'un vendeur clique sur "Accepter" sur une Offer, le backend met à jour l'offre, crée le Pack et envoie un event Mercure au React frontend pour afficher le bouton "Payer" à l'acheteur.
+
+### Algorithme de Calcul des Packs
+Lors de l'ajout d'un article au pack :
+1. Vérification de l'ID Vendeur (doit être identique).
+2. Somme des poids unitaires : $W_{total} = \sum w_i$.
+3. Appel à l'API Mondial Relay pour récupérer le tarif correspondant à $W_{total}$ afin de mettre à jour les frais de port en temps réel pour l'acheteur.
+
+## 5. Intégrations Tierces
+
+### Logistique : Mondial Relay
+* **Génération :** Utilisation de la méthode `WBS_ShipmentCreation`.
+* **Tracking :** Un cron job (ou Worker Messenger) interroge l'API Mondial Relay toutes les 6h pour mettre à jour le statut Symfony (ex: passage de SHIPPED à DELIVERED).
+* **Automatisation Litige :** Si `Transaction.updatedAt > 21 days` et status est toujours SHIPPED, le workflow passe automatiquement en DISPUTED (Non-livraison).
+
+### Paiement : Stripe Connect
+* **Séquestre :** Utilisation de `on_behalf_of` et `transfer_group`.
+* Les fonds sont capturés sur le compte de la plateforme (Escrow) et transférés au vendeur (Transfer) uniquement lors du passage à l'état COMPLETED.
+
+## 6. Sécurité & Stack Technique
+
+### Authentification & Droits
+* **JWT (LexikJWTAuthenticationBundle) :** Authentification Stateless pour React.
+* **Symfony Voters :** 
+  * `ProductVoter` : Seul le propriétaire peut modifier un produit.
+  * `TransactionVoter` : Seuls les deux participants ou l'admin peuvent voir les détails d'un litige.
+
+### Frontend (React + Tailwind)
+* **Guide Interactif :** Utilisation de `react-simple-maps` ou d'un SVG mappé. Chaque zone (Gants, Protège-tibias, Casque) déclenche une modale filtrant dynamiquement les produits de cette catégorie sur l'API.
+
+## 7. Gestion des Litiges (Logique de Médiation)
+
+* **Ouverture :** L'acheteur soumet un formulaire via React (Texte + 3 photos max).
+* **Gel :** L'API Platform déclenche une transition de workflow qui bloque l'ordre de transfert Stripe.
+* **Résolution :** L'admin possède deux boutons :
+  * **Refund Buyer :** Déclenche `Stripe\Refund`.
+  * **Pay Seller :** Force le `Stripe\Transfer`.
