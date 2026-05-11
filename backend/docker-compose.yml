@@ -65,6 +65,21 @@ services:
     mem_reservation: 512m
     cpus: 2.0
 
+  mercure:
+    image: dunglas/mercure
+    restart: unless-stopped
+    environment:
+      # La clé secrète pour signer les JWT (JSON Web Tokens)
+      # À changer impérativement en production !
+      SERVER_NAME: ':80'
+      MERCURE_PUBLISHER_JWT_KEY: '!ChangeThisMercureHubPublisherJWTKey!'
+      MERCURE_SUBSCRIBER_JWT_KEY: '!ChangeThisMercureHubSubscriberJWTKey!'
+      # Autoriser les requêtes provenant de votre app Symfony
+      MERCURE_EXTRA_DIRECTIVES: |
+        cors_origins http://localhost:8000
+    ports:
+      - "8080:80"
+
 networks:
   app_network:
     # réseau personnalisé pour isoler les services
