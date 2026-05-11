@@ -33,6 +33,14 @@ class Product
     #[ORM\Column]
     private ?int $weight = null;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $seller = null;
+
+    #[ORM\ManyToOne(targetEntity: Etat::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Etat $etat = null;
+
     /**
      * @var Collection<int, Favorite>
      */
@@ -246,6 +254,30 @@ class Product
                 $image->setProduct(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getSeller(): ?User
+    {
+        return $this->seller;
+    }
+
+    public function setSeller(?User $seller): static
+    {
+        $this->seller = $seller;
+
+        return $this;
+    }
+
+    public function getEtat(): ?Etat
+    {
+        return $this->etat;
+    }
+
+    public function setEtat(?Etat $etat): static
+    {
+        $this->etat = $etat;
 
         return $this;
     }

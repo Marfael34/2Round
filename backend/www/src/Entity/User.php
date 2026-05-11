@@ -107,6 +107,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?bool $is_onboarding_completed = null;
 
+    #[ORM\Column]
+    private ?\DateTime $createdAt = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 2)]
+    private ?string $size = null;
+
     public function __construct()
     {
         $this->favorites = new ArrayCollection();
@@ -505,6 +511,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsOnboardingCompleted(bool $is_onboarding_completed): static
     {
         $this->is_onboarding_completed = $is_onboarding_completed;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTime $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getSize(): ?string
+    {
+        return $this->size;
+    }
+
+    public function setSize(string $size): static
+    {
+        $this->size = $size;
 
         return $this;
     }
