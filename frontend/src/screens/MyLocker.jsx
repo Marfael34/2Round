@@ -1,8 +1,10 @@
-import React from 'react'
+import InProgress from "../components/InProgress/InProgress"
 
 const MyLocker = () => {
   return (
-    <div>MyLocker</div>
+    <div>
+      <InProgress pageName="Mon Vestiaire"/>
+    </div>
   )
 }
 

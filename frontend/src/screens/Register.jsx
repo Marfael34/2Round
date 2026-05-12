@@ -1,8 +1,10 @@
-import React from 'react'
+import InProgress from "../components/InProgress/InProgress"
 
 const Register = () => {
   return (
-    <div>Register</div>
+    <div>
+      <InProgress pageName="Inscription"/>
+    </div>
   )
 }
 

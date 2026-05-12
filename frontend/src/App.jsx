@@ -5,7 +5,7 @@ const App = () => {
   return (
     <div className="flex flex-col min-h-screen bg-black">
       <NavBar />
-      <main className="flex-1 w-full text-white">
+      <main className="flex-1 w-full text-white bg-black">
       <Outlet />
     </main>
     </div>

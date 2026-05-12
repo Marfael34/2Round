@@ -1,8 +1,10 @@
-import React from 'react'
+import InProgress from '../components/InProgress/InProgress'
 
 const Login = () => {
   return (
-    <div>Login</div>
+    <div>
+      <InProgress pageName="Connexion"/>
+    </div>
   )
 }
 

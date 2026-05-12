@@ -9,11 +9,19 @@ export default defineConfig({
     host: true, // Permet d'exposer l'application sur le réseau local ou via un tunnel
     allowedHosts: true, // Autorise toutes les URLs entrantes (indispensable pour les tunnels Cloudflare/Ngrok qui changent souvent)
     // Décommente et adapte ceci quand ton frontend appellera l'API
-    // proxy: {
-    //   '/api': {
-    //     target: 'http://localhost:80',
-    //     changeOrigin: true,
-    //   }
-    // }
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+      },
+      '/images': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+      },
+      '/uploads': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+      }
+    }
   }
 })

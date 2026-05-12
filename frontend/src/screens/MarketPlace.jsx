@@ -1,8 +1,10 @@
-import React from 'react'
+import InProgress from '../components/InProgress/InProgress'
 
 const MarketPlace = () => {
   return (
-    <div>MarketPlace</div>
+    <div>
+      <InProgress pageName="Marketplace"/>
+    </div>
   )
 }
 

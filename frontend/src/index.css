@@ -1,13 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;400;500;700&display=swap');
 @import "tailwindcss";
 
-@theme{
+@theme {
     --color-black: #000000;
     --color-white: #FFFFFF;
     --color-red: #FF0000;
     --color-gray: #737373;
     --color-gray-dark: #2f2f2f;
+    --font-bebas: "Bebas Neue", sans-serif;
+    --font-inter: "Inter", sans-serif;
+    --font-inter-extralight: "Inter", sans-serif,;
+}
+
+body {
+    @apply bg-black text-white
+}
+
+.bebas-neue-regular {
+  font-family: "Bebas Neue", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .bg-boxe{
-    @apply bg-no-repeat bg-left mt-15 bg-cover bg-[url('./assets/background/bg_boxer.png')] md:bg-left-top md:mt-18
+    @apply bg-no-repeat bg-left mt-15 bg-cover md:bg-left-top md:mt-18
 }

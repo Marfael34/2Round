@@ -1,8 +1,10 @@
-import React from 'react'
+import InProgress from "../components/InProgress/InProgress"
 
 const MyCustomised = () => {
   return (
-    <div>MyCustomised</div>
+    <div>
+      <InProgress pageName="Mon round personnalisé"/>
+    </div>
   )
 }
 

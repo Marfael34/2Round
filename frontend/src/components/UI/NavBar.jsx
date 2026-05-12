@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FiSearch, FiCamera, FiUser, FiChevronDown, FiSend, FiShoppingCart, FiMenu, FiX } from 'react-icons/fi';
 import { GiLockers } from 'react-icons/gi';
 import { MdFavoriteBorder } from "react-icons/md";
 import { Link, useNavigate } from 'react-router-dom';
-import logo from '../../assets/Logo.png';
+import { IMG_LOGO } from '../../constants/appConstante';
 
 
 const NavBar = () => {
@@ -16,7 +16,7 @@ const NavBar = () => {
     <nav className="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-gray-800 fixed top0 left-0 w-full z-50">
       {/* Logo */}
       <div className="text-2xl font-bold tracking-tighter">
-        <img className="w-20 md:w-30" src={logo} alt="logo" onClick={() => navigate('/')}/>
+        <img className="w-20 md:w-30" src={IMG_LOGO} alt="logo" onClick={() => navigate('/')}/>
       </div>
 
       {/* Search Bar (Desktop) */}
@@ -49,7 +49,7 @@ const NavBar = () => {
                 <GiLockers className="h-4 w-4 mr-2" />
                 Mon Vestiaire
               </Link>
-              <Link to="/my-customised" className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors text-sm" onClick={() => setIsUserDropdownOpen(false)}>
+              <Link to="/mycustomised" className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors text-sm" onClick={() => setIsUserDropdownOpen(false)}>
                 <MdFavoriteBorder className="h-4 w-4 mr-2" />
                 Mon Round Personnalisé
               </Link>
@@ -59,8 +59,9 @@ const NavBar = () => {
 
         {/* Messages / Send */}
         <div className="cursor-pointer hover:text-gray-300 transition-colors">
-          <FiSend className="h-6 w-6" />
-          <Link to="/conversation"></Link>
+          <Link to="/conversation">
+            <FiSend className="h-6 w-6" />
+          </Link>
         </div>
 
         {/* Cart */}
@@ -110,7 +111,7 @@ const NavBar = () => {
                     <GiLockers className="h-4 w-4 mr-2" />
                     Mon Vestiaire
                   </Link>
-                  <Link to="/my-customised" className="flex py-2 text-sm text-gray-400 hover:text-white transition-colors" onClick={() => { setIsMenuOpen(false); setIsUserDropdownOpen(false); }}>
+                  <Link to="/myCustomised" className="flex py-2 text-sm text-gray-400 hover:text-white transition-colors" onClick={() => { setIsMenuOpen(false); setIsUserDropdownOpen(false); }}>
                     <MdFavoriteBorder className="h-4 w-4 mr-2" />
                     Mon Round Personnalisé
                   </Link>

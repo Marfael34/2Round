@@ -1,8 +1,10 @@
-import React from 'react'
+import InProgress from '../components/InProgress/InProgress'
 
 const Guide = () => {
   return (
-    <div>Guide</div>
+    <div>
+      <InProgress pageName="Guide"/>
+    </div>
   )
 }
 
