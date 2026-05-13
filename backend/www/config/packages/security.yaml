@@ -22,6 +22,7 @@ security:
             stateless: true
             json_login:
                 check_path: /api/login_check
+                username_path: email
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
@@ -49,6 +50,7 @@ security:
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/products, methods: [GET], roles: PUBLIC_ACCESS }
+        - { path: ^/api/users, methods: [POST], roles: PUBLIC_ACCESS }
         - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

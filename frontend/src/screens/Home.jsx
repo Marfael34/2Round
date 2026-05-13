@@ -12,6 +12,7 @@ import Tagline from '../components/Tagline';
 
 const Home = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const isLoggedIn = !!localStorage.getItem('token');
 
   return (
     <>
@@ -37,9 +38,15 @@ const Home = () => {
             <img src={IMG_LOGO} alt="logo" className="w-50 pt-10 md:w-[651px]"/>
              
             <div className=" flex flex-col gap-4 pt-30 w-80 md:w-[651px] md:h-27 md:justify-start md:mt-25">
-              <CustomButton to="/register" className="border-3 font-inter font-extrabold uppercase hover:bg-red active:bg-red md:mb-10">
-                Créer mon profil
-              </CustomButton>
+              {isLoggedIn ? (
+                <CustomButton to="/my-locker" className="border-3 font-inter font-extrabold uppercase hover:bg-red active:bg-red md:mb-10">
+                  Mon Vestiaire
+                </CustomButton>
+              ) : (
+                <CustomButton to="/register" className="border-3 font-inter font-extrabold uppercase hover:bg-red active:bg-red md:mb-10">
+                  Créer mon profil
+                </CustomButton>
+              )}
               <CustomButton to="/resale" className="border-3 font-inter font-extrabold uppercase hover:bg-red active:bg-red">
                 Commencer a vendre
               </CustomButton>

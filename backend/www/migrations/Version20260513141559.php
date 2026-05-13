@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260513090107 extends AbstractMigration
+final class Version20260513141559 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,12 +20,12 @@ final class Version20260513090107 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE product ADD is_highlighted TINYINT NOT NULL');
+        $this->addSql('ALTER TABLE user CHANGE birthday_at birthday_at DATETIME DEFAULT NULL, CHANGE weight weight NUMERIC(5, 2) DEFAULT NULL, CHANGE budget budget INT DEFAULT NULL, CHANGE size size NUMERIC(3, 2) DEFAULT NULL');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE product DROP is_highlighted');
+        $this->addSql('ALTER TABLE `user` CHANGE birthday_at birthday_at DATETIME NOT NULL, CHANGE weight weight NUMERIC(5, 2) NOT NULL, CHANGE budget budget INT NOT NULL, CHANGE size size NUMERIC(3, 2) NOT NULL');
     }
 }

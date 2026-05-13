@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,6 +13,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[ApiResource()]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -47,13 +49,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $avatar = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?\DateTime $birthday_at = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true)]
     private ?string $weight = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $budget = null;
 
     #[ORM\Column]
@@ -110,7 +112,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?\DateTime $createdAt = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 2)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 2, nullable: true)]
     private ?string $size = null;
 
     public function __construct()
@@ -120,6 +122,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->messages = new ArrayCollection();
         $this->conversations = new ArrayCollection();
         $this->reports = new ArrayCollection();
+        $this->createdAt = new \DateTime();
+        $this->is_onboarding_completed = false;
+        $this->isActive = true;
+        $this->roles = ['ROLE_USER'];
     }
 
     public function getId(): ?int
