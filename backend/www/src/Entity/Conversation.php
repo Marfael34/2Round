@@ -27,13 +27,13 @@ class Conversation
     private Collection $messages;
 
     #[ORM\ManyToOne(inversedBy: 'conversations')]
-    private ?User $buyerid = null;
+    private ?User $buyer = null;
 
     #[ORM\ManyToOne(inversedBy: 'conversations')]
-    private ?User $sellerId = null;
+    private ?User $seller = null;
 
     #[ORM\ManyToOne(inversedBy: 'conversations')]
-    private ?Product $productId = null;
+    private ?Product $product = null;
 
     /**
      * @var Collection<int, Report>
@@ -96,36 +96,36 @@ class Conversation
 
     public function getBuyerid(): ?User
     {
-        return $this->buyerid;
+        return $this->buyer;
     }
 
-    public function setBuyerid(?User $buyerid): static
+    public function setBuyerid(?User $buyer): static
     {
-        $this->buyerid = $buyerid;
+        $this->buyer = $buyer;
 
         return $this;
     }
 
     public function getSellerId(): ?User
     {
-        return $this->sellerId;
+        return $this->seller;
     }
 
-    public function setSellerId(?User $sellerId): static
+    public function setSellerId(?User $seller): static
     {
-        $this->sellerId = $sellerId;
+        $this->seller = $seller;
 
         return $this;
     }
 
     public function getProductId(): ?Product
     {
-        return $this->productId;
+        return $this->product;
     }
 
-    public function setProductId(?Product $productId): static
+    public function setProductId(?Product $product): static
     {
-        $this->productId = $productId;
+        $this->product = $product;
 
         return $this;
     }
