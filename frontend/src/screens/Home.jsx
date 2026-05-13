@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import PackCard from '../components/Product/PackCard';
 import GuideLayout from '../components/Guide/GuideLayout';
 import NotreSelection from '../components/Product/Highlighted';
+import Tagline from '../components/Tagline';
 
 
 
@@ -106,6 +107,10 @@ const Home = () => {
         {/* Notre Sélection */}
         <NotreSelection/>
 
+        <div className="my-6 h-px w-full bg-gray-300 "></div>
+        {/* Phrase d'accroche */}
+        <Tagline/>
+        <div className="my-6 h-px w-full bg-gray-300 md:hidden"></div>
       </div>
     </>
   );
