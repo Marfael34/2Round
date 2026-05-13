@@ -66,45 +66,45 @@ const Home = () => {
             </div>
             
           </div>
-          {/* Pack disponible */}
-          <div className="w-full bg-black py-16 px-6 md:px-12 lg:px-24 text-white">
-            <div className="mx-auto">
-              
-              {/* En-tête */}
-              <div className="mb-12 text-left">
-                <h1 className="text-4xl font-bold font-bebas uppercase tracking-wide mb-1">
-                  Les packs disponibles
-                </h1>
-                <p className="text-lg text-gray-400 font-inter font-light">
-                  Occasions vérifiées
-                </p>
-              </div>
-
-              {/* Grille des packs */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                <PackCard type="Personnalisé" />
-                <PackCard type="Enfants" />
-                <PackCard type="Loisirs" />
-                <PackCard type="Compétition" />
-              </div>
-
-              {/* Lien Voir tous les packs */}
-              <div className="text-right mt-12">
-                <Link to="/packs" className="text-red font-inter font-bold uppercase text-sm hover:text-red/80 transition-colors inline-flex items-center gap-2">
-                  Voir tous les packs
-                  <span className="text-lg">→</span>
-                </Link>
-              </div>
-
+        </div> {/* Fermeture du conteneur Hero (ligne 30) */}
+        
+        {/* Pack disponible */}
+        <div className="w-full bg-black py-16 px-6 md:px-12 lg:px-24 text-white">
+          <div className="mx-auto">
+            
+            {/* En-tête */}
+            <div className="mb-12 text-left">
+              <h1 className="text-4xl font-bold font-bebas uppercase tracking-wide mb-1">
+                Les packs disponibles
+              </h1>
+              <p className="text-lg text-gray-400 font-inter font-light">
+                Occasions vérifiées
+              </p>
             </div>
+
+            {/* Grille des packs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              <PackCard type="Personnalisé" />
+              <PackCard type="Enfants" />
+              <PackCard type="Loisirs" />
+              <PackCard type="Compétition" />
+            </div>
+
+            {/* Lien Voir tous les packs */}
+            <div className="text-right mt-12">
+              <Link to="/packs" className="text-red font-inter font-bold uppercase text-sm hover:text-red/80 transition-colors inline-flex items-center gap-2">
+                Voir tous les packs
+                <span className="text-lg">→</span>
+              </Link>
+            </div>
+
           </div>
-          {/* Guide */}
-          <GuideLayout/>
-          
-          {/* Notre Sélection */}
-          <NotreSelection/>
-          
         </div>
+        {/* Guide */}
+        <GuideLayout/>
+        
+        {/* Notre Sélection */}
+        <NotreSelection/>
 
       </div>
     </>
