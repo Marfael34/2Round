@@ -86,7 +86,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Conversation>
      */
-    #[ORM\OneToMany(targetEntity: Conversation::class, mappedBy: 'buyerid')]
+    #[ORM\OneToMany(targetEntity: Conversation::class, mappedBy: 'buyer')]
     private Collection $conversations;
 
     #[ORM\ManyToOne(inversedBy: 'users')]

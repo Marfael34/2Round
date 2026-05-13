@@ -6,8 +6,13 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    port: 5178, // On change complètement de port pour éviter le processus planté !
     host: true, // Permet d'exposer l'application sur le réseau local ou via un tunnel
+    strictPort: true, // Force l'erreur si le port 5173 est pris au lieu de passer au 5174 en cachette !
     allowedHosts: true, // Autorise toutes les URLs entrantes (indispensable pour les tunnels Cloudflare/Ngrok qui changent souvent)
+    hmr: {
+      // clientPort: 443, // Commenté pour fonctionner aussi bien sur localhost que sur le tunnel (Vite utilisera le port de l'URL courante)
+    },
     // Décommente et adapte ceci quand ton frontend appellera l'API
     proxy: {
       '/api': {

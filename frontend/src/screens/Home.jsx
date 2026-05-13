@@ -5,6 +5,7 @@ import CustomButton from '../components/UI/CustomButton';
 import { Link } from 'react-router-dom';
 import PackCard from '../components/Product/PackCard';
 import GuideLayout from '../components/Guide/GuideLayout';
+import NotreSelection from '../components/Product/Highlighted';
 
 
 
@@ -21,7 +22,8 @@ const Home = () => {
           src={IMG_BOXE} 
           alt="preload" 
           className="hidden" 
-          onLoad={() => setIsLoaded(true)} 
+          onLoad={() => setIsLoaded(true)}
+          onError={() => setIsLoaded(true)}
         />
         
         {/* Conteneur principal avec l'image de fond (ajout de relative ici) */}
@@ -99,7 +101,11 @@ const Home = () => {
           {/* Guide */}
           <GuideLayout/>
           
+          {/* Notre Sélection */}
+          <NotreSelection/>
+          
         </div>
+
       </div>
     </>
   );

@@ -3,32 +3,47 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+
 use App\Repository\ProductRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['product:read']],
+)]
+#[ApiFilter(BooleanFilter::class, properties: ['isHighlighted'])]
 class Product
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['product:read'])]
     private ?int $id = null;
 
+
     #[ORM\Column(length: 150)]
+    #[Groups(['product:read'])]
     private ?string $title = null;
 
+
     #[ORM\Column(length: 100)]
+    #[Groups(['product:read'])]
     private ?string $brand = null;
+
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 2)]
+    #[Groups(['product:read'])]
     private ?string $price = null;
+
 
     #[ORM\Column]
     private ?int $weight = null;
@@ -64,6 +79,10 @@ class Product
      */
     #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'product')]
     private Collection $images;
+
+    #[ORM\Column]
+    #[Groups(['product:read'])]
+    private ?bool $isHighlighted = null;
 
     public function __construct()
     {
@@ -278,6 +297,25 @@ class Product
     public function setEtat(?Etat $etat): static
     {
         $this->etat = $etat;
+
+        return $this;
+    }
+
+    #[Groups(['product:read'])]
+    public function isHighlighted(): ?bool
+    {
+        return $this->isHighlighted;
+    }
+
+    #[Groups(['product:read'])]
+    public function getIsHighlighted(): ?bool
+    {
+        return $this->isHighlighted;
+    }
+
+    public function setIsHighlighted(bool $isHighlighted): static
+    {
+        $this->isHighlighted = $isHighlighted;
 
         return $this;
     }

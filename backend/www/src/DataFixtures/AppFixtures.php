@@ -230,6 +230,13 @@ class AppFixtures extends Fixture
                 $manager->persist($image);
             }
 
+            // Mettre en avant les 3 premiers produits
+            if ($key < 3) {
+                $product->setIsHighlighted(true);
+            } else {
+                $product->setIsHighlighted(false);
+            }
+
             $manager->persist($product);
         }
     }
