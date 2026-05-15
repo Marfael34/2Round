@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    port: 5178, // On change complètement de port pour éviter le processus planté !
+    port: 5179, // On change complètement de port pour éviter le processus planté !
     host: true, // Permet d'exposer l'application sur le réseau local ou via un tunnel
     strictPort: true, // Force l'erreur si le port 5173 est pris au lieu de passer au 5174 en cachette !
     allowedHosts: true, // Autorise toutes les URLs entrantes (indispensable pour les tunnels Cloudflare/Ngrok qui changent souvent)

@@ -30,14 +30,14 @@ const Home = () => {
         
         {/* Conteneur principal avec l'image de fond (ajout de relative ici) */}
         <div 
-          className={`w-full h-[435px] bg-boxe md:w-[750px] lg:w-[1100px] xl:w-[1700px] md:h-[1000px]  relative transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+          className={`w-full h-[435px] bg-boxe max-w-[1700px] md:h-[1000px] relative transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
           style={{ backgroundImage: `url(${IMG_BOXE})` }}
         >
           {/*  */}
           <div className="flex flex-col items-center h-full md:items-end md:mr-20"> 
             <img src={IMG_LOGO} alt="logo" className="w-50 pt-10 md:w-[651px]"/>
              
-            <div className=" flex flex-col gap-4 pt-30 w-80 md:w-[651px] md:h-27 md:justify-start md:mt-25">
+            <div className="flex flex-col gap-4 pt-30 w-full max-w-[651px] px-4 md:px-0 md:h-27 md:justify-start md:mt-25">
               {isLoggedIn ? (
                 <CustomButton to="/my-locker" className="border-3 font-inter font-extrabold uppercase hover:bg-red active:bg-red md:mb-10">
                   Mon Vestiaire

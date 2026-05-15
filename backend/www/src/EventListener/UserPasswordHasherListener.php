@@ -31,9 +31,10 @@ class UserPasswordHasherListener
 
     private function hashPassword(User $user): void
     {
-        if ($user->getPassword()) {
+        $password = $user->getPassword();
+        if ($password && !str_starts_with($password, '$')) {
             $user->setPassword(
-                $this->passwordHasher->hashPassword($user, $user->getPassword())
+                $this->passwordHasher->hashPassword($user, $password)
             );
         }
     }
