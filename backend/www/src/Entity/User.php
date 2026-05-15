@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -10,19 +12,25 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[ApiResource()]
+#[ApiResource(
+    normalizationContext: ['groups' => ['user:read']],
+)]
+#[ApiFilter(SearchFilter::class, properties: ['email' => 'exact'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(['user:read'])]
     private ?string $email = null;
 
     /**
@@ -44,15 +52,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $firstname = null;
 
     #[ORM\Column(length: 150)]
+    #[Groups(['user:read'])]
     private ?string $pseudo = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $avatar = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTime $birthday_at = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $weight = null;
 
     #[ORM\Column(nullable: true)]
@@ -92,10 +103,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $conversations;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
+    #[Groups(['user:read'])]
     private ?Boxe $boxe = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
+    #[Groups(['user:read'])]
     private ?Level $level = null;
+
+    /**
+     * @var Collection<int, Evaluation>
+     */
+    #[ORM\OneToMany(targetEntity: Evaluation::class, mappedBy: 'receiver')]
+    #[Groups(['user:read'])]
+    private Collection $receivedEvaluations;
+
+    /**
+     * @var Collection<int, Evaluation>
+     */
+    #[ORM\OneToMany(targetEntity: Evaluation::class, mappedBy: 'sender')]
+    private Collection $sentEvaluations;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
     private ?Gender $gender = null;
@@ -113,6 +139,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTime $createdAt = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 2, nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $size = null;
 
     public function __construct()
@@ -122,6 +149,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->messages = new ArrayCollection();
         $this->conversations = new ArrayCollection();
         $this->reports = new ArrayCollection();
+        $this->receivedEvaluations = new ArrayCollection();
+        $this->sentEvaluations = new ArrayCollection();
         $this->createdAt = new \DateTime();
         $this->is_onboarding_completed = false;
         $this->isActive = true;
@@ -133,6 +162,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
+    #[Groups(['user:read'])]
     public function getEmail(): ?string
     {
         return $this->email;
@@ -219,6 +249,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[Groups(['user:read'])]
     public function getPseudo(): ?string
     {
         return $this->pseudo;
@@ -231,6 +262,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[Groups(['user:read'])]
     public function getAvatar(): ?string
     {
         return $this->avatar;
@@ -255,6 +287,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[Groups(['user:read'])]
     public function getWeight(): ?string
     {
         return $this->weight;
@@ -435,24 +468,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getBoxeId(): ?Boxe
+    #[Groups(['user:read'])]
+    public function getBoxe(): ?Boxe
     {
         return $this->boxe;
     }
 
-    public function setBoxeId(?Boxe $boxe): static
+    public function setBoxe(?Boxe $boxe): static
     {
         $this->boxe = $boxe;
 
         return $this;
     }
 
-    public function getLevelId(): ?Level
+    #[Groups(['user:read'])]
+    public function getLevel(): ?Level
     {
         return $this->level;
     }
 
-    public function setLevelId(?Level $level): static
+    public function setLevel(?Level $level): static
     {
         $this->level = $level;
 
@@ -525,6 +560,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[Groups(['user:read'])]
     public function getSize(): ?string
     {
         return $this->size;

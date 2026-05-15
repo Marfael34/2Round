@@ -26,3 +26,7 @@ body {
 .bg-boxe{
     @apply bg-no-repeat bg-left mt-15 bg-cover md:bg-left-top md:mt-18
 }
+
+.bg-rayure{
+    @apply  bg-no-repeat bg-left mt-15 bg-cover md:bg-left-top md:mt-18 w-full bg-gray-dark bg-blend-multiply relative transition-opacity duration-500 py-10 md:py-20
+}
