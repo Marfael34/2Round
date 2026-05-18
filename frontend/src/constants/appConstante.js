@@ -8,8 +8,8 @@ import { IMAGE_URL } from "./apiConstante";
 
 // Logo de l'application
 export const IMG_LOGO = `${IMAGE_URL}/Logo.png`
-export const IMG_BOXE = `${IMAGE_URL}/background/bg_boxer.png`
-export const IMG_BGRAYURE = `${IMAGE_URL}/background/bg_rayure.png`
+export const IMG_BOXE = `${IMAGE_URL}/background/bg_boxer.webp`
+export const IMG_BGRAYURE = `${IMAGE_URL}/background/bg_rayure.webp`
 
 
 //STYLES POUR LES ICONES

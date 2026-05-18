@@ -1,6 +1,14 @@
+import { useEffect } from 'react';
 import { IMG_LOGO } from '../../constants/appConstante';
 
 const Loader = () => {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col justify-center items-center">
       <div className="relative flex flex-col items-center">

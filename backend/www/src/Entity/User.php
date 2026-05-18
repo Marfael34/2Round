@@ -469,12 +469,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     #[Groups(['user:read'])]
-    public function getBoxe(): ?Boxe
+    public function getBoxeId(): ?Boxe
     {
         return $this->boxe;
     }
 
-    public function setBoxe(?Boxe $boxe): static
+    public function setBoxeId(?Boxe $boxe): static
     {
         $this->boxe = $boxe;
 
@@ -482,12 +482,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     #[Groups(['user:read'])]
-    public function getLevel(): ?Level
+    public function getLevelId(): ?Level
     {
         return $this->level;
     }
 
-    public function setLevel(?Level $level): static
+    public function setLevelId(?Level $level): static
     {
         $this->level = $level;
 
