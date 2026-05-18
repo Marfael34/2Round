@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { IMG_BGRAYURE } from "../constants/appConstante"
 import { useNavigate, Link } from "react-router-dom";
-import UserProducts from "../components/UserProducts";
-import UserEvaluations from "../components/UserEvaluations";
+import UserProducts from "../components/Profile/UserProducts";
+import UserEvaluations from "../components/Profile/UserEvaluations";
+import { FaChevronLeft } from "react-icons/fa6";
 
 const MyLocker = () => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ const MyLocker = () => {
 
         if (response.status === 401) {
           localStorage.removeItem('token');
-          navigate('/login');
+          navigate('/login', { state: { message: "Votre session a expiré, veuillez vous reconnecter." } });
           return;
         }
 
@@ -61,11 +62,11 @@ const MyLocker = () => {
         }
 
         const data = await response.json();
-        console.log('API Response data:', data);
+
 
         // Gérer le format de réponse (collection ou objet)
         const userData = data.member ? data.member[0] : (data['hydra:member'] ? data['hydra:member'][0] : (Array.isArray(data) ? data[0] : data));
-        console.log('User Data extracted:', userData);
+
 
         if (!userData) {
           throw new Error('Utilisateur non trouvé');
@@ -101,8 +102,8 @@ const MyLocker = () => {
           const extractedProducts = data.member || data['hydra:member'] || (Array.isArray(data) ? data : []);
           setProducts(extractedProducts);
         }
-      } catch (err) {
-        console.error('Error fetching products:', err);
+      } catch {
+        // Silently ignore product fetch errors
       } finally {
         setLoadingProducts(false);
       }
@@ -121,11 +122,11 @@ const MyLocker = () => {
 
       <div className={`text-white min-h-screen flex flex-col ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
         {/* Top Section: Striped Background */}
-        <div className="bg-rayure p-8 pb-0 border-b border-white/10 pb-2" style={{ backgroundImage: `url(${IMG_BGRAYURE})` }}>
+        <div className="bg-rayure p-8 border-b border-white/10 pb-2" style={{ backgroundImage: `url(${IMG_BGRAYURE})` }}>
           <div className="w-full px-4 md:px-12 lg:px-24">
             <div className="mb-12 flex items-center">
-              <Link to="/" className="text-white text-5xl md:text-6xl font-bebas mr-4">
-                &lt;
+              <Link to="/" className="text-white text-4xl font-bebas mr-4">
+                <FaChevronLeft /> 
               </Link>
               <h2 className="font-bebas uppercase text-5xl md:text-6xl">Mon Vestiaire</h2>
             </div>

@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { IMG_BOXE } from '../constants/appConstante';
 import { API_URL } from '../constants/apiConstante';
 import { Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState(location.state?.message || '');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
@@ -45,7 +46,7 @@ const Login = () => {
         throw new Error("Email ou mot de passe incorrect");
       }
 
-      console.log('Connexion réussie:', data);
+
       
       // Stocker le token JWT
       if (data.token) {

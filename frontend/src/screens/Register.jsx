@@ -45,7 +45,7 @@ const Register = () => {
       return;
     }
 
-    console.log(`Données d'inscription (${formType}) submitted:`, formData);
+
     
     const dataToSend = { ...formData };
     delete dataToSend.confirmPassword;
@@ -93,7 +93,7 @@ const Register = () => {
         throw new Error(errorMessage);
       }
 
-      console.log('Inscription réussie:', data);
+
       
       // Vider les champs
       setFormData({

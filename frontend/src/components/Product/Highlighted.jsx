@@ -17,7 +17,6 @@ const Selection = () => {
         const data = await response.json();
         // L'API Platform renvoie les données dans la clé member ou hydra:member
         const items = data['member'] || data['hydra:member'] || [];
-        console.log('Produits mis en avant reçus de l\'API:', items);
         setProducts(items);
         setLoading(false);
       } catch (err) {

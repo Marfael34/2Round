@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
+
 
 const Tagline = () => {
   return (
@@ -30,7 +31,7 @@ const Tagline = () => {
 
       {/* Bouton Revendre */}
       <div className="shrink-0 mb-4">
-        <Link 
+        <Link
           to="/resale" 
           className="bg-red-600 text-white font-inter font-bold uppercase text-sm py-3 px-6 rounded-full flex items-center gap-2 hover:bg-red-700 transition-colors"
         >

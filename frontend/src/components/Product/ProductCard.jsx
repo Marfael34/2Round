@@ -10,9 +10,6 @@ const ProductCard = ({ product }) => {
     
     setIsFavorite(!isFavorite);
     
-    // Mock de l'appel API ou console.log pour le moment
-    console.log(`Produit ${product.id} ${!isFavorite ? 'ajouté aux' : 'retiré des'} favoris`);
-    
     // TODO: Une fois l'auth implémentée, faire l'appel fetch('/api/favorites')
   };
 

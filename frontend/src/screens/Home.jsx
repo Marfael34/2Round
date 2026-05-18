@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import PackCard from '../components/Product/PackCard';
 import GuideLayout from '../components/Guide/GuideLayout';
 import NotreSelection from '../components/Product/Highlighted';
-import Tagline from '../components/Tagline';
+import Tagline from '../components/UI/Tagline';
 
 
 
