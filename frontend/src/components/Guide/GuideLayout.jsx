@@ -18,7 +18,7 @@ const GuideLayout = () => {
             
           <div className=
           {
-            `w-full bg-boxe bg-gray-dark bg-blend-multiply relative transition-opacity duration-500 
+            `w-full bg-boxe bg-blend-multiply relative transition-opacity duration-500 max-w-[1800px] 
             ${isLoaded ? 'opacity-100' : 'opacity-0'} py-10 md:py-20`}
             style={{ backgroundImage: `url(${IMG_BGRAYURE})` }}
           >

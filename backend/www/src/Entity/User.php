@@ -142,6 +142,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read'])]
     private ?string $size = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $refreshToken = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $refreshTokenExpiredAt = null;
+
     public function __construct()
     {
         $this->favorites = new ArrayCollection();
@@ -569,6 +575,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setSize(string $size): static
     {
         $this->size = $size;
+
+        return $this;
+    }
+
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken;
+    }
+
+    public function setRefreshToken(?string $refreshToken): static
+    {
+        $this->refreshToken = $refreshToken;
+
+        return $this;
+    }
+
+    public function getRefreshTokenExpiredAt(): ?\DateTimeInterface
+    {
+        return $this->refreshTokenExpiredAt;
+    }
+
+    public function setRefreshTokenExpiredAt(?\DateTimeInterface $refreshTokenExpiredAt): static
+    {
+        $this->refreshTokenExpiredAt = $refreshTokenExpiredAt;
 
         return $this;
     }

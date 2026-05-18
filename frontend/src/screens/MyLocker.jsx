@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import UserProducts from "../components/Profile/UserProducts";
 import UserEvaluations from "../components/Profile/UserEvaluations";
 import { FaChevronLeft } from "react-icons/fa6";
+import { securedFetch } from "../utils/api";
 
 const MyLocker = () => {
   const navigate = useNavigate();
@@ -44,18 +45,7 @@ const MyLocker = () => {
         }
 
         // Récupérer les infos de l'utilisateur
-        const response = await fetch(`/api/users?email=${encodeURIComponent(email)}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/ld+json, application/json',
-          }
-        });
-
-        if (response.status === 401) {
-          localStorage.removeItem('token');
-          navigate('/login', { state: { message: "Votre session a expiré, veuillez vous reconnecter." } });
-          return;
-        }
+        const response = await securedFetch(`/api/users?email=${encodeURIComponent(email)}`);
 
         if (!response.ok) {
           throw new Error('Erreur lors de la récupération des données');
@@ -88,14 +78,8 @@ const MyLocker = () => {
       if (!user || activeTab !== 'articles' || products.length > 0) return;
 
       setLoadingProducts(true);
-      const token = localStorage.getItem('token');
       try {
-        const response = await fetch(`/api/products?seller=${encodeURIComponent(user['@id'])}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/ld+json, application/json',
-          }
-        });
+        const response = await securedFetch(`/api/products?seller=${encodeURIComponent(user['@id'])}`);
 
         if (response.ok) {
           const data = await response.json();

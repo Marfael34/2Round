@@ -30,7 +30,7 @@ const Home = () => {
         
         {/* Conteneur principal avec l'image de fond (ajout de relative ici) */}
         <div 
-          className={`w-full h-[435px] bg-boxe max-w-[1700px] md:h-[1000px] relative transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+          className={`w-full h-[435px] bg-boxe max-w-[1800px] md:h-[1000px] relative transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
           style={{ backgroundImage: `url(${IMG_BOXE})` }}
         >
           {/*  */}

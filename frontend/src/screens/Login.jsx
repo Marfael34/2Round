@@ -11,7 +11,10 @@ const Login = () => {
     email: '',
     password: '',
   });
-  const [error, setError] = useState(location.state?.message || '');
+  const [error, setError] = useState(
+    location.state?.message || 
+    (new URLSearchParams(location.search).get('expired') ? "Votre session a expiré, veuillez vous reconnecter." : "")
+  );
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
@@ -46,11 +49,12 @@ const Login = () => {
         throw new Error("Email ou mot de passe incorrect");
       }
 
-
-      
-      // Stocker le token JWT
+      // Stocker le token JWT et le Refresh Token
       if (data.token) {
         localStorage.setItem('token', data.token);
+      }
+      if (data.refresh_token) {
+        localStorage.setItem('refresh_token', data.refresh_token);
       }
 
       // Rediriger vers l'accueil
