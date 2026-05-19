@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { IMG_BOXE } from '../constants/appConstante';
 import { API_URL } from '../constants/apiConstante';
 import { Eye, EyeOff } from 'lucide-react';
@@ -7,12 +7,14 @@ import CustomInput from '../components/UI/CustomInput';
 
 const Register = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (localStorage.getItem('token')) {
-      navigate('/my-locker');
+      const from = location.state?.from || '/my-locker';
+      navigate(from);
     }
-  }, [navigate]);
+  }, [navigate, location]);
   const [formType, setFormType] = useState('short'); // 'short' or 'long'
   const [currentStep, setCurrentStep] = useState(1); // 1 to 4 for long form
 

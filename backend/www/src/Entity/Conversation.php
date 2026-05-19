@@ -7,32 +7,42 @@ use App\Repository\ConversationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ConversationRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['conversation:read']],
+    denormalizationContext: ['groups' => ['conversation:write']],
+)]
 class Conversation
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['conversation:read'])]
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Groups(['conversation:read', 'conversation:write'])]
     private ?\DateTime $createdAt = null;
 
     /**
      * @var Collection<int, Message>
      */
     #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'conversation')]
+    #[Groups(['conversation:read'])]
     private Collection $messages;
 
     #[ORM\ManyToOne(inversedBy: 'conversations')]
+    #[Groups(['conversation:read', 'conversation:write'])]
     private ?User $buyer = null;
 
     #[ORM\ManyToOne(inversedBy: 'conversations')]
+    #[Groups(['conversation:read', 'conversation:write'])]
     private ?User $seller = null;
 
     #[ORM\ManyToOne(inversedBy: 'conversations')]
+    #[Groups(['conversation:read', 'conversation:write'])]
     private ?Product $product = null;
 
     /**
@@ -94,6 +104,17 @@ class Conversation
         return $this;
     }
 
+    public function getBuyer(): ?User
+    {
+        return $this->buyer;
+    }
+
+    public function setBuyer(?User $buyer): static
+    {
+        $this->buyer = $buyer;
+        return $this;
+    }
+
     public function getBuyerid(): ?User
     {
         return $this->buyer;
@@ -106,6 +127,17 @@ class Conversation
         return $this;
     }
 
+    public function getSeller(): ?User
+    {
+        return $this->seller;
+    }
+
+    public function setSeller(?User $seller): static
+    {
+        $this->seller = $seller;
+        return $this;
+    }
+
     public function getSellerId(): ?User
     {
         return $this->seller;
@@ -115,6 +147,17 @@ class Conversation
     {
         $this->seller = $seller;
 
+        return $this;
+    }
+
+    public function getProduct(): ?Product
+    {
+        return $this->product;
+    }
+
+    public function setProduct(?Product $product): static
+    {
+        $this->product = $product;
         return $this;
     }
 

@@ -25,12 +25,12 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'conversation:read'])]
     private ?int $id = null;
 
 
     #[ORM\Column(length: 150)]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'conversation:read'])]
     private ?string $title = null;
 
 
@@ -43,7 +43,7 @@ class Product
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 2)]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'conversation:read'])]
     private ?string $price = null;
 
 
@@ -82,7 +82,7 @@ class Product
      * @var Collection<int, Image>
      */
     #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'product')]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'conversation:read'])]
     private Collection $images;
 
     #[ORM\Column(length: 50, nullable: true)]

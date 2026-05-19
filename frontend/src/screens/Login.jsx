@@ -11,9 +11,10 @@ const Login = () => {
 
   useEffect(() => {
     if (localStorage.getItem('token')) {
-      navigate('/my-locker');
+      const from = location.state?.from || '/my-locker';
+      navigate(from);
     }
-  }, [navigate]);
+  }, [navigate, location]);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -66,8 +67,9 @@ const Login = () => {
       localStorage.setItem('lastActive', Date.now().toString());
       sessionStorage.setItem('session_active', 'true');
 
-      // Rediriger vers l'accueil
-      navigate('/');
+      // Rediriger vers la page d'origine ou l'accueil
+      const from = location.state?.from || '/';
+      navigate(from);
     } catch (err) {
       setError(err.message);
     }

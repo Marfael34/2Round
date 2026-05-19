@@ -8,29 +8,39 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['message:read']],
+    denormalizationContext: ['groups' => ['message:write']],
+)]
 class Message
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['message:read', 'conversation:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['message:read', 'message:write', 'conversation:read'])]
     private ?string $content = null;
 
     #[ORM\Column]
+    #[Groups(['message:read', 'message:write', 'conversation:read'])]
     private ?bool $isRead = null;
 
     #[ORM\Column]
+    #[Groups(['message:read', 'message:write', 'conversation:read'])]
     private ?\DateTime $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'messages')]
+    #[Groups(['message:read', 'message:write', 'conversation:read'])]
     private ?User $users = null;
 
     #[ORM\ManyToOne(inversedBy: 'messages')]
+    #[Groups(['message:read', 'message:write'])]
     private ?Conversation $conversation = null;
 
     /**
@@ -40,6 +50,7 @@ class Message
     private Collection $reports;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[Groups(['message:read', 'message:write', 'conversation:read'])]
     private ?Offer $offer = null;
 
     /**

@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { FaChevronLeft, FaChevronRight, FaHeart, FaStar } from "react-icons/fa6";
+import { useParams, useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
+import { FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaXmark, FaTag } from "react-icons/fa6";
 import { securedFetch } from "../../utils/api";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,6 +18,147 @@ const ProductDetail = () => {
   // Relatives lists
   const [sellerProducts, setSellerProducts] = useState([]);
   const [suggestedProducts, setSuggestedProducts] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  // Offer Modal States
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerAmount, setOfferAmount] = useState("");
+  const [offerError, setOfferError] = useState("");
+  const [sendingOffer, setSendingOffer] = useState(false);
+
+  // Fetch current user details if logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+          window.atob(base64)
+            .split("")
+            .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+            .join("")
+        );
+        const payload = JSON.parse(jsonPayload);
+        const email = payload.username;
+        if (email) {
+          securedFetch(`/api/users?email=${encodeURIComponent(email)}`)
+            .then((res) => res.json())
+            .then((data) => {
+              const userObj = data["hydra:member"]?.[0] || data?.[0];
+              if (userObj) {
+                setCurrentUserId(userObj.id);
+              }
+            })
+            .catch((err) => console.error("Error fetching current user info:", err));
+        }
+      } catch (e) {
+        console.error("JWT decoding failed:", e);
+      }
+    }
+  }, []);
+
+  // Handle auto-open of offer modal if query param is set
+  useEffect(() => {
+    if (searchParams.get('initOffer') === 'true') {
+      Promise.resolve().then(() => {
+        setShowOfferModal(true);
+        setSearchParams({});
+      });
+    }
+  }, [searchParams, setSearchParams]);
+
+  const handleSubmitOffer = async (e) => {
+    e.preventDefault();
+    if (!offerAmount || !currentUserId || !product) return;
+
+    const originalPrice = parseFloat(product.price || 0);
+    const minOffer = originalPrice * 0.6;
+    const amount = parseFloat(offerAmount);
+
+    if (amount < minOffer) {
+      setOfferError(`Votre offre doit être d'au moins 60% du prix d'origine (soit ${minOffer.toFixed(0)}€).`);
+      return;
+    }
+    if (amount >= originalPrice) {
+      setOfferError(`Votre offre doit être inférieure au prix initial (soit ${originalPrice.toFixed(0)}€).`);
+      return;
+    }
+
+    setSendingOffer(true);
+    try {
+      // 1. Check if conversation already exists
+      const convsRes = await securedFetch(`/api/conversations`);
+      let activeConvId = null;
+      
+      if (convsRes.ok) {
+        const convsData = await convsRes.json();
+        const allConvs = convsData.member || convsData['hydra:member'] || [];
+        const existing = allConvs.find(c => {
+          const prodId = c.product?.id || c.product?.split('/').pop();
+          const buyerId = c.buyer?.id || c.buyer?.split('/').pop();
+          return Number(prodId) === Number(product.id) && Number(buyerId) === currentUserId;
+        });
+        if (existing) {
+          activeConvId = existing.id;
+        }
+      }
+
+      // 2. Create conversation if it doesn't exist
+      if (!activeConvId) {
+        const newConvRes = await securedFetch(`/api/conversations`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            buyer: `/api/users/${currentUserId}`,
+            seller: product.seller?.['@id'] || `/api/users/${product.seller?.id}`,
+            product: `/api/products/${product.id}`,
+            createdAt: new Date().toISOString()
+          })
+        });
+        if (!newConvRes.ok) throw new Error("Erreur de création de la conversation");
+        const newConvData = await newConvRes.json();
+        activeConvId = newConvData.id;
+      }
+
+      // 3. Create the Offer
+      const offerRes = await securedFetch(`/api/offers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: Number(offerAmount),
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        })
+      });
+      if (!offerRes.ok) throw new Error("Erreur de création de l'offre");
+      const offerData = await offerRes.json();
+
+      // 4. Create the Message
+      const msgRes = await securedFetch(`/api/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: `Propose une offre de prix à ${offerAmount}€`,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+          users: `/api/users/${currentUserId}`,
+          conversation: `/api/conversations/${activeConvId}`,
+          offer: offerData['@id']
+        })
+      });
+      if (!msgRes.ok) throw new Error("Erreur d'envoi du message");
+
+      // 5. Navigate to the conversation screen
+      setShowOfferModal(false);
+      navigate(`/conversation?productId=${product.id}`);
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de l'envoi de l'offre.");
+    } finally {
+      setSendingOffer(false);
+    }
+  };
 
   const fetchSellerProducts = async (sellerIri, currentId) => {
     try {
@@ -158,6 +301,8 @@ const ProductDetail = () => {
 
   const allImages = getProductAllImages(product);
   const seller = product.seller || {};
+  const sellerIri = seller['@id'] || (typeof seller === 'string' ? seller : '');
+  const sellerId = Number(seller.id || sellerIri.split('/').pop());
   const evaluations = seller.receivedEvaluations || [];
   const averageRating = evaluations.length > 0
     ? evaluations.reduce((sum, ev) => sum + ev.rating, 0) / evaluations.length
@@ -237,7 +382,7 @@ const ProductDetail = () => {
             </h2>
 
             {/* Price */}
-            <div className="text-[#EF4444] font-bebas text-4xl mb-8 tracking-wide">
+            <div className="text-red font-bebas text-4xl mb-8 tracking-wide">
               {product.price}€
             </div>
 
@@ -246,8 +391,8 @@ const ProductDetail = () => {
               
               <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-white uppercase text-xs tracking-wider">Taille :</span>
-                  <span className="text-gray-400 font-light">{product.size || "Non spécifiée"}</span>
+                  <span className="font-bold text-white font-inter tracking-wider">Taille :</span>
+                  <span className="text-gray-400 font-inter font-light">{product.size || "Non spécifiée"}</span>
                 </div>
                 <Link to="/guidesize" className="text-xs text-gray-400 hover:text-white underline transition-colors">
                   Voir le guide &gt;
@@ -255,24 +400,24 @@ const ProductDetail = () => {
               </div>
 
               <div className="flex items-center py-1 gap-1.5">
-                <span className="font-bold text-white uppercase text-xs tracking-wider">Marque :</span>
-                <span className="text-gray-400 font-light">{product.brand || "Non renseignée"}</span>
+                <span className="font-bold text-white font-inter  tracking-wider">Marque :</span>
+                <span className="text-gray-400 font-inter font-light">{product.brand || "Non renseignée"}</span>
               </div>
 
               <div className="flex items-center py-1 gap-1.5">
-                <span className="font-bold text-white uppercase text-xs tracking-wider">État :</span>
-                <span className="text-gray-400 font-light">{product.etat?.label || "Non renseigné"}</span>
+                <span className="font-bold text-white  font-inter tracking-wider">État :</span>
+                <span className="text-gray-400 font-inter font-light">{product.etat?.label || "Non renseigné"}</span>
               </div>
 
               <div className="flex items-center py-1 gap-1.5">
                 <span className="font-bold text-white uppercase text-xs tracking-wider">Couleurs :</span>
-                <span className="text-gray-400 font-light">{getColors(product)}</span>
+                <span className="text-gray-400 font-inter font-light">{getColors(product)}</span>
               </div>
 
               {product.weight && (
                 <div className="flex items-center py-1 gap-1.5">
-                  <span className="font-bold text-white uppercase text-xs tracking-wider">Poids :</span>
-                  <span className="text-gray-400 font-light">{product.weight} g</span>
+                  <span className="font-bold text-white font-inter tracking-wider">Poids :</span>
+                  <span className="text-gray-400 font-inter font-light">{product.weight} g</span>
                 </div>
               )}
             </div>
@@ -283,24 +428,58 @@ const ProductDetail = () => {
             </p>
 
             {/* CTA Buttons */}
-            <div className="space-y-4 mb-8">
-              <button className="w-full bg-[#E5E5E5] hover:bg-white text-black font-inter font-bold py-4 text-center tracking-widest uppercase transition-all cursor-pointer rounded-sm text-sm">
-                Acheter
-              </button>
-              
-              <button className="w-full bg-transparent hover:bg-white/5 border border-white/40 hover:border-white text-white font-inter font-bold py-4 text-center tracking-widest uppercase transition-all cursor-pointer rounded-sm text-sm">
-                Faire une offre
-              </button>
+            {currentUserId === sellerId ? (
+              <div className="bg-[#151515] border border-white/10 p-4 rounded-sm text-center mb-8">
+                <span className="text-gray-400 font-inter text-sm font-extralight tracking-wider">C'est votre produit</span>
+              </div>
+            ) : (
+              <div className="space-y-4 mb-8">
+                <button 
+                  onClick={() => {
+                    if (!localStorage.getItem("token")) {
+                      navigate("/login", { state: { from: `/conversation?productId=${product.id}&checkout=true` } });
+                    } else {
+                      navigate(`/conversation?productId=${product.id}&checkout=true`);
+                    }
+                  }}
+                  className="w-full bg-[#E5E5E5] hover:bg-white text-black font-inter font-bold py-4 text-center tracking-widest uppercase transition-all cursor-pointer rounded-sm text-sm"
+                >
+                  Acheter
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    if (!localStorage.getItem("token")) {
+                      navigate("/login", { state: { from: `${location.pathname}?initOffer=true` } });
+                    } else {
+                      setOfferError('');
+                      setShowOfferModal(true);
+                    }
+                  }}
+                  className="w-full bg-transparent hover:bg-white/5 border border-white/40 hover:border-white text-white font-inter font-bold py-4 text-center tracking-widest uppercase transition-all cursor-pointer rounded-sm text-sm"
+                >
+                  Faire une offre
+                </button>
 
-              <button className="w-full bg-transparent hover:bg-white/5 border border-white/40 hover:border-white text-white font-inter font-bold py-4 text-center tracking-widest uppercase transition-all cursor-pointer rounded-sm text-sm">
-                Message
-              </button>
-            </div>
+                <button 
+                  onClick={() => {
+                    if (!localStorage.getItem("token")) {
+                      navigate("/login", { state: { from: `/conversation?productId=${product.id}` } });
+                    } else {
+                      navigate(`/conversation?productId=${product.id}`);
+                    }
+                  }}
+                  className="w-full bg-transparent hover:bg-white/5 border border-white/40 hover:border-white text-white font-inter font-bold py-4 text-center tracking-widest uppercase transition-all cursor-pointer rounded-sm text-sm"
+                >
+                  Message
+                </button>
+              </div>
+            )}
 
             {/* Seller Card Section */}
             {seller.pseudo && (
               <div 
-                onClick={() => navigate(`/locker/${seller.id}`)}
+                onClick={() => navigate(`/locker/${sellerId}`)}
                 className="border-t border-white/10 pt-6 mt-2 flex items-center gap-4 cursor-pointer group/seller"
               >
                 {/* Avatar */}
@@ -431,10 +610,99 @@ const ProductDetail = () => {
                 </div>
               </div>
             )}
-          </div>
-
+              </div>
         </div>
       </div>
+
+      {showOfferModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-[#0c0c0c] border border-white/10 rounded-sm p-6 md:p-8 shadow-2xl relative">
+            <button 
+              onClick={() => setShowOfferModal(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+            >
+              <FaXmark className="text-lg" />
+            </button>
+
+            <div className="flex items-center gap-2 mb-2 text-red-500">
+              <FaTag className="text-xl" />
+              <h3 className="font-bebas text-3xl uppercase tracking-wider text-white">
+                Faire une offre
+              </h3>
+            </div>
+            
+            <p className="text-xs text-gray-400 mb-6 leading-relaxed">
+              Proposez un prix d'achat alternatif au vendeur pour{' '}
+              <span className="text-white font-bold">{product.title}</span>. Le prix initial est de{' '}
+              <span className="text-red-500 font-bold">{product.price}€</span>.
+            </p>
+
+            {/* Quick Discount Recommendations */}
+            <div className="mb-6">
+              <span className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-3">Offres rapides suggérées</span>
+              <div className="flex gap-3">
+                {[
+                  { pct: '-10%', val: Math.round(product.price * 0.9) },
+                  { pct: '-15%', val: Math.round(product.price * 0.85) },
+                  { pct: '-20%', val: Math.round(product.price * 0.8) }
+                ].map((sugg, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      setOfferAmount(sugg.val.toString());
+                      setOfferError('');
+                    }}
+                    className="flex-1 bg-neutral-900 border border-white/10 hover:border-red-500/50 hover:bg-neutral-800 text-white font-bold py-2 px-3 rounded-md text-xs uppercase transition-all cursor-pointer flex flex-col items-center gap-0.5"
+                  >
+                    <span className="text-red-400 font-bold">{sugg.pct}</span>
+                    <span className="text-[10px] text-gray-400">{sugg.val}€</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmitOffer} className="space-y-4">
+              <div>
+                <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">
+                  Votre proposition (€)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    required
+                    placeholder={`Min. ${(product.price * 0.6).toFixed(0)}€`}
+                    value={offerAmount}
+                    onChange={(e) => {
+                      setOfferAmount(e.target.value);
+                      setOfferError('');
+                    }}
+                    className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-sm p-3.5 pr-10 text-white text-base transition-colors"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm">€</span>
+                </div>
+                
+                {offerError && (
+                  <span className="text-red-500 text-[10px] mt-2 block leading-relaxed font-semibold">
+                    {offerError}
+                  </span>
+                )}
+                <span className="block text-[9px] text-gray-500 mt-2 italic">
+                  Note: Par respect des règles anti-spam Vinted, vous ne pouvez pas proposer une réduction supérieure à 40% du prix d'origine (soit minimum ${(product.price * 0.6).toFixed(0)}€).
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={sendingOffer || !offerAmount}
+                className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold py-3.5 uppercase tracking-widest rounded-sm text-xs transition-colors cursor-pointer"
+              >
+                {sendingOffer ? 'Soumission...' : "Soumettre l'offre"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
