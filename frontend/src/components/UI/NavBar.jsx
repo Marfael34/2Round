@@ -6,11 +6,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { IMG_LOGO } from '../../constants/appConstante';
 
 
-const NavBar = () => {
+const NavBar = ({user, onLogout}) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
+  // --- Fonction de déconnexion ---
+  const handleLogout = async () => {
+    // Plus d'appel Axios inutile qui cause le 404 !
+    if (onLogout) onLogout(); // Ça va mettre 'user' à null et le AuthContext supprimera le cookie
+    setIsMenuOpen(false);
+    navigate("/login");
+  };
 
   return (
     <nav className="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-gray-800 fixed top0 left-0 w-full z-50">
@@ -45,14 +52,28 @@ const NavBar = () => {
           
           {isUserDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-[#1A1A1A] border border-gray-700 rounded-lg shadow-lg py-2 z-50">
-              <Link to="/my-locker" className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors text-sm" onClick={() => setIsUserDropdownOpen(false)}>
-                <GiLockers className="h-4 w-4 mr-2" />
-                Mon Vestiaire
-              </Link>
               <Link to="/mycustomised" className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors text-sm" onClick={() => setIsUserDropdownOpen(false)}>
                 <MdFavoriteBorder className="h-4 w-4 mr-2" />
                 Mon Round Personnalisé
               </Link>
+              <div className=" h-px bg-gray-300 mx-5"></div>
+              <Link to="/my-locker" className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors text-sm" onClick={() => setIsUserDropdownOpen(false)}>
+                <GiLockers className="h-4 w-4 mr-2" />
+                Mon Vestiaire
+              </Link>
+              {/* Bouton Déconnexion */}
+              {user && (
+                <>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center w-full text-left px-4 py-2 hover:bg-gray-800 text-red-500 hover:text-red-400 font-bold text-sm transition-colors"
+                  >
+                    Se déconnecter
+                  </button>
+                </>
+              )}
+              
+
             </div>
           )}
         </div>
@@ -107,14 +128,30 @@ const NavBar = () => {
               
               {isUserDropdownOpen && (
                 <div className="pl-12 flex flex-col space-y-2 mt-1">
-                  <Link to="/my-locker" className="flex py-2 text-sm text-gray-400 hover:text-white transition-colors" onClick={() => { setIsMenuOpen(false); setIsUserDropdownOpen(false); }}>
-                    <GiLockers className="h-4 w-4 mr-2" />
-                    Mon Vestiaire
-                  </Link>
+                  
                   <Link to="/myCustomised" className="flex py-2 text-sm text-gray-400 hover:text-white transition-colors" onClick={() => { setIsMenuOpen(false); setIsUserDropdownOpen(false); }}>
                     <MdFavoriteBorder className="h-4 w-4 mr-2" />
                     Mon Round Personnalisé
                   </Link>
+
+                  <div className=" h-px bg-gray-300 w-full"></div>
+
+                  <Link to="/my-locker" className="flex py-2 text-sm text-gray-400 hover:text-white transition-colors" onClick={() => { setIsMenuOpen(false); setIsUserDropdownOpen(false); }}>
+                    <GiLockers className="h-4 w-4 mr-2" />
+                    Mon Vestiaire
+                  </Link>
+
+                  {user && (
+                    <>
+                      <div className="h-px bg-gray-800 w-full my-1"></div>
+                      <button
+                        onClick={handleLogout}
+                        className="flex py-2 text-sm text-red-500 hover:text-red-400 font-bold transition-colors text-left"
+                      >
+                        Se déconnecter
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>

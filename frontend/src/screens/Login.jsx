@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { IMG_BOXE } from '../constants/appConstante';
 import { API_URL } from '../constants/apiConstante';
@@ -7,6 +7,12 @@ import { Eye, EyeOff } from 'lucide-react';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      navigate('/my-locker');
+    }
+  }, [navigate]);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -56,6 +62,8 @@ const Login = () => {
       if (data.refresh_token) {
         localStorage.setItem('refresh_token', data.refresh_token);
       }
+      localStorage.setItem('lastActive', Date.now().toString());
+      sessionStorage.setItem('session_active', 'true');
 
       // Rediriger vers l'accueil
       navigate('/');

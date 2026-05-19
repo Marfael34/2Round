@@ -41,6 +41,10 @@ async function performTokenRefresh() {
 export async function securedFetch(url, options = {}) {
   let token = localStorage.getItem('token');
   
+  if (token) {
+    localStorage.setItem('lastActive', Date.now().toString());
+  }
+  
   // Fusionner les headers avec les valeurs par défaut
   const headers = {
     'Accept': 'application/ld+json, application/json',
