@@ -1,7 +1,7 @@
 security:
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: "auto"
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
@@ -16,7 +16,7 @@ security:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
-        
+
         login:
             pattern: ^/api/login
             stateless: true
@@ -31,12 +31,17 @@ security:
             methods: [GET]
             security: false
 
+        etats:
+            pattern: ^/api/etats
+            methods: [GET]
+            security: false
+
         refresh:
             pattern: ^/api/token/refresh
             security: false
 
         api:
-            pattern:   ^/api
+            pattern: ^/api
             stateless: true
             jwt: ~
 
@@ -56,7 +61,7 @@ security:
         - { path: ^/api/token/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api/products, methods: [GET], roles: PUBLIC_ACCESS }
         - { path: ^/api/users, methods: [POST], roles: PUBLIC_ACCESS }
-        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:

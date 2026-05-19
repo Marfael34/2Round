@@ -80,7 +80,16 @@ class Product
      * @var Collection<int, Image>
      */
     #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'product')]
+    #[Groups(['product:read'])]
     private Collection $images;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(['product:read'])]
+    private ?string $type = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(['product:read'])]
+    private ?string $size = null;
 
     #[ORM\Column]
     #[Groups(['product:read'])]
@@ -318,6 +327,30 @@ class Product
     public function setIsHighlighted(bool $isHighlighted): static
     {
         $this->isHighlighted = $isHighlighted;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(?string $type): static
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getSize(): ?string
+    {
+        return $this->size;
+    }
+
+    public function setSize(?string $size): static
+    {
+        $this->size = $size;
 
         return $this;
     }

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { IMG_BOXE } from '../constants/appConstante';
 import { API_URL } from '../constants/apiConstante';
 import { Eye, EyeOff } from 'lucide-react';
+import CustomInput from '../components/UI/CustomInput';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -174,66 +175,48 @@ const Register = () => {
           {formType === 'short' && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-1">
-                  <label className="font-inter text-xs uppercase text-gray-400">Prénom</label>
-                  <input type="text" name="firstname" value={formData.firstname} onChange={handleChange} className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="font-inter text-xs uppercase text-gray-400">Nom</label>
-                  <input type="text" name="lastname" value={formData.lastname} onChange={handleChange} className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                </div>
+                <CustomInput label="Prénom" type="text" name="firstname" value={formData.firstname} onChange={handleChange} required />
+                <CustomInput label="Nom" type="text" name="lastname" value={formData.lastname} onChange={handleChange} required />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-1">
-                  <label className="font-inter text-xs uppercase text-gray-400">Pseudo</label>
-                  <input type="text" name="pseudo" value={formData.pseudo} onChange={handleChange} className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="font-inter text-xs uppercase text-gray-400">Email</label>
-                  <input type="email" name="email" value={formData.email} onChange={handleChange} className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                </div>
+                <CustomInput label="Pseudo" type="text" name="pseudo" value={formData.pseudo} onChange={handleChange} required />
+                <CustomInput label="Email" type="email" name="email" value={formData.email} onChange={handleChange} required />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-1">
-                  <label className="font-inter text-xs uppercase text-gray-400">Mot de passe</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      className="w-full bg-[#1A1A1A] border border-white/10 rounded-sm p-3 pr-10 text-white focus:border-red-600 focus:outline-none font-inter text-sm"
-                      required
-                    />
+                <CustomInput
+                  label="Mot de passe"
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  rightElement={
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white transition-colors"
+                      className="text-gray-400 hover:text-white transition-colors"
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="font-inter text-xs uppercase text-gray-400">Confirmer</label>
-                  <div className="relative">
-                    <input
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      className="w-full bg-[#1A1A1A] border border-white/10 rounded-sm p-3 pr-10 text-white focus:border-red-600 focus:outline-none font-inter text-sm"
-                      required
-                    />
+                  }
+                />
+                <CustomInput
+                  label="Confirmer"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  rightElement={
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white transition-colors"
+                      className="text-gray-400 hover:text-white transition-colors"
                     >
                       {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
-                  </div>
-                </div>
+                  }
+                />
               </div>
             </>
           )}
@@ -246,19 +229,10 @@ const Register = () => {
                 <div className="space-y-6">
                   <h2 className="font-bebas text-2xl text-white uppercase mb-4">Étape 1 : Qui êtes-vous ?</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="flex flex-col gap-1">
-                      <label className="font-inter text-xs uppercase text-gray-400">Prénom</label>
-                      <input type="text" name="firstname" value={formData.firstname} onChange={handleChange} className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="font-inter text-xs uppercase text-gray-400">Nom</label>
-                      <input type="text" name="lastname" value={formData.lastname} onChange={handleChange} className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                    </div>
+                    <CustomInput label="Prénom" type="text" name="firstname" value={formData.firstname} onChange={handleChange} required />
+                    <CustomInput label="Nom" type="text" name="lastname" value={formData.lastname} onChange={handleChange} required />
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="font-inter text-xs uppercase text-gray-400">Pseudo</label>
-                    <input type="text" name="pseudo" value={formData.pseudo} onChange={handleChange} className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                  </div>
+                  <CustomInput label="Pseudo" type="text" name="pseudo" value={formData.pseudo} onChange={handleChange} required />
                 </div>
               )}
 
@@ -266,51 +240,42 @@ const Register = () => {
               {currentStep === 2 && (
                 <div className="space-y-6">
                   <h2 className="font-bebas text-2xl text-white uppercase mb-4">Étape 2 : Vos identifiants</h2>
-                  <div className="flex flex-col gap-1">
-                    <label className="font-inter text-xs uppercase text-gray-400">Email</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                  </div>
+                  <CustomInput label="Email" type="email" name="email" value={formData.email} onChange={handleChange} required />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="flex flex-col gap-1">
-                      <label className="font-inter text-xs uppercase text-gray-400">Mot de passe</label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          name="password"
-                          value={formData.password}
-                          onChange={handleChange}
-                          className="w-full bg-[#1A1A1A] border border-white/10 rounded-sm p-3 pr-10 text-white focus:border-red-600 focus:outline-none font-inter text-sm"
-                          required
-                        />
+                    <CustomInput
+                      label="Mot de passe"
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      rightElement={
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white transition-colors"
+                          className="text-gray-400 hover:text-white transition-colors"
                         >
                           {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="font-inter text-xs uppercase text-gray-400">Confirmer</label>
-                      <div className="relative">
-                        <input
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          name="confirmPassword"
-                          value={formData.confirmPassword}
-                          onChange={handleChange}
-                          className="w-full bg-[#1A1A1A] border border-white/10 rounded-sm p-3 pr-10 text-white focus:border-red-600 focus:outline-none font-inter text-sm"
-                          required
-                        />
+                      }
+                    />
+                    <CustomInput
+                      label="Confirmer"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required
+                      rightElement={
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white transition-colors"
+                          className="text-gray-400 hover:text-white transition-colors"
                         >
                           {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
-                      </div>
-                    </div>
+                      }
+                    />
                   </div>
                 </div>
               )}
@@ -319,19 +284,10 @@ const Register = () => {
               {currentStep === 3 && (
                 <div className="space-y-6">
                   <h2 className="font-bebas text-2xl text-white uppercase mb-4">Étape 3 : Votre profil</h2>
-                  <div className="flex flex-col gap-1">
-                    <label className="font-inter text-xs uppercase text-gray-400">Date de naissance</label>
-                    <input type="date" name="birthday" value={formData.birthday} onChange={handleChange} className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                  </div>
+                  <CustomInput label="Date de naissance" type="date" name="birthday" value={formData.birthday} onChange={handleChange} required />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="flex flex-col gap-1">
-                      <label className="font-inter text-xs uppercase text-gray-400">Taille (m)</label>
-                      <input type="number" step="0.01" name="size" value={formData.size} onChange={handleChange} placeholder="Ex: 1.75" className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="font-inter text-xs uppercase text-gray-400">Poids (kg)</label>
-                      <input type="number" step="0.1" name="weight" value={formData.weight} onChange={handleChange} placeholder="Ex: 70.5" className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                    </div>
+                    <CustomInput label="Taille (m)" type="number" step="0.01" name="size" value={formData.size} onChange={handleChange} placeholder="Ex: 1.75" required />
+                    <CustomInput label="Poids (kg)" type="number" step="0.1" name="weight" value={formData.weight} onChange={handleChange} placeholder="Ex: 70.5" required />
                   </div>
                 </div>
               )}
@@ -340,10 +296,7 @@ const Register = () => {
               {currentStep === 4 && (
                 <div className="space-y-6">
                   <h2 className="font-bebas text-2xl text-white uppercase mb-4">Étape 4 : Vos préférences</h2>
-                  <div className="flex flex-col gap-1">
-                    <label className="font-inter text-xs uppercase text-gray-400">Budget (€)</label>
-                    <input type="number" name="budget" value={formData.budget} onChange={handleChange} placeholder="Ex: 500" className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-                  </div>
+                  <CustomInput label="Budget (€)" type="number" name="budget" value={formData.budget} onChange={handleChange} placeholder="Ex: 500" required />
                 </div>
               )}
             </>

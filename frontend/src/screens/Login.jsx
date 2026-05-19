@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { IMG_BOXE } from '../constants/appConstante';
 import { API_URL } from '../constants/apiConstante';
 import { Eye, EyeOff } from 'lucide-react';
+import CustomInput from '../components/UI/CustomInput';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -89,31 +90,32 @@ const Login = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex flex-col gap-1">
-            <label className="font-inter text-xs uppercase text-gray-400">Email</label>
-            <input type="email" name="email" value={formData.email} onChange={handleChange} className="bg-[#1A1A1A] border border-white/10 rounded-sm p-3 text-white focus:border-red-600 focus:outline-none font-inter text-sm" required />
-          </div>
+          <CustomInput
+            label="Email"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
 
-          <div className="flex flex-col gap-1">
-            <label className="font-inter text-xs uppercase text-gray-400">Mot de passe</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full bg-[#1A1A1A] border border-white/10 rounded-sm p-3 pr-10 text-white focus:border-red-600 focus:outline-none font-inter text-sm"
-                required
-              />
+          <CustomInput
+            label="Mot de passe"
+            type={showPassword ? 'text' : 'password'}
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            rightElement={
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
-            </div>
-          </div>
+            }
+          />
 
           <button
             type="submit"
