@@ -4,6 +4,17 @@ import { Link } from 'react-router-dom';
 const ProductCard = ({ product }) => {
   const [isFavorite, setIsFavorite] = useState(false);
 
+  const getProductImage = (prod) => {
+    if (prod.image) return prod.image;
+    if (Array.isArray(prod.images) && prod.images.length > 0) {
+      const firstImage = prod.images[0];
+      if (firstImage && typeof firstImage === 'object' && firstImage.path) {
+        return firstImage.path;
+      }
+    }
+    return null;
+  };
+
   const handleFavoriteClick = (e) => {
     e.preventDefault(); // Empêche la redirection du Link
     e.stopPropagation(); // Empêche la propagation du clic pour ne pas ouvrir le produit
@@ -13,6 +24,9 @@ const ProductCard = ({ product }) => {
     // TODO: Une fois l'auth implémentée, faire l'appel fetch('/api/favorites')
   };
 
+  const imgUrl = getProductImage(product) || "https://picsum.photos/seed/product/300/300";
+  const stateLabel = product.etat?.label || product.state || 'Neuf';
+
   return (
     <Link 
       to={`/product/${product.id || product['@id']?.split('/').pop()}`} 
@@ -21,7 +35,7 @@ const ProductCard = ({ product }) => {
       {/* Conteneur Image */}
       <div className="bg-[#1A1A1A] rounded-sm h-[220px] flex justify-center items-center mb-3 relative cursor-pointer hover:bg-[#252525] transition-colors border border-white/5 overflow-hidden">
         <img 
-          src={product.image || "https://picsum.photos/seed/product/300/300"} 
+          src={imgUrl} 
           alt={product.title} 
           className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity" 
         />
@@ -40,7 +54,7 @@ const ProductCard = ({ product }) => {
       {/* Infos Produit */}
       <h3 className="font-inter text-sm font-bold uppercase tracking-wide text-white truncate">{product.title}</h3>
       <p className="font-inter text-xs text-gray-400 mt-0.5">
-        {product.size || 'M'} - {product.state || 'Neuf'}
+        {product.size || 'M'} - {stateLabel}
       </p>
       <p className="font-inter text-base font-bold mt-1 text-white">{product.price}€</p>
     </Link>

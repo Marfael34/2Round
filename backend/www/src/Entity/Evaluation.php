@@ -18,19 +18,19 @@ class Evaluation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['evaluation:read', 'user:read'])]
+    #[Groups(['evaluation:read', 'user:read', 'product:read'])]
     private ?int $id = null;
 
     #[ORM\Column]
-    #[Groups(['evaluation:read', 'evaluation:write', 'user:read'])]
+    #[Groups(['evaluation:read', 'evaluation:write', 'user:read', 'product:read'])]
     private ?int $rating = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['evaluation:read', 'evaluation:write', 'user:read'])]
+    #[Groups(['evaluation:read', 'evaluation:write', 'user:read', 'product:read'])]
     private ?string $comment = null;
 
     #[ORM\Column]
-    #[Groups(['evaluation:read', 'user:read'])]
+    #[Groups(['evaluation:read', 'user:read', 'product:read'])]
     private ?\DateTime $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'sentEvaluations')]

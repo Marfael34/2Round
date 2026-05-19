@@ -52,11 +52,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $firstname = null;
 
     #[ORM\Column(length: 150)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'product:read'])]
     private ?string $pseudo = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'product:read'])]
     private ?string $avatar = null;
 
     #[ORM\Column(nullable: true)]
@@ -114,7 +114,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Evaluation>
      */
     #[ORM\OneToMany(targetEntity: Evaluation::class, mappedBy: 'receiver')]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'product:read'])]
     private Collection $receivedEvaluations;
 
     /**

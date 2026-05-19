@@ -52,10 +52,12 @@ class Product
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['product:read'])]
     private ?User $seller = null;
 
     #[ORM\ManyToOne(targetEntity: Etat::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['product:read'])]
     private ?Etat $etat = null;
 
     /**
