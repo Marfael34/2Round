@@ -18,7 +18,10 @@ const ProductDetail = () => {
   // Relatives lists
   const [sellerProducts, setSellerProducts] = useState([]);
   const [suggestedProducts, setSuggestedProducts] = useState([]);
+  
+  // Variables Utilisateur connectés
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(false);
 
   // Offer Modal States
   const [showOfferModal, setShowOfferModal] = useState(false);
@@ -30,6 +33,7 @@ const ProductDetail = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
+      setLoadingUser(true);
       try {
         const base64Url = token.split(".")[1];
         const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -45,15 +49,22 @@ const ProductDetail = () => {
           securedFetch(`/api/users?email=${encodeURIComponent(email)}`)
             .then((res) => res.json())
             .then((data) => {
-              const userObj = data["hydra:member"]?.[0] || data?.[0];
-              if (userObj) {
+              const members = data.member || data["hydra:member"] || (Array.isArray(data) ? data : []);
+              const userObj = members[0];
+              if (userObj && userObj.id) {
                 setCurrentUserId(userObj.id);
+              } else {
+                console.warn("Utilisateur non trouvé pour l'email:", email, "Réponse API:", data);
               }
             })
-            .catch((err) => console.error("Error fetching current user info:", err));
+            .catch((err) => console.error("Erreur de récupération utilisateur:", err))
+            .finally(() => setLoadingUser(false));
+        } else {
+          setLoadingUser(false);
         }
       } catch (e) {
         console.error("JWT decoding failed:", e);
+        setLoadingUser(false);
       }
     }
   }, []);
@@ -70,7 +81,13 @@ const ProductDetail = () => {
 
   const handleSubmitOffer = async (e) => {
     e.preventDefault();
-    if (!offerAmount || !currentUserId || !product) return;
+    if (!offerAmount || !product) return;
+    
+    // Si l'utilisateur n'a pas pu être identifié malgré le fait d'être connecté
+    if (!currentUserId) {
+        setOfferError("Impossible de vérifier votre identité. Veuillez vous reconnecter.");
+        return;
+    }
 
     const originalPrice = parseFloat(product.price || 0);
     const minOffer = originalPrice * 0.6;
@@ -97,7 +114,7 @@ const ProductDetail = () => {
         const existing = allConvs.find(c => {
           const prodId = c.product?.id || c.product?.split('/').pop();
           const buyerId = c.buyer?.id || c.buyer?.split('/').pop();
-          return Number(prodId) === Number(product.id) && Number(buyerId) === currentUserId;
+          return Number(prodId) === Number(product.id) && Number(buyerId) === Number(currentUserId);
         });
         if (existing) {
           activeConvId = existing.id;
@@ -108,7 +125,7 @@ const ProductDetail = () => {
       if (!activeConvId) {
         const newConvRes = await securedFetch(`/api/conversations`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/ld+json' },
           body: JSON.stringify({
             buyer: `/api/users/${currentUserId}`,
             seller: product.seller?.['@id'] || `/api/users/${product.seller?.id}`,
@@ -124,7 +141,7 @@ const ProductDetail = () => {
       // 3. Create the Offer
       const offerRes = await securedFetch(`/api/offers`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/ld+json' },
         body: JSON.stringify({
           amount: Number(offerAmount),
           status: 'pending',
@@ -137,7 +154,7 @@ const ProductDetail = () => {
       // 4. Create the Message
       const msgRes = await securedFetch(`/api/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/ld+json' },
         body: JSON.stringify({
           content: `Propose une offre de prix à ${offerAmount}€`,
           isRead: false,
@@ -166,7 +183,6 @@ const ProductDetail = () => {
       if (response.ok) {
         const data = await response.json();
         const items = data.member || data["hydra:member"] || (Array.isArray(data) ? data : []);
-        // Filter out current product and keep at most 2 items
         const filtered = items.filter(item => item.id !== currentId).slice(0, 2);
         setSellerProducts(filtered);
       }
@@ -181,7 +197,6 @@ const ProductDetail = () => {
       if (response.ok) {
         const data = await response.json();
         const items = data.member || data["hydra:member"] || (Array.isArray(data) ? data : []);
-        // Prioritize highlighted items, filter out current product, and keep at most 4 items
         const filtered = items
           .filter(item => item.id !== currentId)
           .sort((a, b) => (b.isHighlighted ? 1 : 0) - (a.isHighlighted ? 1 : 0))
@@ -208,12 +223,10 @@ const ProductDetail = () => {
         const data = await response.json();
         setProduct(data);
 
-        // Fetch seller other products
         if (data.seller && data.seller["@id"]) {
           fetchSellerProducts(data.seller["@id"], data.id);
         }
         
-        // Fetch general suggestions
         fetchSuggestions(data.id);
 
       } catch (err) {
@@ -302,7 +315,7 @@ const ProductDetail = () => {
   const allImages = getProductAllImages(product);
   const seller = product.seller || {};
   const sellerIri = seller['@id'] || (typeof seller === 'string' ? seller : '');
-  const sellerId = Number(seller.id || sellerIri.split('/').pop());
+  const sellerId = seller.id ? Number(seller.id) : (sellerIri ? Number(sellerIri.split('/').pop()) : null);
   const evaluations = seller.receivedEvaluations || [];
   const averageRating = evaluations.length > 0
     ? evaluations.reduce((sum, ev) => sum + ev.rating, 0) / evaluations.length
@@ -400,12 +413,12 @@ const ProductDetail = () => {
               </div>
 
               <div className="flex items-center py-1 gap-1.5">
-                <span className="font-bold text-white font-inter  tracking-wider">Marque :</span>
+                <span className="font-bold text-white font-inter tracking-wider">Marque :</span>
                 <span className="text-gray-400 font-inter font-light">{product.brand || "Non renseignée"}</span>
               </div>
 
               <div className="flex items-center py-1 gap-1.5">
-                <span className="font-bold text-white  font-inter tracking-wider">État :</span>
+                <span className="font-bold text-white font-inter tracking-wider">État :</span>
                 <span className="text-gray-400 font-inter font-light">{product.etat?.label || "Non renseigné"}</span>
               </div>
 
@@ -427,8 +440,12 @@ const ProductDetail = () => {
               {product.description || "Aucune description fournie pour cet article."}
             </p>
 
-            {/* CTA Buttons */}
-            {currentUserId === sellerId ? (
+            {/* CTA Buttons CORRIGÉS */}
+            {loadingUser ? (
+              <div className="flex justify-center py-4 mb-8">
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : currentUserId && sellerId && Number(currentUserId) === Number(sellerId) ? (
               <div className="bg-[#151515] border border-white/10 p-4 rounded-sm text-center mb-8">
                 <span className="text-gray-400 font-inter text-sm font-extralight tracking-wider">C'est votre produit</span>
               </div>
@@ -544,11 +561,9 @@ const ProductDetail = () => {
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs">Pas d'image</div>
                           )}
-                          {/* Heart Overlay */}
                           <div className="absolute bottom-2 right-2 text-lg text-white/80 hover:text-red-500 transition-colors p-1.5 bg-black/40 rounded-full">
                             <FaHeart />
                           </div>
-                          {/* Certification overlay */}
                           {getShowCertification(item) && (
                             <div className="absolute top-2 right-2 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md">
                               <span className="text-black text-xs font-bold">✓</span>
@@ -588,11 +603,9 @@ const ProductDetail = () => {
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs">Pas d'image</div>
                           )}
-                          {/* Heart Overlay */}
                           <div className="absolute bottom-2 right-2 text-lg text-white/80 hover:text-red-500 transition-colors p-1.5 bg-black/40 rounded-full">
                             <FaHeart />
                           </div>
-                          {/* Certification overlay */}
                           {getShowCertification(item) && (
                             <div className="absolute top-2 right-2 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md">
                               <span className="text-black text-xs font-bold">✓</span>
@@ -610,7 +623,7 @@ const ProductDetail = () => {
                 </div>
               </div>
             )}
-              </div>
+          </div>
         </div>
       </div>
 
@@ -637,7 +650,6 @@ const ProductDetail = () => {
               <span className="text-red-500 font-bold">{product.price}€</span>.
             </p>
 
-            {/* Quick Discount Recommendations */}
             <div className="mb-6">
               <span className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-3">Offres rapides suggérées</span>
               <div className="flex gap-3">
