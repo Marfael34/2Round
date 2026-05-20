@@ -111,9 +111,16 @@ const ProductDetail = () => {
       if (convsRes.ok) {
         const convsData = await convsRes.json();
         const allConvs = convsData.member || convsData['hydra:member'] || [];
+        const extractId = (val) => {
+          if (!val) return null;
+          if (typeof val === 'object') return val.id || (val['@id'] ? val['@id'].split('/').pop() : null);
+          if (typeof val === 'string') return val.split('/').pop();
+          return val;
+        };
+
         const existing = allConvs.find(c => {
-          const prodId = c.product?.id || c.product?.split('/').pop();
-          const buyerId = c.buyer?.id || c.buyer?.split('/').pop();
+          const prodId = extractId(c.product);
+          const buyerId = extractId(c.buyer);
           return Number(prodId) === Number(product.id) && Number(buyerId) === Number(currentUserId);
         });
         if (existing) {
@@ -128,7 +135,7 @@ const ProductDetail = () => {
           headers: { 'Content-Type': 'application/ld+json' },
           body: JSON.stringify({
             buyer: `/api/users/${currentUserId}`,
-            seller: product.seller?.['@id'] || `/api/users/${product.seller?.id}`,
+            seller: typeof product.seller === 'string' ? product.seller : (product.seller?.['@id'] || `/api/users/${product.seller?.id}`),
             product: `/api/products/${product.id}`,
             createdAt: new Date().toISOString()
           })

@@ -4,6 +4,7 @@ namespace App\Service;
 
 use MondialRelay\Webservice;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use App\Entity\Order;
 
 class MondialRelayService
 {
@@ -13,27 +14,38 @@ class MondialRelayService
         #[Autowire('%env(MONDIAL_RELAY_SITE_ID)%')] string $siteId,
         #[Autowire('%env(MONDIAL_RELAY_SECRET_KEY)%')] string $secretKey
     ) {
-        // Initialisation du client de la librairie avec les identifiants de test
         $this->client = new Webservice($siteId, $secretKey);
     }
 
-    /**
-     * Méthode de test : Recherche de points relais autour d'un code postal
-     */
     public function searchPointsRelais(string $zipCode, string $country = 'FR')
     {
         $params = [
             'Pays' => $country,
             'CP' => $zipCode,
-            'NombreResultats' => '5', // On limite à 5 résultats pour le test
+            'NombreResultats' => '5',
         ];
 
         try {
-            // searchParcelshop est la méthode simplifiée de la librairie
             return $this->client->searchParcelshop($params)->getResults();
         } catch (\Exception $e) {
-            // En cas d'erreur (ex: pas de connexion)
             return [];
         }
+    }
+
+    /**
+     * Méthode pour générer le bordereau d'envoi.
+     */
+    public function generateShippingLabel(Order $order): array
+    {
+        // LOGIQUE SIMULÉE : En production, vous passeriez le poids du produit, les adresses, etc.
+        // à $this->client->createLabel(...)
+        
+        $trackingNumber = 'MR-' . rand(10000000, 99999999);
+        $pdfUrl = 'https://www.mondialrelay.fr/pdf/etiquette_simulee_' . $trackingNumber . '.pdf';
+
+        return [
+            'trackingNumber' => $trackingNumber,
+            'shipping_label_url' => $pdfUrl
+        ];
     }
 }

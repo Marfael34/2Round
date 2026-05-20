@@ -14,11 +14,11 @@ class Image
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['product:read', 'conversation:read'])]
+    #[Groups(['product:read', 'conversation:read', 'message:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['product:read', 'conversation:read'])]
+    #[Groups(['product:read', 'conversation:read', 'message:read'])]
     private ?string $path = null;
 
     #[ORM\ManyToOne(inversedBy: 'images')]

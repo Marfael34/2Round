@@ -9,12 +9,16 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\SerializedName;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
 #[ApiResource(
     normalizationContext: ['groups' => ['message:read']],
     denormalizationContext: ['groups' => ['message:write']],
 )]
+#[ApiFilter(SearchFilter::class, properties: ['conversation' => 'exact'])]
 class Message
 {
     #[ORM\Id]
@@ -29,6 +33,7 @@ class Message
 
     #[ORM\Column]
     #[Groups(['message:read', 'message:write', 'conversation:read'])]
+    #[SerializedName('isRead')]
     private ?bool $isRead = null;
 
     #[ORM\Column]
@@ -56,7 +61,8 @@ class Message
     /**
      * @var Collection<int, Image>
      */
-    #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'message')]
+    #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'message', cascade: ['persist'])]
+    #[Groups(['message:read', 'message:write', 'conversation:read'])]
     private Collection $images;
 
     public function __construct()

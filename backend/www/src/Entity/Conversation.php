@@ -26,6 +26,10 @@ class Conversation
     #[Groups(['conversation:read', 'conversation:write'])]
     private ?\DateTime $createdAt = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    #[Groups(['conversation:read', 'conversation:write'])]
+    private bool $isActive = true;
+
     /**
      * @var Collection<int, Message>
      */
@@ -70,6 +74,18 @@ class Conversation
     public function setCreatedAt(\DateTime $createdAt): static
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getIsActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): static
+    {
+        $this->isActive = $isActive;
 
         return $this;
     }
