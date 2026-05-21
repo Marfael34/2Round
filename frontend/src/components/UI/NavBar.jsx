@@ -17,7 +17,15 @@ import { IMG_LOGO } from "../../constants/appConstante";
 const NavBar = ({ user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === "Enter" && searchQuery.trim() !== "") {
+      setIsMenuOpen(false);
+      navigate(`/marketplace?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   // --- Fonction de déconnexion ---
   const handleLogout = async () => {
@@ -47,6 +55,9 @@ const NavBar = ({ user, onLogout }) => {
         <input
           type="text"
           placeholder="Recherche des articles"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={handleSearchKeyPress}
           className="w-full bg-[#1A1A1A] border border-gray-700 rounded-full py-2.5 pl-12 pr-12 text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors text-sm"
         />
         <div className="absolute inset-y-0 right-4 flex items-center">
@@ -138,6 +149,9 @@ const NavBar = ({ user, onLogout }) => {
             <input
               type="text"
               placeholder="Recherche des articles"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyPress}
               className="w-full bg-[#1A1A1A] border border-gray-700 rounded-full py-2.5 pl-12 pr-12 text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors text-sm"
             />
             <div className="absolute inset-y-0 right-4 flex items-center">

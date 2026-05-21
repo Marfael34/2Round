@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { securedFetch } from '../utils/api';
 import { API_URL } from '../constants/apiConstante';
 import ProductCard from '../components/Product/ProductCard';
@@ -7,6 +7,9 @@ import { FaChevronLeft, FaChevronRight, FaChevronDown } from 'react-icons/fa6';
 
 const MarketPlace = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const textQuery = searchParams.get('search')?.toLowerCase() || '';
 
   // Data states
   const [products, setProducts] = useState([]);
@@ -60,15 +63,54 @@ const MarketPlace = () => {
     return colorMap.filter(color => words.includes(color));
   };
 
-  // 2. Dynamic Unique Filter values extraction
-  const categories = Array.from(new Set(products.map(p => p.type).filter(Boolean)));
-  const sizes = Array.from(new Set(products.map(p => p.size).filter(Boolean)));
-  const brands = Array.from(new Set(products.map(p => p.brand).filter(Boolean)));
-  const states = Array.from(new Set(products.map(p => p.etat?.label || p.state).filter(Boolean)));
-  const colors = Array.from(new Set(products.flatMap(p => extractColors(p.description))));
+  // 2. Dynamic Unique Filter values extraction + Static Defaults
+  const DEFAULT_CATEGORIES = ['Gants de boxe', 'Casques', 'Chaussures', 'Vêtements', 'Protections', 'Sacs de frappe', 'Accessoires'];
+  const DEFAULT_BRANDS = ['Cleto Reyes', 'Winning', 'Everlast', 'Venum', 'Title Boxing', 'Rival', 'Hayabusa', 'Fairtex', 'Twins Special', 'Adidas', 'Nike', 'Leone 1947'];
+  const DEFAULT_STATES = ['Neuf avec étiquette', 'Neuf sans étiquette', 'Très bon état', 'Bon état', 'Satisfaisant'];
+
+  // Tailles dynamiques en fonction des catégories sélectionnées
+  let dynamicDefaultSizes = [];
+  if (selectedCategories.length === 0) {
+    dynamicDefaultSizes = ['8oz', '10oz', '12oz', '14oz', '16oz', '18oz', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '38', '39', '40', '41', '42', '43', '44', '45', '46', 'Unique'];
+  } else {
+    if (selectedCategories.includes('Gants de boxe')) {
+      dynamicDefaultSizes.push('8oz', '10oz', '12oz', '14oz', '16oz', '18oz');
+    }
+    if (selectedCategories.includes('Chaussures')) {
+      dynamicDefaultSizes.push('38', '39', '40', '41', '42', '43', '44', '45', '46');
+    }
+    if (selectedCategories.some(c => ['Vêtements', 'Protections', 'Casques'].includes(c))) {
+      dynamicDefaultSizes.push('XS', 'S', 'M', 'L', 'XL', 'XXL');
+    }
+    if (selectedCategories.some(c => ['Sacs de frappe', 'Accessoires'].includes(c))) {
+      dynamicDefaultSizes.push('Unique');
+    }
+    dynamicDefaultSizes = [...new Set(dynamicDefaultSizes)];
+  }
+
+  // Produits à considérer pour extraire des tailles (seulement les catégories sélectionnées si applicable)
+  const relevantProductsForSizes = selectedCategories.length > 0 
+    ? products.filter(p => selectedCategories.includes(p.type)) 
+    : products;
+
+  const categories = Array.from(new Set([...DEFAULT_CATEGORIES, ...products.map(p => p.type).filter(Boolean)]));
+  const sizes = Array.from(new Set([...dynamicDefaultSizes, ...relevantProductsForSizes.map(p => p.size).filter(Boolean)]));
+  const brands = Array.from(new Set([...DEFAULT_BRANDS, ...products.map(p => p.brand).filter(Boolean)]));
+  const states = Array.from(new Set([...DEFAULT_STATES, ...products.map(p => p.etat?.label || p.state).filter(Boolean)]));
+  const colors = ['noir', 'rouge', 'bleu', 'blanc', 'jaune', 'vert', 'or', 'argent', 'rose', 'marron', 'gris'];
 
   // 3. Render-time Filter & Sort Logic (no useEffect, no cascading renders)
   const filteredProducts = products.filter(p => {
+    // 3.1 Text Search Filter
+    if (textQuery) {
+      const matchTitle = p.title?.toLowerCase().includes(textQuery);
+      const matchType = p.type?.toLowerCase().includes(textQuery);
+      const matchBrand = p.brand?.toLowerCase().includes(textQuery);
+      if (!matchTitle && !matchType && !matchBrand) {
+        return false;
+      }
+    }
+
     if (selectedCategories.length > 0 && !selectedCategories.includes(p.type)) {
       return false;
     }
@@ -351,8 +393,23 @@ const MarketPlace = () => {
       <div className="max-w-[1000px] w-full mx-auto px-4 md:px-8 py-8 flex-1 flex flex-col">
         
         {/* Results count label */}
-        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-6">
-          {filteredProducts.length} {filteredProducts.length > 1 ? 'résultats' : 'résultat'}
+        <div className="flex justify-between items-center mb-6">
+          <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+            {filteredProducts.length} {filteredProducts.length > 1 ? 'résultats' : 'résultat'}
+            {textQuery && (
+              <span className="ml-2 text-white normal-case">
+                pour la recherche "{searchParams.get('search')}"
+              </span>
+            )}
+          </div>
+          {textQuery && (
+            <button 
+              onClick={() => navigate('/marketplace')}
+              className="text-[10px] text-red-500 hover:text-red-400 font-bold uppercase tracking-widest transition-colors cursor-pointer"
+            >
+              Effacer la recherche
+            </button>
+          )}
         </div>
 
         {error && (
