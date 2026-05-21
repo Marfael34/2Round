@@ -44,36 +44,54 @@ export const getCurrentUserId = () => {
 /**
  * Utilitaire interne pour rafraîchir le token JWT via le refresh_token
  */
+let isRefreshing = false;
+let refreshPromise = null;
+
 async function performTokenRefresh() {
-  const refreshToken = localStorage.getItem('refresh_token');
-  if (!refreshToken) {
-    throw new Error('Aucun refresh token disponible');
+  if (isRefreshing) {
+    return refreshPromise;
   }
 
-  const response = await fetch(`${API_URL}/token/refresh`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  });
+  isRefreshing = true;
+  refreshPromise = (async () => {
+    try {
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        throw new Error('Aucun refresh token disponible');
+      }
 
-  if (!response.ok) {
-    throw new Error('Impossible de rafraîchir le token');
-  }
+      const response = await fetch(`${API_URL}/token/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
 
-  const data = await response.json();
-  
-  // Sauvegarde du nouveau jeu de tokens (rotation)
-  if (data.token) {
-    localStorage.setItem('token', data.token);
-  }
-  if (data.refresh_token) {
-    localStorage.setItem('refresh_token', data.refresh_token);
-  }
+      if (!response.ok) {
+        throw new Error('Impossible de rafraîchir le token');
+      }
 
-  return data.token;
+      const data = await response.json();
+      
+      // Sauvegarde du nouveau jeu de tokens (rotation)
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+      if (data.refresh_token) {
+        localStorage.setItem('refresh_token', data.refresh_token);
+      }
+
+      return data.token;
+    } finally {
+      isRefreshing = false;
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
+
 
 /**
  * Wrapper intelligent autour de fetch qui gère automatiquement

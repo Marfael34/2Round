@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260520130622 extends AbstractMigration
+final class Version20260521125047 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,12 +20,12 @@ final class Version20260520130622 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE conversation ADD is_active TINYINT DEFAULT 1 NOT NULL');
+        $this->addSql('CREATE TABLE size_guide (id INT AUTO_INCREMENT NOT NULL, equipment VARCHAR(255) NOT NULL, content JSON NOT NULL, PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE conversation DROP is_active');
+        $this->addSql('DROP TABLE size_guide');
     }
 }

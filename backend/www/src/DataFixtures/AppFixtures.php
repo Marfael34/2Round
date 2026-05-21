@@ -9,6 +9,7 @@ use App\Entity\Level;
 use App\Entity\Image;
 use App\Entity\Product;
 use App\Entity\User;
+use App\Entity\SizeGuide;
 use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -26,6 +27,7 @@ class AppFixtures extends Fixture
         $this->loadEtat($manager);
         $this->loadUser($manager);
         $this->loadProduct($manager);
+        $this->loadSizeGuide($manager);
 
         $manager->flush();
     }
@@ -238,6 +240,95 @@ class AppFixtures extends Fixture
             }
 
             $manager->persist($product);
+        }
+    }
+
+    public function loadSizeGuide(ObjectManager $manager)
+    {
+        $guides = [
+            [
+                'equipment' => 'GANTS',
+                'content' => [
+                    'type' => 'gendered',
+                    'homme' => [
+                        ['<50', '8 oz', '10 oz'],
+                        ['51-63', '10 oz', '12 oz'],
+                        ['64-74', '12 oz', '14 oz'],
+                        ['75-90', '14 oz', '16 oz'],
+                        ['>90', '16 oz', '16 oz'],
+                    ],
+                    'femme' => [
+                        ['<45', '8 oz', '10 oz'],
+                        ['45-50', '10 oz', '12 oz'],
+                        ['50-60', '12 oz', '14 oz'],
+                        ['60-70', '14 oz', '16 oz'],
+                        ['>70', '16 oz', '16 oz'],
+                    ],
+                    'headers' => ['POIDS (en KG)', 'ENTRAINEMENT', 'SPARRING'],
+                    'imgHomme' => '/images/guide/gant_homme.webp',
+                    'imgFemme' => '/images/guide/gant_femme.webp'
+                ]
+            ],
+            [
+                'equipment' => 'BANDES',
+                'content' => [
+                    'type' => 'standard',
+                    'data' => [
+                        ['Enfants / Petites mains', '2.5 m', 'Loisir / Sac'],
+                        ['Adultes / Mains moyennes', '3.5 m', 'Entraînement régulier'],
+                        ['Grandes mains / Boxe Thaï', '4.0 m - 4.5 m', 'Sparring / Intensif'],
+                        ['Pro / Bandage dur', '5.0 m', 'Combat pro'],
+                    ],
+                    'headers' => ['PROFIL', 'LONGUEUR', 'UTILISATION'],
+                    'img' => '/images/guide/bandes.webp'
+                ]
+            ],
+            [
+                'equipment' => 'CASQUE',
+                'content' => [
+                    'type' => 'standard',
+                    'data' => [
+                        ['< 53 cm', 'S', 'Enfant / Petit'],
+                        ['54 - 56 cm', 'M', 'Moyen / Standard Femme'],
+                        ['57 - 59 cm', 'L', 'Standard Homme'],
+                        ['> 60 cm', 'XL', 'Grand'],
+                    ],
+                    'headers' => ['TOUR DE TÊTE', 'TAILLE', 'PROFIL'],
+                    'img' => '/images/guide/casque.webp'
+                ]
+            ],
+            [
+                'equipment' => 'CHAUSSURES',
+                'content' => [
+                    'type' => 'gendered',
+                    'homme' => [
+                        ['39', '24.5 cm', '5.5'],
+                        ['40', '25 cm', '6.5'],
+                        ['41', '26 cm', '7.5'],
+                        ['42', '26.5 cm', '8'],
+                        ['43', '27.5 cm', '9'],
+                        ['44', '28 cm', '9.5'],
+                    ],
+                    'femme' => [
+                        ['36', '22.5 cm', '3.5'],
+                        ['37', '23.5 cm', '4.5'],
+                        ['38', '24 cm', '5'],
+                        ['39', '25 cm', '6'],
+                        ['40', '25.5 cm', '6.5'],
+                        ['41', '26.5 cm', '7.5'],
+                    ],
+                    'headers' => ['POINTURE (EU)', 'LONGUEUR PIED', 'POINTURE (UK)'],
+                    'imgHomme' => '/images/guide/chaussure_homme.webp',
+                    'imgFemme' => '/images/guide/chaussure_femme.webp'
+                ]
+            ]
+        ];
+
+        foreach ($guides as $guideData) {
+            $guide = new SizeGuide();
+            $guide->setEquipment($guideData['equipment']);
+            $guide->setContent($guideData['content']);
+            $manager->persist($guide);
         }
     }
 }
