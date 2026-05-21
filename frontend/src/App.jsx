@@ -33,12 +33,14 @@ const App = () => {
     }
   }, [navigate]);
 
-  // Update last active timestamp on navigation
+  // Update last active timestamp on navigation and scroll to top
   useEffect(() => {
     if (localStorage.getItem("token")) {
       localStorage.setItem("lastActive", Date.now().toString());
     }
-  }, [location]);
+    // Permet d'arriver en haut de la page lors d'un changement de lien
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
