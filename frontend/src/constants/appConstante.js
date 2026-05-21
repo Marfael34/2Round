@@ -26,6 +26,7 @@ export const IMG_ILLU_GLOVES1 = `${IMAGE_URL}/illustration/gants_1.webp`
 export const IMG_ILLU_GLOVES2 = `${IMAGE_URL}/illustration/gants_2.webp`
 export const IMG_ILLU_HELMET = `${IMAGE_URL}/illustration/casque.webp`
 export const IMG_ILLU_BANDAGE = `${IMAGE_URL}/illustration/bandage.webp`
+export const IMG_BOXER_ANATOMY = `${IMAGE_URL}/illustration/boxer_anatomy.png`
 
 
 
