@@ -1,5 +1,46 @@
 import { API_URL } from '../constants/apiConstante';
 
+let cachedUserId = null;
+let lastDecodedToken = null;
+
+export const getCurrentUserId = () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    cachedUserId = null;
+    lastDecodedToken = null;
+    return null;
+  }
+  
+  if (token === lastDecodedToken) {
+    return cachedUserId;
+  }
+
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window.atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    // On espère que id sera dans le token maintenant avec JWTCreatedListener
+    cachedUserId = payload.id ? Number(payload.id) : null;
+    
+    // Fallback: vérifier le localStorage direct
+    if (!cachedUserId) {
+        const stored = localStorage.getItem('user_id');
+        if (stored) cachedUserId = Number(stored);
+    }
+    
+    lastDecodedToken = token;
+    return cachedUserId;
+  } catch (e) {
+    return null;
+  }
+};
+
 /**
  * Utilitaire interne pour rafraîchir le token JWT via le refresh_token
  */
@@ -76,6 +117,8 @@ export async function securedFetch(url, options = {}) {
       
       // Rediriger vers la page login avec un message explicite
       window.location.href = '/login?expired=1';
+      // Geler l'exécution pour laisser le navigateur rediriger sans faire crasher React
+      return new Promise(() => {});
     }
   }
 

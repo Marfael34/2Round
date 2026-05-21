@@ -166,7 +166,7 @@ const Conversation = () => {
 
   const fetchConversationsList = async (userObj) => {
     try {
-      const res = await securedFetch(`${API_URL}/conversations`);
+      const res = await securedFetch(`${API_URL}/conversations`, { cache: 'no-store' });
       if (!res.ok) throw new Error("Erreur de chargement des conversations.");
       const data = await res.json();
       const allConvs = data.member || data["hydra:member"] || data || [];
@@ -293,6 +293,7 @@ const Conversation = () => {
     try {
       const res = await securedFetch(
         `${API_URL}/messages?conversation=${convId}`,
+        { cache: 'no-store' }
       );
       if (!res.ok) throw new Error();
       const data = await res.json();

@@ -11,6 +11,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   // Carousel State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -246,6 +247,45 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id]);
 
+  // Determine if the product is favorited by the current user
+  useEffect(() => {
+    if (product && currentUserId) {
+      const userIri = `/api/users/${currentUserId}`;
+      const isFav = product.favorites?.some(fav => {
+        // fav.users peut être un IRI string ou un objet
+        const favUserIri = typeof fav.users === 'string' ? fav.users : fav.users?.['@id'];
+        return favUserIri === userIri;
+      });
+      setIsFavorite(!!isFav);
+    }
+  }, [product, currentUserId]);
+
+  const handleFavoriteClick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!product) return;
+    
+    // Toggle optimiste
+    setIsFavorite(!isFavorite);
+    
+    try {
+      const response = await securedFetch(`/api/products/${product.id}/favorite`, {
+        method: 'POST'
+      });
+      
+      if (!response.ok) {
+        setIsFavorite(isFavorite);
+      } else {
+        const data = await response.json();
+        setIsFavorite(data.isFavorite);
+      }
+    } catch (error) {
+      console.error('Erreur lors du toggle favori:', error);
+      setIsFavorite(isFavorite);
+    }
+  };
+
   // Helpers
   const getProductImage = (prod) => {
     if (prod.image) return prod.image;
@@ -388,7 +428,12 @@ const ProductDetail = () => {
             )}
 
             {/* Favorite heart icon at bottom right */}
-            <div className="absolute bottom-4 right-4 w-12 h-12 bg-black/60 border border-white/10 rounded-full flex items-center justify-center text-white hover:text-red-500 hover:scale-105 cursor-pointer transition-all">
+            <div 
+              onClick={handleFavoriteClick}
+              className={`absolute bottom-4 right-4 w-12 h-12 bg-black/60 border border-white/10 rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-all ${
+                isFavorite ? "text-red-500" : "text-white hover:text-red-500"
+              }`}
+            >
               <FaHeart className="text-xl" />
             </div>
           </div>

@@ -64,6 +64,7 @@ class Product
      * @var Collection<int, Favorite>
      */
     #[ORM\OneToMany(targetEntity: Favorite::class, mappedBy: 'products')]
+    #[Groups(['product:read'])]
     private Collection $favorites;
 
     /**

@@ -1,8 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { securedFetch, getCurrentUserId } from '../../utils/api';
+import { API_URL } from '../../constants/apiConstante';
 
 const ProductCard = ({ product }) => {
   const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    // Si isFavorite était envoyé par un normaliseur
+    if (product.isFavorite !== undefined) {
+      setIsFavorite(product.isFavorite);
+      return;
+    }
+
+    // Sinon on vérifie la liste des favoris avec l'ID utilisateur
+    const userId = getCurrentUserId();
+    if (userId && product.favorites && Array.isArray(product.favorites)) {
+      const userIri = `/api/users/${userId}`;
+      const isFav = product.favorites.some(fav => {
+        const favUserIri = typeof fav.users === 'string' ? fav.users : fav.users?.['@id'];
+        return favUserIri === userIri;
+      });
+      setIsFavorite(isFav);
+    }
+  }, [product]);
 
   const getProductImage = (prod) => {
     if (prod.image) return prod.image;
@@ -15,13 +36,30 @@ const ProductCard = ({ product }) => {
     return null;
   };
 
-  const handleFavoriteClick = (e) => {
+  const handleFavoriteClick = async (e) => {
     e.preventDefault(); // Empêche la redirection du Link
     e.stopPropagation(); // Empêche la propagation du clic pour ne pas ouvrir le produit
     
+    // Toggle optimiste
     setIsFavorite(!isFavorite);
     
-    // TODO: Une fois l'auth implémentée, faire l'appel fetch('/api/favorites')
+    try {
+      const productId = product.id || product['@id']?.split('/').pop();
+      const response = await securedFetch(`${API_URL}/products/${productId}/favorite`, {
+        method: 'POST'
+      });
+      
+      if (!response.ok) {
+        // Revert si erreur
+        setIsFavorite(isFavorite);
+      } else {
+        const data = await response.json();
+        setIsFavorite(data.isFavorite);
+      }
+    } catch (error) {
+      console.error('Erreur lors du toggle favori:', error);
+      setIsFavorite(isFavorite);
+    }
   };
 
   const imgUrl = getProductImage(product) || "https://picsum.photos/seed/product/300/300";

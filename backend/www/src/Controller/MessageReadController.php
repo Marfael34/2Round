@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Conversation;
+use App\Entity\Message;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,22 +27,22 @@ class MessageReadController extends AbstractController
             return new JsonResponse(['message' => 'Non autorisé'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $count = 0;
-        foreach ($conversation->getMessages() as $message) {
-            $msgUser = $message->getUsers();
-            if (!$message->isRead() && $msgUser && $msgUser->getId() !== $user->getId()) {
-                $message->setIsRead(true);
-                $count++;
-            }
-        }
+        $qb = $em->createQueryBuilder();
+        $q = $qb->update(Message::class, 'm')
+            ->set('m.isRead', 'true')
+            ->where('m.conversation = :convId')
+            ->andWhere('m.isRead = false')
+            ->andWhere('m.users != :userId')
+            ->setParameter('convId', $id)
+            ->setParameter('userId', $user->getId())
+            ->getQuery();
 
-        if ($count > 0) {
-            try {
-                $em->flush();
-            } catch (\Throwable $e) {
-                @file_put_contents(__DIR__ . '/../../debug_read_error.txt', $e->getMessage() . "\n" . $e->getTraceAsString(), FILE_APPEND);
-                return new JsonResponse(['message' => 'Erreur: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
-            }
+        $count = 0;
+        try {
+            $count = $q->execute();
+        } catch (\Throwable $e) {
+            @file_put_contents(__DIR__ . '/../../debug_read_error.txt', $e->getMessage() . "\n" . $e->getTraceAsString(), FILE_APPEND);
+            return new JsonResponse(['message' => 'Erreur: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return new JsonResponse(['message' => "$count messages marqués comme lus"], Response::HTTP_OK);
