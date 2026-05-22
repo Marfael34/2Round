@@ -33,6 +33,10 @@ body {
     @apply  bg-no-repeat bg-left mt-15 bg-cover md:bg-top-left md:mt-18 w-full  bg-blend-multiply relative transition-opacity duration-500 py-10 md:py-20
 }
 
+.bg-return{
+  @apply scale-x-[-1]
+}
+
 @keyframes progress-bar {
   0% { width: 0%; }
   100% { width: 100%; }

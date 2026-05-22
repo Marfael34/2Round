@@ -13,6 +13,7 @@ export const IMG_LOGO = `${IMAGE_URL}/Logo.png`
 export const IMG_BOXE = `${IMAGE_URL}/background/bg_boxer.webp`
 export const IMG_BGRAYURE = `${IMAGE_URL}/background/bg_rayure.webp`
 export const IMG_BGALI = `${IMAGE_URL}/background/bg_muhammad_ali.webp`
+export const IMG_BGGLOVE = `${IMAGE_URL}/background/bg_glove.webp`
 
 // Images pour les leçons techniques (revente)
 export const IMG_TECH_GUARD = `${IMAGE_URL}/technical/boxer_guard.webp`

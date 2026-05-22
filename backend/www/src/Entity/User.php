@@ -67,6 +67,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $weight = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['user:read'])]
     private ?int $budget = null;
 
     #[ORM\Column]
