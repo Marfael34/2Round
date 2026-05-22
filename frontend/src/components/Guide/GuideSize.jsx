@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ChevronDown, ChevronUp } from "lucide-react";
 import { API_URL } from "../../constants/apiConstante";
-import { IMG_ILLU_GLOVES1, IMG_ILLU_GLOVES2, IMG_ILLU_HELMET, IMG_ILLU_BANDAGE } from "../../constants/appConstante";
+import { IMG_ILLU_GLOVES1, IMG_ILLU_GLOVES2, IMG_ILLU_HELMET, IMG_ILLU_BANDAGE, IMG_ILLU_SHOES1, IMG_ILLU_SHOES2 } from "../../constants/appConstante";
 
 const GuideSize = () => {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ const GuideSize = () => {
     if (category === "GANTS") return genderStr === "homme" ? IMG_ILLU_GLOVES1 : IMG_ILLU_GLOVES2;
     if (category === "BANDES") return IMG_ILLU_BANDAGE;
     if (category === "CASQUE") return IMG_ILLU_HELMET;
-    if (category === "CHAUSSURES") return genderStr === "homme" ? IMG_ILLU_GLOVES1 : IMG_ILLU_GLOVES2; // Fallback pour chaussures si manquantes
+    if (category === "CHAUSSURES") return genderStr === "homme" ? IMG_ILLU_SHOES1 : IMG_ILLU_SHOES2;
     return IMG_ILLU_GLOVES1;
   };
 
