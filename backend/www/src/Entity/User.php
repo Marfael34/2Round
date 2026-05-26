@@ -18,6 +18,19 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Table(name: '`user`')]
 #[ApiResource(
     normalizationContext: ['groups' => ['user:read']],
+    denormalizationContext: ['groups' => ['user:write']],
+    operations: [
+        new \ApiPlatform\Metadata\GetCollection(),
+        new \ApiPlatform\Metadata\Post(),
+        new \ApiPlatform\Metadata\Get(),
+        new \ApiPlatform\Metadata\Patch(
+            security: "is_granted('ROLE_ADMIN')",
+            denormalizationContext: ['groups' => ['admin:write']]
+        ),
+        new \ApiPlatform\Metadata\Delete(
+            security: "is_granted('ROLE_ADMIN')"
+        )
+    ]
 )]
 #[ApiFilter(SearchFilter::class, properties: ['email' => 'exact'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
@@ -26,17 +39,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['user:read', 'conversation:read', 'product:read'])]
+    #[Groups(['user:read', 'conversation:read', 'product:read', 'admin:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'admin:write', 'admin:read'])]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
+    #[Groups(['user:read', 'admin:write'])]
     private array $roles = [];
 
     /**
@@ -46,13 +60,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(['admin:write'])]
     private ?string $lastname = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(['admin:write'])]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 150)]
-    #[Groups(['user:read', 'product:read', 'conversation:read'])]
+    #[Groups(['user:read', 'product:read', 'conversation:read', 'admin:write', 'admin:read'])]
     private ?string $pseudo = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -63,14 +79,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTime $birthday_at = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'admin:write'])]
     private ?string $weight = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'admin:write'])]
     private ?int $budget = null;
 
     #[ORM\Column]
+    #[Groups(['user:read', 'user:write', 'admin:write'])]
     private ?bool $isActive = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -328,7 +345,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function isActive(): ?bool
+    public function getIsActive(): ?bool
     {
         return $this->isActive;
     }

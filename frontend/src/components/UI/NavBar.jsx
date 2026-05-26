@@ -21,6 +21,26 @@ const NavBar = ({ user, onLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
+  const decodeToken = (token) => {
+    if (!token) return null;
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const decodedUser = decodeToken(user);
+  const isAdmin = decodedUser && decodedUser.roles && decodedUser.roles.includes("ROLE_ADMIN");
+
   const handleSearchKeyPress = (e) => {
     if (e.key === "Enter" && searchQuery.trim() !== "") {
       setIsMenuOpen(false);
@@ -115,6 +135,19 @@ const NavBar = ({ user, onLogout }) => {
                 <span className="h-4 w-4 mr-2 flex items-center justify-center">📄</span>
                 Mes Factures
               </Link>
+              {isAdmin && (
+                <>
+                  <div className=" h-px bg-gray-300 mx-5 my-1"></div>
+                  <Link
+                    to="/admin/dashboard"
+                    className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors text-sm text-red-400 font-bold"
+                    onClick={() => setIsUserDropdownOpen(false)}
+                  >
+                    <span className="h-4 w-4 mr-2 flex items-center justify-center">🛡️</span>
+                    Dashboard Admin
+                  </Link>
+                </>
+              )}
               {/* Bouton Déconnexion */}
               {user && (
                 <>
@@ -242,6 +275,23 @@ const NavBar = ({ user, onLogout }) => {
                     <span className="h-4 w-4 mr-2 flex items-center justify-center">📄</span>
                     Mes Factures
                   </Link>
+
+                  {isAdmin && (
+                    <>
+                      <div className="h-px bg-gray-800 w-full my-1"></div>
+                      <Link
+                        to="/admin/dashboard"
+                        className="flex py-2 text-sm text-red-400 hover:text-red-300 font-bold transition-colors"
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          setIsUserDropdownOpen(false);
+                        }}
+                      >
+                        <span className="h-4 w-4 mr-2 flex items-center justify-center">🛡️</span>
+                        Dashboard Admin
+                      </Link>
+                    </>
+                  )}
 
                   {user && (
                     <>

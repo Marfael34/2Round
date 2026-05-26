@@ -32,6 +32,7 @@ const Conversation = () => {
   const paymentCancelledParam = searchParams.get("paymentCancelled");
   const paymentConvId = searchParams.get("conversationId");
   const paymentAmountParam = searchParams.get("amount");
+  const adminTargetConv = searchParams.get("conversationId");
 
   // State
   const [currentUser, setCurrentUser] = useState(null);
@@ -187,7 +188,7 @@ const Conversation = () => {
       const myConvs = allConvs.filter((c) => {
         const bId = extractId(c.buyer);
         const sId = extractId(c.seller);
-        return Number(bId) === userObj.id || Number(sId) === userObj.id;
+        return userObj.roles?.includes("ROLE_ADMIN") || Number(bId) === userObj.id || Number(sId) === userObj.id;
       });
 
       myConvs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -292,12 +293,27 @@ const Conversation = () => {
             setSearchParams({});
           } finally {
             creatingConvRef.current = null;
-            setLoading(false);
+            console.error(err);
           }
         }
-      } else {
-        setLoading(false);
+      } else if (adminTargetConv) {
+        const existingConv = myConvs.find((c) => Number(c.id) === Number(adminTargetConv));
+        if (existingConv) {
+          setActiveConversation(existingConv);
+        } else {
+          try {
+            const res = await securedFetch(`${API_URL}/conversations/${adminTargetConv}`);
+            if (res.ok) {
+              const convData = await res.json();
+              setConversations((prev) => [convData, ...prev]);
+              setActiveConversation(convData);
+            }
+          } catch(e) {
+            console.error("Conversation not found");
+          }
+        }
       }
+      setLoading(false);
     };
     initConversations();
   }, [
@@ -2020,8 +2036,8 @@ const Conversation = () => {
       )}
 
       {showCheckoutModal && activeConversation && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="w-full max-w-lg bg-[#0c0c0c] border border-white/10 rounded-xl p-6 md:p-8 shadow-2xl relative my-8">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex justify-center p-4 overflow-y-auto items-start pt-8 pb-8">
+          <div className="w-full max-w-lg bg-[#0c0c0c] border border-white/10 rounded-xl p-6 md:p-8 shadow-2xl relative my-auto">
             {checkoutStep !== "loading" && (
               <button
                 onClick={() => setShowCheckoutModal(false)}
@@ -2300,6 +2316,13 @@ const Conversation = () => {
                         €
                       </>
                     )}
+                  </button>
+                  <button
+                    onClick={() => setShowCheckoutModal(false)}
+                    disabled={stripeLoading}
+                    className="w-full bg-transparent hover:bg-white/5 border border-white/10 disabled:opacity-60 text-gray-400 hover:text-white font-bold py-3 uppercase tracking-widest rounded-md text-xs transition-colors cursor-pointer flex items-center justify-center mt-2"
+                  >
+                    Annuler et retourner
                   </button>
                 </div>
               </>

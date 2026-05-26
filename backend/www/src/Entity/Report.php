@@ -9,39 +9,57 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use phpDocumentor\Reflection\Types\Nullable;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ReportRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['admin:read']],
+    operations: [
+        new \ApiPlatform\Metadata\GetCollection(security: "is_granted('ROLE_ADMIN')"),
+        new \ApiPlatform\Metadata\Get(security: "is_granted('ROLE_ADMIN')"),
+        new \ApiPlatform\Metadata\Post(security: "is_granted('IS_AUTHENTICATED_FULLY')"),
+        new \ApiPlatform\Metadata\Delete(security: "is_granted('ROLE_ADMIN')"),
+        new \ApiPlatform\Metadata\Patch(security: "is_granted('ROLE_ADMIN')")
+    ]
+)]
 class Report
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['admin:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['admin:read'])]
     private ?string $reason = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['admin:read'])]
     private ?string $description = null;
 
     #[ORM\Column]
+    #[Groups(['admin:read'])]
     private ?\DateTime $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['admin:read'])]
     private ?User $sender = null;
 
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['admin:read'])]
     private ?Order $orderid = null;
 
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['admin:read'])]
     private ?Conversation $conversation = null;
 
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['admin:read'])]
     private ?Message $message = null;
 
     /**

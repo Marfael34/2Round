@@ -19,7 +19,7 @@ class Conversation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['conversation:read'])]
+    #[Groups(['conversation:read', 'admin:read'])]
     private ?int $id = null;
 
     #[ORM\Column]
@@ -41,7 +41,7 @@ class Conversation
     #[Groups(['conversation:read', 'conversation:write'])]
     private ?User $buyer = null;
 
-    #[ORM\ManyToOne(inversedBy: 'conversations')]
+    #[ORM\ManyToOne]
     #[Groups(['conversation:read', 'conversation:write'])]
     private ?User $seller = null;
 

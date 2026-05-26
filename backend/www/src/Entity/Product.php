@@ -76,7 +76,7 @@ class Product
     /**
      * @var Collection<int, Conversation>
      */
-    #[ORM\OneToMany(targetEntity: Conversation::class, mappedBy: 'ProductId')]
+    #[ORM\OneToMany(targetEntity: Conversation::class, mappedBy: 'product')]
     private Collection $conversations;
 
     /**

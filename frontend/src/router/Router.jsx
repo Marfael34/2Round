@@ -17,6 +17,8 @@ import Packs from '../screens/Packs'
 import GuideSize from '../components/Guide/GuideSize'
 import GuideStuff from '../components/Guide/GuideStuff'
 import Advice from '../components/Guide/Advice'
+import AdminRoute from './Admin/AdminRoute'
+import AdminDashboard from '../screens/AdminDashboard'
 
 const Router = createBrowserRouter([
     {
@@ -89,6 +91,14 @@ const Router = createBrowserRouter([
             {
                 path: "/invoices",
                 element: <InvoicesScreen />,
+            },
+            {
+                path: "/admin/dashboard",
+                element: (
+                    <AdminRoute>
+                        <AdminDashboard />
+                    </AdminRoute>
+                ),
             }
         ]
     }
