@@ -10,7 +10,7 @@ const Selection = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products?isHighlighted=true');
+        const response = await fetch('/api/products?isHighlighted=true&status=active');
         if (!response.ok) {
           throw new Error(`Erreur ${response.status}: ${response.statusText || 'Erreur lors de la récupération des produits'}`);
         }

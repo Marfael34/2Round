@@ -13,6 +13,7 @@ import { GiLockers } from "react-icons/gi";
 import { MdFavoriteBorder } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 import { IMG_LOGO } from "../../constants/appConstante";
+import { FaWallet } from "react-icons/fa6";
 
 const NavBar = ({ user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -97,6 +98,22 @@ const NavBar = ({ user, onLogout }) => {
               >
                 <GiLockers className="h-4 w-4 mr-2" />
                 Mon Vestiaire
+              </Link>
+              <Link
+                to="/wallet"
+                className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors text-sm"
+                onClick={() => setIsUserDropdownOpen(false)}
+              >
+                <FaWallet  className="h-4 w-4 mr-2 flex items-center justify-center" />
+                Mon Portefeuille
+              </Link>
+              <Link
+                to="/invoices"
+                className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors text-sm"
+                onClick={() => setIsUserDropdownOpen(false)}
+              >
+                <span className="h-4 w-4 mr-2 flex items-center justify-center">📄</span>
+                Mes Factures
               </Link>
               {/* Bouton Déconnexion */}
               {user && (
@@ -202,6 +219,28 @@ const NavBar = ({ user, onLogout }) => {
                   >
                     <GiLockers className="h-4 w-4 mr-2" />
                     Mon Vestiaire
+                  </Link>
+                  <Link
+                    to="/wallet"
+                    className="flex py-2 text-sm transition-colors text-gray-400 hover:text-white"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      setIsUserDropdownOpen(false);
+                    }}
+                  >
+                    <FaWallet  className="h-4 w-4 mr-2 flex items-center justify-center" />
+                    Mon Portefeuille
+                  </Link>
+                  <Link
+                    to="/invoices"
+                    className="flex py-2 text-sm transition-colors text-gray-400 hover:text-white"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      setIsUserDropdownOpen(false);
+                    }}
+                  >
+                    <span className="h-4 w-4 mr-2 flex items-center justify-center">📄</span>
+                    Mes Factures
                   </Link>
 
                   {user && (

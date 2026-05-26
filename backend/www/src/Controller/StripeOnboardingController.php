@@ -13,17 +13,15 @@ class StripeOnboardingController extends AbstractController
     #[Route('/api/seller/onboarding', name: 'api_seller_onboarding', methods: ['POST'])]
     public function onboard(StripeService $stripeService, EntityManagerInterface $em): JsonResponse
     {
-        // 1. Récupérer l'utilisateur connecté
-        // $user = $this->getUser();
-        // if (!$user) {
-        //     return $this->json(['error' => 'Non autorisé'], 401);
-        // }
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->json(['error' => 'Non autorisé'], 401);
+        }
 
-        /* --- MODE TEST / MOCK EN ATTENDANT L'ENTITÉ USER --- */
-        // Pour l'instant, on simule un vendeur (à remplacer par ton vrai User)
-        $sellerEmail = 'vendeur.test@2round.fr';
-        $stripeAccountId = null; // Normalement : $user->getStripeAccountId();
-        /* -------------------------------------------------- */
+        $userEntity = $em->getRepository(\App\Entity\User::class)->findOneBy(['email' => $user->getUserIdentifier()]);
+        
+        $sellerEmail = $userEntity->getEmail();
+        $stripeAccountId = $userEntity->getStripeAccountId();
 
         try {
             // 2. Si le vendeur n'a pas encore de compte Stripe Express, on lui en crée un
@@ -31,9 +29,8 @@ class StripeOnboardingController extends AbstractController
                 $account = $stripeService->createExpressAccount($sellerEmail);
                 $stripeAccountId = $account->id;
 
-                // TODO : Sauvegarder l'ID dans la base de données
-                // $user->setStripeAccountId($stripeAccountId);
-                // $em->flush();
+                $userEntity->setStripeAccountId($stripeAccountId);
+                $em->flush();
             }
 
             // 3. Générer le lien d'onboarding (KYC)
@@ -44,6 +41,31 @@ class StripeOnboardingController extends AbstractController
                 'url' => $accountLink->url
             ]);
 
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    #[Route('/api/seller/dashboard', name: 'api_seller_dashboard', methods: ['GET'])]
+    public function dashboard(StripeService $stripeService, EntityManagerInterface $em): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->json(['error' => 'Non autorisé'], 401);
+        }
+
+        $userEntity = $em->getRepository(\App\Entity\User::class)->findOneBy(['email' => $user->getUserIdentifier()]);
+        $stripeAccountId = $userEntity->getStripeAccountId();
+
+        if (!$stripeAccountId) {
+            return $this->json(['error' => 'Aucun compte Stripe configuré'], 400);
+        }
+
+        try {
+            $loginLink = $stripeService->createLoginLink($stripeAccountId);
+            return $this->json([
+                'url' => $loginLink->url
+            ]);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], 400);
         }

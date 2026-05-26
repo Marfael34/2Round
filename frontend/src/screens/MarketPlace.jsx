@@ -37,7 +37,7 @@ const MarketPlace = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await securedFetch(`${API_URL}/products`);
+        const response = await securedFetch(`${API_URL}/products?status=active`);
         if (!response.ok) {
           throw new Error("Impossible de charger les articles de la marketplace.");
         }

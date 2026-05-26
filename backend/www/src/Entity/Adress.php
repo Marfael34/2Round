@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\AdressRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: AdressRepository::class)]
 #[ApiResource]
@@ -14,24 +15,31 @@ class Adress
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['user:read'])]
     private ?string $label = null;
 
     #[ORM\Column(length: 10)]
+    #[Groups(['user:read'])]
     private ?string $street_number = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['user:read'])]
     private ?string $street_name = null;
 
     #[ORM\Column(length: 5)]
+    #[Groups(['user:read'])]
     private ?string $postal_code = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(['user:read'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['user:read'])]
     private ?string $country = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 8)]
@@ -39,6 +47,9 @@ class Adress
 
     #[ORM\Column(type: Types::DECIMAL, precision: 11, scale: 8)]
     private ?string $longitude = null;
+
+    #[ORM\ManyToOne(inversedBy: 'adresses')]
+    private ?User $user = null;
 
     public function getId(): ?int
     {
@@ -137,6 +148,18 @@ class Adress
     public function setLongitude(string $longitude): static
     {
         $this->longitude = $longitude;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

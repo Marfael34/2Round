@@ -17,6 +17,7 @@ RUN apt-get update \
         libjpeg-dev \
         libfreetype6-dev \
         libicu-dev \
+        libxml2-dev \
         curl \
         nano \
     && rm -rf /var/lib/apt/lists/*
@@ -29,6 +30,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         intl \
         pdo \
         pdo_mysql \
+        soap \
         opcache
 
 # 4. COMPOSER

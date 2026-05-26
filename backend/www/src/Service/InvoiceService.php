@@ -18,32 +18,42 @@ class InvoiceService
 
     public function generateInvoices(Order $order, User $buyer): void
     {
-        // 1. Facture pour l'acheteur (ce qu'il a payé)
+        // 1. Reçu détaillé pour l'acheteur (ce qu'il a payé : Objet + Frais de service)
         $buyerInvoice = new Invoice();
-        $buyerInvoice->setNumber('FA-B-' . strtoupper(substr(uniqid(), -5)));
-        $buyerInvoice->setType('purchase');
+        $buyerInvoice->setNumber('RE-B-' . strtoupper(substr(uniqid(), -5))); // RE pour Receipt
+        $buyerInvoice->setType('receipt_purchase');
         $buyerInvoice->setAmount($order->getTotalprice());
         $buyerInvoice->setUsers($buyer);
         $buyerInvoice->setOrders($order);
         $buyerInvoice->setCreatedAt(new \DateTime());
         $this->em->persist($buyerInvoice);
 
-        // Récupérer le vendeur depuis le produit (OrderItem)
+        // Récupérer le vendeur et le prix de l'objet
         $orderItem = $order->getOrderItems()->first();
         if ($orderItem && $orderItem->getProducts()) {
             $seller = $orderItem->getProducts()->getSeller();
+            $itemPrice = $orderItem->getPricePurchase();
+            $serviceFees = $order->getServicesFees();
 
-            // 2. Facture pour le vendeur (ce qu'il va recevoir, moins les frais)
-            $sellerInvoice = new Invoice();
-            $sellerInvoice->setNumber('FA-S-' . strtoupper(substr(uniqid(), -5)));
-            $sellerInvoice->setType('sale');
-            // Calcul du net vendeur (Ex: Prix total - Frais de service plateforme)
-            $netAmount = (int)$order->getTotalprice() - $order->getServicesFees();
-            $sellerInvoice->setAmount((string)$netAmount);
-            $sellerInvoice->setUsers($seller);
-            $sellerInvoice->setOrders($order);
-            $sellerInvoice->setCreatedAt(new \DateTime());
-            $this->em->persist($sellerInvoice);
+            // 2. Facture de commission pour le vendeur (Frais de service plateforme)
+            $sellerCommission = new Invoice();
+            $sellerCommission->setNumber('FA-C-' . strtoupper(substr(uniqid(), -5))); // FA pour Facture
+            $sellerCommission->setType('invoice_commission');
+            $sellerCommission->setAmount((string)$serviceFees);
+            $sellerCommission->setUsers($seller);
+            $sellerCommission->setOrders($order);
+            $sellerCommission->setCreatedAt(new \DateTime());
+            $this->em->persist($sellerCommission);
+
+            // 3. Bordereau de transfert de propriété pour le vendeur (Prix de l'objet)
+            $sellerTransfer = new Invoice();
+            $sellerTransfer->setNumber('RE-T-' . strtoupper(substr(uniqid(), -5))); // RE pour Reçu
+            $sellerTransfer->setType('receipt_transfer');
+            $sellerTransfer->setAmount((string)$itemPrice);
+            $sellerTransfer->setUsers($seller);
+            $sellerTransfer->setOrders($order);
+            $sellerTransfer->setCreatedAt(new \DateTime());
+            $this->em->persist($sellerTransfer);
         }
     }
 }

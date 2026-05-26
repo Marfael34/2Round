@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     normalizationContext: ['groups' => ['product:read']],
 )]
 #[ApiFilter(BooleanFilter::class, properties: ['isHighlighted'])]
-#[ApiFilter(SearchFilter::class, properties: ['seller' => 'exact'])]
+#[ApiFilter(SearchFilter::class, properties: ['seller' => 'exact', 'status' => 'exact'])]
 class Product
 {
     #[ORM\Id]
@@ -97,6 +97,10 @@ class Product
     #[ORM\Column]
     #[Groups(['product:read'])]
     private ?bool $isHighlighted = null;
+
+    #[ORM\Column(length: 20, options: ["default" => "active"])]
+    #[Groups(['product:read', 'conversation:read'])]
+    private ?string $status = 'active';
 
     public function __construct()
     {
@@ -354,6 +358,18 @@ class Product
     public function setSize(?string $size): static
     {
         $this->size = $size;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }

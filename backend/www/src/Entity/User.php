@@ -73,11 +73,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?bool $isActive = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $stripe_account_id = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $stripe_account_id = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $stripe_customer_id = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $stripe_customer_id = null;
 
     /**
      * @var Collection<int, Favorite>
@@ -134,6 +134,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Report::class, mappedBy: 'sender')]
     private Collection $reports;
 
+    /**
+     * @var Collection<int, Adress>
+     */
+    #[ORM\OneToMany(targetEntity: Adress::class, mappedBy: 'user')]
+    #[Groups(['user:read'])]
+    private Collection $adresses;
+
     #[ORM\Column]
     private ?bool $is_onboarding_completed = null;
 
@@ -157,6 +164,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->messages = new ArrayCollection();
         $this->conversations = new ArrayCollection();
         $this->reports = new ArrayCollection();
+        $this->adresses = new ArrayCollection();
         $this->receivedEvaluations = new ArrayCollection();
         $this->sentEvaluations = new ArrayCollection();
         $this->createdAt = new \DateTime();
@@ -332,24 +340,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getStripeAccountId(): ?int
+    public function getStripeAccountId(): ?string
     {
         return $this->stripe_account_id;
     }
 
-    public function setStripeAccountId(?int $stripe_account_id): static
+    public function setStripeAccountId(?string $stripe_account_id): static
     {
         $this->stripe_account_id = $stripe_account_id;
 
         return $this;
     }
 
-    public function getStripeCustomerId(): ?int
+    public function getStripeCustomerId(): ?string
     {
         return $this->stripe_customer_id;
     }
 
-    public function setStripeCustomerId(?int $stripe_customer_id): static
+    public function setStripeCustomerId(?string $stripe_customer_id): static
     {
         $this->stripe_customer_id = $stripe_customer_id;
 
@@ -601,6 +609,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRefreshTokenExpiredAt(?\DateTimeInterface $refreshTokenExpiredAt): static
     {
         $this->refreshTokenExpiredAt = $refreshTokenExpiredAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Adress>
+     */
+    public function getAdresses(): Collection
+    {
+        return $this->adresses;
+    }
+
+    public function addAdress(Adress $adress): static
+    {
+        if (!$this->adresses->contains($adress)) {
+            $this->adresses->add($adress);
+            $adress->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAdress(Adress $adress): static
+    {
+        if ($this->adresses->removeElement($adress)) {
+            // set the owning side to null (unless already changed)
+            if ($adress->getUser() === $this) {
+                $adress->setUser(null);
+            }
+        }
 
         return $this;
     }

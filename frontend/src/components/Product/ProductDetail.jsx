@@ -201,7 +201,7 @@ const ProductDetail = () => {
 
   const fetchSuggestions = async (currentId) => {
     try {
-      const response = await securedFetch(`/api/products`);
+      const response = await securedFetch(`/api/products?status=active`);
       if (response.ok) {
         const data = await response.json();
         const items = data.member || data["hydra:member"] || (Array.isArray(data) ? data : []);

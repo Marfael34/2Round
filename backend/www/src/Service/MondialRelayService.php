@@ -41,7 +41,7 @@ class MondialRelayService
         // à $this->client->createLabel(...)
         
         $trackingNumber = 'MR-' . rand(10000000, 99999999);
-        $pdfUrl = 'https://www.mondialrelay.fr/pdf/etiquette_simulee_' . $trackingNumber . '.pdf';
+        $pdfUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
 
         return [
             'trackingNumber' => $trackingNumber,

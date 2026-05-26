@@ -6,6 +6,8 @@ import MarketPlace from '../screens/MarketPlace'
 import MyLocker from '../screens/MyLocker'
 import Guide from '../screens/Guide'
 import ProductDetail from '../components/Product/ProductDetail'
+import WalletScreen from '../screens/WalletScreen'
+import InvoicesScreen from '../screens/InvoicesScreen'
 import Conversation from '../screens/Conversation'
 import App from '../App'
 import MyCustomised from '../screens/MyCustomised'
@@ -79,6 +81,14 @@ const Router = createBrowserRouter([
             {
                 path: "/guideadvice",
                 element: <Advice />,
+            },
+            {
+                path: "/wallet",
+                element: <WalletScreen />,
+            },
+            {
+                path: "/invoices",
+                element: <InvoicesScreen />,
             }
         ]
     }

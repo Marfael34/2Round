@@ -33,7 +33,6 @@ class StripeService
             'type' => 'express',
             'email' => $email,
             'capabilities' => [
-                'card_payments' => ['requested' => true],
                 'transfers' => ['requested' => true],
             ],
         ]);
@@ -89,5 +88,13 @@ class StripeService
             'destination' => $sellerAccountId,
             'transfer_group' => $transferGroup,
         ]);
+    }
+
+    /**
+     * Crée un lien de connexion au tableau de bord Express (Dashboard).
+     */
+    public function createLoginLink(string $accountId)
+    {
+        return \Stripe\Account::createLoginLink($accountId);
     }
 }

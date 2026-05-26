@@ -3,6 +3,7 @@ import { IMG_BGRAYURE } from "../constants/appConstante"
 import { useNavigate, Link } from "react-router-dom";
 import UserProducts from "../components/Profile/UserProducts";
 import UserEvaluations from "../components/Profile/UserEvaluations";
+
 import { FaChevronLeft } from "react-icons/fa6";
 import { securedFetch } from "../utils/api";
 
@@ -172,6 +173,12 @@ const MyLocker = () => {
                     <p><span className="font-bold">Poids :</span> <span className="text-gray-300">{user.weight ? `${user.weight} Kg` : 'Non renseigné'}</span></p>
                     <p><span className="font-bold">Taille :</span> <span className="text-gray-300">{user.size ? `${user.size} cm` : 'Non renseignée'}</span></p>
                     <p><span className="font-bold">Niveau :</span> <span className="text-gray-300">{user.level?.label || 'Non renseigné'}</span></p>
+                  </div>
+
+                  <div className="mt-8">
+                    <Link to="/wallet" className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bebas uppercase tracking-widest text-xl transition-colors rounded-sm shadow-lg">
+                      Accéder à mon Portefeuille Numérique
+                    </Link>
                   </div>
                 </div>
               </div>

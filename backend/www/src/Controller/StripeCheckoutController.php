@@ -38,6 +38,11 @@ class StripeCheckoutController extends AbstractController
         }
 
         try {
+            $origin = $request->headers->get('origin');
+            if (!$origin) {
+                $origin = $this->frontendUrl;
+            }
+
             $session = Session::create([
                 'payment_method_types' => ['card'],
                 'line_items' => [[
@@ -52,12 +57,15 @@ class StripeCheckoutController extends AbstractController
                     'quantity' => 1,
                 ]],
                 'mode' => 'payment',
-                'success_url' => $this->frontendUrl . '/conversation?paymentSuccess=true&conversationId=' . $conversationId . '&amount=' . $amount,
-                'cancel_url' => $this->frontendUrl . '/conversation?paymentCancelled=true&conversationId=' . $conversationId,
+                'success_url' => $origin . '/conversation?paymentSuccess=true&conversationId=' . $conversationId . '&amount=' . $amount,
+                'cancel_url' => $origin . '/conversation?paymentCancelled=true&conversationId=' . $conversationId,
                 'metadata' => [
                     'conversationId' => $conversationId,
                     'productId' => $productId,
                     'buyerId' => $buyerId,
+                ],
+                'payment_intent_data' => [
+                    'transfer_group' => 'CONV_' . $conversationId,
                 ],
             ]);
 

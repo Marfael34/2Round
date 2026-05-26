@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { IMG_BGRAYURE } from "../constants/appConstante";
 import { securedFetch } from "../utils/api";
 import { API_URL } from "../constants/apiConstante";
 import {
@@ -10,6 +11,7 @@ import {
   FaInbox,
   FaUser,
   FaArrowLeft,
+  FaChevronLeft,
   FaCreditCard,
   FaTruck,
   FaShieldHalved,
@@ -40,6 +42,7 @@ const Conversation = () => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const creatingConvRef = useRef(null);
   const [error, setError] = useState(null);
 
   // Offer Modal State
@@ -72,6 +75,10 @@ const Conversation = () => {
   const [transactionRef, setTransactionRef] = useState("");
   const [autoCheckout, setAutoCheckout] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
+
+  // Address Autocomplete State
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
 
   // Report Modal State
   const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -147,12 +154,10 @@ const Conversation = () => {
 
         setCurrentUser(userObj);
         setShippingAddress({
-          name:
-            `${userObj.firstname || ""} ${userObj.lastname || ""}`.trim() ||
-            "Jean Dupont",
-          street: "12 Rue de la Paix",
-          city: "Paris",
-          zip: "75002",
+          name: `${userObj.firstname || ""} ${userObj.lastname || ""}`.trim(),
+          street: "",
+          city: "",
+          zip: "",
           country: "France",
         });
       } catch (err) {
@@ -220,12 +225,27 @@ const Conversation = () => {
         });
 
         if (existingConv) {
+          if (existingConv.isActive === false && (initOfferParam === "true" || initCheckoutParam === "true")) {
+            try {
+              await securedFetch(`${API_URL}/conversations/${existingConv.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/merge-patch+json" },
+                body: JSON.stringify({ isActive: true })
+              });
+              existingConv.isActive = true;
+            } catch(e) {
+              console.error("Failed to reactivate conversation", e);
+            }
+          }
           setActiveConversation(existingConv);
           if (initOfferParam === "true") setShowOfferModal(true);
           if (initCheckoutParam === "true") setAutoCheckout(true);
           setSearchParams({});
           setLoading(false);
         } else {
+          if (creatingConvRef.current === targetProductId) return;
+          creatingConvRef.current = targetProductId;
+
           try {
             const prodRes = await securedFetch(
               `${API_URL}/products/${targetProductId}`,
@@ -240,6 +260,7 @@ const Conversation = () => {
               alert("Vous ne pouvez pas négocier avec vous-même !");
               setSearchParams({});
               setLoading(false);
+              creatingConvRef.current = null;
               return;
             }
 
@@ -270,6 +291,7 @@ const Conversation = () => {
             alert("Erreur lors de la soumission de l'offre.");
             setSearchParams({});
           } finally {
+            creatingConvRef.current = null;
             setLoading(false);
           }
         }
@@ -368,47 +390,18 @@ const Conversation = () => {
   // AJOUT : Vérification de la commande pour le vendeur afin d'afficher l'étiquette
   useEffect(() => {
     const isProductSold = messages.some(
-      (msg) => msg.content && msg.content.includes("L'article a été acheté"),
+      (msg) => msg.content && (msg.content.includes("L'article a été acheté") || msg.content.includes("L'article a été payé avec succès")),
     );
-    const extractId = (val) => {
-      if (!val) return null;
-      if (typeof val === "object")
-        return val.id || (val["@id"] ? val["@id"].split("/").pop() : null);
-      if (typeof val === "string") return val.split("/").pop();
-      return val;
-    };
-
-    const activeBuyerId = extractId(activeConversation?.buyer);
-    const isBuyer =
-      currentUser &&
-      activeConversation &&
-      Number(activeBuyerId) === currentUser.id;
-
-    if (activeConversation && isProductSold && !isBuyer && currentUser) {
+    if (activeConversation && isProductSold && currentUser) {
       const fetchOrder = async () => {
         try {
-          const res = await securedFetch(`${API_URL}/orders`);
+          const res = await securedFetch(`${API_URL}/orders/for-conversation/${activeConversation.id}`);
           if (!res.ok) return;
-          const data = await res.json();
-          const orders = data.member || data["hydra:member"] || [];
-          const matchedOrder = orders.find((o) =>
-            o.orderItems?.some((oi) => {
-              const extractId = (val) => {
-                if (!val) return null;
-                if (typeof val === "object")
-                  return (
-                    val.id || (val["@id"] ? val["@id"].split("/").pop() : null)
-                  );
-                if (typeof val === "string") return val.split("/").pop();
-                return val;
-              };
-              const pId = extractId(oi.products);
-              const convPId = extractId(activeConversation.product);
-              return Number(pId) === Number(convPId);
-            }),
-          );
-          if (matchedOrder && matchedOrder.status === "paid") {
-            setCurrentOrder(matchedOrder);
+          const orderData = await res.json();
+          if (orderData && orderData.id) {
+            setCurrentOrder(orderData);
+          } else {
+            setCurrentOrder(null);
           }
         } catch (e) {
           console.error("Erreur récupération commande", e);
@@ -416,6 +409,7 @@ const Conversation = () => {
       };
       fetchOrder();
     } else {
+      // Use a timeout or move to a separate effect if needed, but for now we safely clear it
       setCurrentOrder(null);
     }
   }, [messages, activeConversation, currentUser]);
@@ -679,6 +673,24 @@ const Conversation = () => {
     }
   };
 
+  const fetchAddressSuggestions = async (query) => {
+    if (query.length < 3) {
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+      return;
+    }
+    try {
+      const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
+      if (res.ok) {
+        const data = await res.json();
+        setAddressSuggestions(data.features || []);
+        setShowAddressSuggestions(true);
+      }
+    } catch (err) {
+      console.error("Erreur API Adresse:", err);
+    }
+  };
+
   const handleStripeCheckout = async () => {
     if (
       !shippingAddress.name ||
@@ -831,6 +843,87 @@ const Conversation = () => {
     }
   };
 
+  const handleValidateReception = async () => {
+    if (!currentOrder || !activeConversation) return;
+    if (!window.confirm("Êtes-vous sûr d'avoir bien reçu l'article ? Cela débloquera l'argent pour le vendeur.")) return;
+    
+    try {
+      const res = await securedFetch(`${API_URL}/orders/validate-reception`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: currentOrder.id,
+          conversationId: activeConversation.id
+        })
+      });
+      if (!res.ok) {
+         const data = await res.json();
+         throw new Error(data.error || "Erreur de validation");
+      }
+      
+      alert("Réception validée. Le vendeur a été payé.");
+      setCurrentOrder(prev => ({...prev, status: "completed"}));
+      fetchActiveMessages(activeConversation.id, true);
+    } catch (err) {
+      console.error(err);
+      alert("Erreur : " + err.message);
+    }
+  };
+
+  const handleValidateShipping = async () => {
+    if (!currentOrder || !activeConversation) return;
+    if (!window.confirm("Avez-vous bien déposé le colis au point relais ?")) return;
+    
+    try {
+      const res = await securedFetch(`${API_URL}/orders/validate-shipping`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: currentOrder.id,
+          conversationId: activeConversation.id
+        })
+      });
+      if (!res.ok) {
+         const data = await res.json();
+         throw new Error(data.error || "Erreur de validation");
+      }
+      
+      alert("Envoi validé. L'acheteur sera notifié.");
+      setCurrentOrder(prev => ({...prev, status: "shipped"}));
+      fetchActiveMessages(activeConversation.id, true);
+    } catch (err) {
+      console.error(err);
+      alert("Erreur : " + err.message);
+    }
+  };
+
+  const handleDispute = async () => {
+    if (!currentOrder || !activeConversation) return;
+    if (!window.confirm("Êtes-vous sûr de vouloir signaler un problème ? Les fonds seront bloqués jusqu'à résolution.")) return;
+    
+    try {
+      const res = await securedFetch(`${API_URL}/orders/dispute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: currentOrder.id,
+          conversationId: activeConversation.id
+        })
+      });
+      if (!res.ok) {
+         const data = await res.json();
+         throw new Error(data.error || "Erreur de déclaration de litige");
+      }
+      
+      alert("Litige déclaré. Veuillez en discuter à l'amiable dans ce chat.");
+      setCurrentOrder(prev => ({...prev, status: "disputed"}));
+      fetchActiveMessages(activeConversation.id, true);
+    } catch (err) {
+      console.error(err);
+      alert("Erreur : " + err.message);
+    }
+  };
+
   useEffect(() => {
     if (!paymentSuccessParam || !currentUser || !paymentConvId) return;
     const handlePaymentReturn = async () => {
@@ -916,7 +1009,7 @@ const Conversation = () => {
     Number(activeBuyerId) === currentUser.id;
 
   const isProductSold = messages.some(
-    (msg) => msg.content && msg.content.includes("L'article a été acheté"),
+    (msg) => msg.content && (msg.content.includes("L'article a été acheté") || msg.content.includes("L'article a été payé avec succès")),
   );
 
   const acceptedOfferMessage = [...messages]
@@ -938,11 +1031,24 @@ const Conversation = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white font-inter flex flex-col">
-      <div className="max-w-[1200px] w-full mx-auto px-4 md:px-8 py-6 flex-1 flex flex-col h-[calc(100vh-80px)]">
-        <h1 className="font-bebas text-4xl uppercase tracking-wider mb-6 pb-2 border-b border-white/10 shrink-0">
-          Messagerie & Négociations
-        </h1>
+    <div className="h-screen bg-black text-white font-inter flex flex-col pt-[62px] lg:pt-[80px]">
+      {/* Container avec le fond rayé pour l'entête */}
+      <div 
+        className="w-full bg-cover bg-center border-b border-white/10 shrink-0" 
+        style={{ backgroundImage: `url(${IMG_BGRAYURE})` }}
+      >
+        <div className="max-w-[1200px] mx-auto p-5 md:p-10 flex items-center">
+          <Link to="/" className="text-white text-2xl md:text-4xl font-bebas mr-4 hover:text-red-600 transition-colors">
+            <FaChevronLeft /> 
+          </Link>
+          <h2 className="font-bebas text-3xl md:text-4xl uppercase tracking-wider drop-shadow-md m-0">
+            Messagerie
+          </h2>
+        </div>
+      </div>
+
+      {/* Reste du contenu (Chat Area) */}
+      <div className="max-w-[1200px] w-full mx-auto px-4 md:px-8 pb-6 pt-4 flex-1 flex flex-col min-h-0">
 
         {error && (
           <div className="bg-red-950/40 border border-red-800 text-red-500 p-4 mb-4 rounded-sm text-sm shrink-0">
@@ -1380,6 +1486,7 @@ const Conversation = () => {
 
                       if (isShippingLabel) {
                         if (isBuyer) return null; // L'acheteur ne voit pas le bon d'envoi du vendeur
+                        if (currentOrder && currentOrder.status !== "paid") return null; // Le vendeur ne peut plus voir l'étiquette une fois expédié
                         const labelUrl = msg.content.replace(
                           "[SHIPPING_LABEL] ",
                           "",
@@ -1437,11 +1544,16 @@ const Conversation = () => {
                               </div>
 
                               <div className="text-[10px] bg-white/5 border border-white/10 text-gray-300 py-1.5 px-3 rounded-sm inline-block uppercase tracking-wider font-bold">
-                                Statut : En attente d'expédition
+                                Statut : {
+                                  currentOrder?.status === "completed" ? "Livré" :
+                                  currentOrder?.status === "shipped" ? "En transit" :
+                                  currentOrder?.status === "disputed" ? "En litige" :
+                                  "En attente d'expédition"
+                                }
                               </div>
 
                               {/* AJOUT : Affichage du bordereau Mondial Relay EXCLUSIF au vendeur */}
-                              {!isBuyer && currentOrder?.shippingLabelUrl && (
+                              {!isBuyer && currentOrder?.shippingLabelUrl && currentOrder?.status === "paid" && (
                                 <div className="mt-6 pt-5 border-t border-emerald-500/30">
                                   <div className="bg-emerald-900/40 border border-emerald-500/50 p-4 rounded-md">
                                     <h5 className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">
@@ -1458,6 +1570,64 @@ const Conversation = () => {
                                     </a>
                                     <p className="text-[10px] text-gray-400 mt-2 font-mono">
                                       N° Suivi : {currentOrder.trackingNumber}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* BOUTON D'EXPÉDITION POUR LE VENDEUR */}
+                              {!isBuyer && currentOrder?.status === "paid" && (
+                                <div className="mt-6 pt-5 border-t border-emerald-500/30">
+                                  <button
+                                    onClick={handleValidateShipping}
+                                    className="flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition-colors"
+                                  >
+                                    <FaTruck className="inline mr-2" /> Colis déposé au relais
+                                  </button>
+                                  <p className="text-[10px] text-gray-400 mt-2 font-mono">
+                                    Confirmez l'envoi une fois le colis déposé.
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* TEXTE D'ATTENTE POUR L'ACHETEUR */}
+                              {isBuyer && currentOrder?.status === "paid" && (
+                                <div className="mt-6 pt-5 border-t border-emerald-500/30 text-center">
+                                  <p className="text-xs text-gray-400">En attente de l'expédition par le vendeur...</p>
+                                </div>
+                              )}
+                              
+                              {/* BOUTON VALIDATION POUR L'ACHETEUR (UNIQUEMENT SI EXPÉDIÉ) */}
+                              {isBuyer && currentOrder?.status === "shipped" && (
+                                <div className="mt-6 pt-5 border-t border-emerald-500/30 flex flex-col gap-3">
+                                  <button
+                                    onClick={handleValidateReception}
+                                    className="flex items-center justify-center w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition-colors"
+                                  >
+                                    <FaCheck className="inline mr-2" /> Valider la réception
+                                  </button>
+                                  
+                                  <button
+                                    onClick={handleDispute}
+                                    className="flex items-center justify-center w-full bg-transparent border border-red-600/50 hover:bg-red-900/30 text-red-400 py-2.5 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors"
+                                  >
+                                    Signaler un problème
+                                  </button>
+                                  <p className="text-[10px] text-gray-400 mt-1 font-mono text-center">
+                                    En cas de non-réception, déclarez un litige.
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* ETAT LITIGE */}
+                              {currentOrder?.status === "disputed" && (
+                                <div className="mt-6 pt-5 border-t border-red-500/30 text-center">
+                                  <div className="bg-red-900/20 border border-red-500 p-3 rounded-md">
+                                    <p className="text-red-400 text-xs font-bold uppercase tracking-wider mb-2">
+                                      ⚠️ Litige en cours
+                                    </p>
+                                    <p className="text-[10px] text-gray-300">
+                                      Les fonds sont bloqués. Tentez de trouver une solution à l'amiable ci-dessous.
                                     </p>
                                   </div>
                                 </div>
@@ -1946,32 +2116,38 @@ const Conversation = () => {
 
                   <div className="space-y-3">
                     <span className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-                      1. Point Relais Mondial Relay
+                      1. Adresse de l'acheteur
                     </span>
-                    <select
-                      value={selectedRelay}
-                      onChange={(e) => setSelectedRelay(e.target.value)}
-                      className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-3 text-xs text-white"
-                    >
-                      <option value="Mondial Relay - Epicerie du Rond-Point">
-                        Mondial Relay - Epicerie du Rond-Point (2 Rue de la
-                        Marne, Paris)
-                      </option>
-                      <option value="Relais Colis - Tabac de la Place">
-                        Relais Colis - Tabac de la Place (15 Place de la
-                        République, Paris)
-                      </option>
-                      <option value="Mondial Relay - Supermarché U">
-                        Mondial Relay - Supermarché U (88 Boulevard Sébastopol,
-                        Paris)
-                      </option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-3">
-                    <span className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-                      2. Adresse de Facturation
-                    </span>
+                    {currentUser?.adresses && currentUser.adresses.length > 0 && (
+                      <div className="mb-3">
+                        <select
+                          className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-3 text-xs text-white"
+                          onChange={(e) => {
+                            if (e.target.value === "new") {
+                              setShippingAddress({ name: "", street: "", city: "", zip: "", country: "France" });
+                            } else {
+                              const addr = currentUser.adresses.find(a => a.id.toString() === e.target.value);
+                              if (addr) {
+                                setShippingAddress({
+                                  name: `${currentUser.firstname || ""} ${currentUser.lastname || ""}`.trim(),
+                                  street: addr.street_number ? `${addr.street_number} ${addr.street_name}` : addr.street_name,
+                                  city: addr.city,
+                                  zip: addr.postal_code,
+                                  country: addr.country || "France"
+                                });
+                              }
+                            }
+                          }}
+                        >
+                          <option value="new">-- Ajouter une nouvelle adresse --</option>
+                          {currentUser.adresses.map(addr => (
+                            <option key={addr.id} value={addr.id}>
+                              {addr.label || "Mon adresse"} : {addr.street_number} {addr.street_name}, {addr.postal_code} {addr.city}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <input
                         type="text"
@@ -1986,19 +2162,43 @@ const Conversation = () => {
                         }
                         className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-2.5 text-xs text-white"
                       />
-                      <input
-                        type="text"
-                        placeholder="Rue"
-                        required
-                        value={shippingAddress.street}
-                        onChange={(e) =>
-                          setShippingAddress({
-                            ...shippingAddress,
-                            street: e.target.value,
-                          })
-                        }
-                        className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-2.5 text-xs text-white"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Rue (Tapez pour rechercher)"
+                          required
+                          value={shippingAddress.street}
+                          onChange={(e) => {
+                            setShippingAddress({
+                              ...shippingAddress,
+                              street: e.target.value,
+                            });
+                            fetchAddressSuggestions(e.target.value);
+                          }}
+                          className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-2.5 text-xs text-white"
+                        />
+                        {showAddressSuggestions && addressSuggestions.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                            {addressSuggestions.map((suggestion) => (
+                              <div
+                                key={suggestion.properties.id}
+                                className="px-3 py-2 text-xs text-gray-300 hover:bg-white/10 cursor-pointer"
+                                onClick={() => {
+                                  setShippingAddress({
+                                    ...shippingAddress,
+                                    street: suggestion.properties.name,
+                                    city: suggestion.properties.city,
+                                    zip: suggestion.properties.postcode,
+                                  });
+                                  setShowAddressSuggestions(false);
+                                }}
+                              >
+                                {suggestion.properties.label}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <input
                         type="text"
                         placeholder="Ville"
@@ -2041,6 +2241,27 @@ const Conversation = () => {
                         />
                       </div>
                     </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <span className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                      2. Point Relais le plus proche
+                    </span>
+                    <select
+                      value={selectedRelay}
+                      onChange={(e) => setSelectedRelay(e.target.value)}
+                      className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-3 text-xs text-white"
+                    >
+                      <option value="Mondial Relay - Epicerie du Rond-Point">
+                        Mondial Relay - Epicerie du Rond-Point {shippingAddress.city ? `(${shippingAddress.city})` : "(Saisissez votre ville)"}
+                      </option>
+                      <option value="Relais Colis - Tabac de la Place">
+                        Relais Colis - Tabac de la Place {shippingAddress.city ? `(${shippingAddress.city})` : "(Saisissez votre ville)"}
+                      </option>
+                      <option value="Mondial Relay - Supermarché U">
+                        Mondial Relay - Supermarché U {shippingAddress.city ? `(${shippingAddress.city})` : "(Saisissez votre ville)"}
+                      </option>
+                    </select>
                   </div>
 
                   <div className="space-y-3">
