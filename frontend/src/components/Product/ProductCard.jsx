@@ -71,11 +71,11 @@ const ProductCard = ({ product }) => {
       className="flex flex-col group w-full"
     >
       {/* Conteneur Image */}
-      <div className="bg-[#1A1A1A] rounded-sm h-[220px] flex justify-center items-center mb-3 relative cursor-pointer hover:bg-[#252525] transition-colors border border-white/5 overflow-hidden">
+      <div className="bg-[#1A1A1A] rounded-sm aspect-square flex justify-center items-center mb-3 relative cursor-pointer hover:bg-[#252525] transition-colors border border-white/5 overflow-hidden">
         <img 
           src={imgUrl} 
           alt={product.title} 
-          className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity" 
+          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" 
         />
         
         {/* Icône Coeur (Bas Droite) */}

@@ -188,7 +188,8 @@ const Conversation = () => {
       const myConvs = allConvs.filter((c) => {
         const bId = extractId(c.buyer);
         const sId = extractId(c.seller);
-        return userObj.roles?.includes("ROLE_ADMIN") || Number(bId) === userObj.id || Number(sId) === userObj.id;
+        const isAdmin = userObj.roles?.includes("ROLE_ADMIN");
+        return (isAdmin && c.isReported) || Number(bId) === userObj.id || Number(sId) === userObj.id;
       });
 
       myConvs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -305,6 +306,17 @@ const Conversation = () => {
             const res = await securedFetch(`${API_URL}/conversations/${adminTargetConv}`);
             if (res.ok) {
               const convData = await res.json();
+              const isAdmin = currentUser.roles?.includes("ROLE_ADMIN");
+              const bId = convData.buyer?.id || (typeof convData.buyer === 'string' ? convData.buyer.split('/').pop() : null);
+              const sId = convData.seller?.id || (typeof convData.seller === 'string' ? convData.seller.split('/').pop() : null);
+              const isMine = Number(bId) === currentUser.id || Number(sId) === currentUser.id;
+
+              if (isAdmin && !convData.isReported && !isMine) {
+                alert("Vous ne pouvez accéder qu'aux conversations signalées.");
+                navigate('/admin/dashboard');
+                return;
+              }
+
               setConversations((prev) => [convData, ...prev]);
               setActiveConversation(convData);
             }
@@ -322,6 +334,8 @@ const Conversation = () => {
     initOfferParam,
     initCheckoutParam,
     setSearchParams,
+    adminTargetConv,
+    navigate
   ]);
 
   const fetchActiveMessages = async (convId, silent = false) => {
@@ -777,8 +791,25 @@ const Conversation = () => {
 
       if (reportTarget.type === "conversation") {
         payload.conversation = `/api/conversations/${reportTarget.target.id}`;
+        // The reported user is the other user in the conversation
+        const bId = reportTarget.target.buyer?.id || (typeof reportTarget.target.buyer === 'string' ? reportTarget.target.buyer.split('/').pop() : null);
+        const sId = reportTarget.target.seller?.id || (typeof reportTarget.target.seller === 'string' ? reportTarget.target.seller.split('/').pop() : null);
+        const otherUserId = Number(bId) === currentUser.id ? sId : bId;
+        
+        if (otherUserId) {
+          payload.reportedUser = `/api/users/${otherUserId}`;
+        }
       } else if (reportTarget.type === "message") {
         payload.message = `/api/messages/${reportTarget.target.id}`;
+        if (reportTarget.target.users?.id) {
+          payload.reportedUser = `/api/users/${reportTarget.target.users.id}`;
+        }
+      } else if (reportTarget.type === "product") {
+        payload.product = `/api/products/${reportTarget.target.id}`;
+        const sId = reportTarget.target.seller?.id || (typeof reportTarget.target.seller === 'string' ? reportTarget.target.seller.split('/').pop() : null);
+        if (sId) {
+          payload.reportedUser = `/api/users/${sId}`;
+        }
       }
 
       const res = await securedFetch(`${API_URL}/reports`, {

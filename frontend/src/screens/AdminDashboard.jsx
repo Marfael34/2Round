@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { securedFetch } from "../utils/api";
-import { FiTrash2, FiUserX, FiUserCheck, FiEdit2, FiX, FiSave, FiMessageSquare } from "react-icons/fi";
+import { FiX, FiSave } from "react-icons/fi";
+import UserReports from "../components/Admin/UserReports";
+import ProductReports from "../components/Admin/ProductReports";
+import ConversationReports from "../components/Admin/ConversationReports";
+import MessageReports from "../components/Admin/MessageReports";
+import UsersTable from "../components/Admin/UsersTable";
+import AllReports from "../components/Admin/AllReports";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -9,6 +15,10 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
   const [editFormData, setEditFormData] = useState({});
+  const [reportFilter, setReportFilter] = useState("all");
+  const [sanctionModalOpen, setSanctionModalOpen] = useState(false);
+  const [sanctionTargetCandidates, setSanctionTargetCandidates] = useState([]);
+  const [sanctionFormData, setSanctionFormData] = useState({ targetUserId: "", targetUserPseudo: "", type: "WARNING", reason: "" });
 
   const fetchUsers = async () => {
     try {
@@ -49,6 +59,7 @@ const AdminDashboard = () => {
   }, []);
 
   const handleToggleUserStatus = async (user) => {
+    // ... rest of the code is there, wait, I can just insert it at the top of the component!
     try {
       await securedFetch(`/api/users/${user.id}`, {
         method: "PATCH",
@@ -63,6 +74,50 @@ const AdminDashboard = () => {
       fetchUsers();
     } catch (error) {
       console.error("Erreur lors de la modification de l'utilisateur", error);
+    }
+  };
+
+  const handleOpenSanctionModal = (candidates) => {
+    const validCandidates = candidates.filter(c => c && c.id);
+    setSanctionTargetCandidates(validCandidates);
+    if (validCandidates.length > 0) {
+      setSanctionFormData({ 
+        ...sanctionFormData, 
+        targetUserId: validCandidates[0].id, 
+        targetUserPseudo: validCandidates[0].pseudo 
+      });
+    }
+    setSanctionModalOpen(true);
+  };
+
+  const submitSanction = async (e) => {
+    e.preventDefault();
+    try {
+      await securedFetch(`/api/sanctions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/ld+json" },
+        body: JSON.stringify({
+          type: sanctionFormData.type,
+          reason: sanctionFormData.reason,
+          targetUser: `/api/users/${sanctionFormData.targetUserId}`
+        }),
+      });
+
+      if (sanctionFormData.type === "BAN") {
+        await securedFetch(`/api/users/${sanctionFormData.targetUserId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/merge-patch+json" },
+          body: JSON.stringify({ isActive: false }),
+        });
+      }
+
+      alert(`Sanction appliquée avec succès à ${sanctionFormData.targetUserPseudo || sanctionFormData.targetUserId}`);
+      setSanctionModalOpen(false);
+      setSanctionFormData({ targetUserId: "", targetUserPseudo: "", type: "WARNING", reason: "" });
+      fetchUsers();
+    } catch (error) {
+      console.error("Erreur lors de l'application de la sanction", error);
+      alert("Erreur lors de l'application de la sanction");
     }
   };
 
@@ -128,6 +183,15 @@ const AdminDashboard = () => {
     }
   };
 
+  const filteredReports = reports.filter((report) => {
+    if (reportFilter === "all") return true;
+    if (reportFilter === "product") return !!report.product;
+    if (reportFilter === "message") return !!report.message;
+    if (reportFilter === "conversation") return !!report.conversation;
+    if (reportFilter === "user") return !report.product && !report.message && !report.conversation;
+    return true;
+  });
+
   return (
     <div className="min-h-screen bg-black text-white pt-24 px-6 md:px-12 lg:px-24 pb-12">
       <div className="max-w-7xl mx-auto">
@@ -136,23 +200,23 @@ const AdminDashboard = () => {
         </h1>
 
         {/* Tabs */}
-        <div className="flex space-x-4 mb-8 border-b border-gray-800 pb-2">
+        <div className="flex gap-4 mb-8 pb-4 border-b border-gray-800 overflow-x-auto">
           <button
             onClick={() => setActiveTab("users")}
-            className={`px-4 py-2 font-semibold text-lg transition-colors ${
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
               activeTab === "users"
-                ? "text-red-500 border-b-2 border-red-500"
-                : "text-gray-400 hover:text-white"
+                ? "bg-red-600 text-white shadow-lg shadow-red-900/20"
+                : "bg-[#1A1A1A] text-gray-400 hover:bg-[#252525] hover:text-white"
             }`}
           >
             Utilisateurs
           </button>
           <button
             onClick={() => setActiveTab("reports")}
-            className={`px-4 py-2 font-semibold text-lg transition-colors ${
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
               activeTab === "reports"
-                ? "text-red-500 border-b-2 border-red-500"
-                : "text-gray-400 hover:text-white"
+                ? "bg-red-600 text-white shadow-lg shadow-red-900/20"
+                : "bg-[#1A1A1A] text-gray-400 hover:bg-[#252525] hover:text-white"
             }`}
           >
             Signalements
@@ -161,151 +225,50 @@ const AdminDashboard = () => {
 
         {/* Content */}
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+          <div className="flex justify-center items-center py-24">
+            <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
           <div className="bg-[#0A0A0A] border border-gray-800 rounded-2xl overflow-hidden shadow-2xl p-6">
             {activeTab === "users" ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-800 text-gray-400">
-                      <th className="py-4 px-4">ID</th>
-                      <th className="py-4 px-4">Email</th>
-                      <th className="py-4 px-4">Pseudo</th>
-                      <th className="py-4 px-4">Rôles</th>
-                      <th className="py-4 px-4">Statut</th>
-                      <th className="py-4 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.length === 0 ? (
-                      <tr>
-                        <td colSpan="5" className="py-8 text-center text-gray-500">
-                          Aucun utilisateur trouvé.
-                        </td>
-                      </tr>
-                    ) : (
-                      users.map((user) => (
-                        <tr
-                          key={user.id}
-                          className="border-b border-gray-800/50 hover:bg-[#151515] transition-colors"
-                        >
-                          <td className="py-4 px-4">#{user.id}</td>
-                          <td className="py-4 px-4">{user.email}</td>
-                          <td className="py-4 px-4">{user.pseudo || "N/A"}</td>
-                          <td className="py-4 px-4 text-xs font-mono text-gray-400">
-                            {(user.roles || ["ROLE_USER"]).join(", ")}
-                          </td>
-                          <td className="py-4 px-4">
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                user.isActive
-                                  ? "bg-green-500/20 text-green-400"
-                                  : "bg-red-500/20 text-red-400"
-                              }`}
-                            >
-                              {user.isActive ? "Actif" : "Banni"}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4 text-right">
-                            <button
-                              onClick={() => handleToggleUserStatus(user)}
-                              className={`p-2 rounded-lg transition-colors ${
-                                user.isActive
-                                  ? "bg-red-500/10 text-red-500 hover:bg-red-500/20"
-                                  : "bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                              }`}
-                              title={user.isActive ? "Bannir" : "Réactiver"}
-                            >
-                              {user.isActive ? <FiUserX size={20} /> : <FiUserCheck size={20} />}
-                            </button>
-                            <button
-                              onClick={() => handleEditClick(user)}
-                              className="p-2 ml-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-colors"
-                              title="Modifier"
-                            >
-                              <FiEdit2 size={20} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <UsersTable users={users} handleToggleUserStatus={handleToggleUserStatus} handleEditClick={handleEditClick} />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-800 text-gray-400">
-                      <th className="py-4 px-4">ID</th>
-                      <th className="py-4 px-4">Motif</th>
-                      <th className="py-4 px-4">Signalant</th>
-                      <th className="py-4 px-4">Cible</th>
-                      <th className="py-4 px-4">Date</th>
-                      <th className="py-4 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reports.length === 0 ? (
-                      <tr>
-                        <td colSpan="5" className="py-8 text-center text-gray-500">
-                          Aucun signalement trouvé.
-                        </td>
-                      </tr>
-                    ) : (
-                      reports.map((report) => (
-                        <tr
-                          key={report.id}
-                          className="border-b border-gray-800/50 hover:bg-[#151515] transition-colors"
-                        >
-                          <td className="py-4 px-4">#{report.id}</td>
-                          <td className="py-4 px-4 font-semibold text-red-400">
-                            {report.reason}
-                            {report.description && (
-                              <p className="text-xs text-gray-400 max-w-xs truncate mt-1" title={report.description}>
-                                {report.description}
-                              </p>
-                            )}
-                          </td>
-                          <td className="py-4 px-4 text-gray-300">
-                            {report.sender?.pseudo || "Inconnu"}
-                          </td>
-                          <td className="py-4 px-4 text-gray-300">
-                            {report.message?.users?.pseudo || "Conversation"}
-                          </td>
-                          <td className="py-4 px-4 text-sm text-gray-400">
-                            {new Date(report.createdAt).toLocaleDateString("fr-FR")}
-                          </td>
-                          <td className="py-4 px-4 text-right flex justify-end gap-2">
-                            {(report.conversation?.id || report.message?.conversation?.id) && (
-                              <button
-                                onClick={() => {
-                                  const cId = report.conversation?.id || report.message?.conversation?.id;
-                                  window.location.href = `/conversation?conversationId=${cId}`;
-                                }}
-                                className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 rounded-lg transition-colors"
-                                title="Voir la discussion"
-                              >
-                                <FiMessageSquare size={20} />
-                              </button>
-                            )}
-                            <button
-                                onClick={() => handleDeleteReport(report.id)}
-                                className="p-2 bg-gray-800 text-gray-300 hover:bg-red-600 hover:text-white rounded-lg transition-colors"
-                                title="Supprimer / Clôturer"
-                            >
-                              <FiTrash2 size={20} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <div>
+                {/* Sous-onglets de signalements */}
+                <div className="flex gap-2 mb-6 overflow-x-auto border-b border-gray-800 pb-4">
+                  {[
+                    { id: "all", label: "Tous" },
+                    { id: "user", label: "Utilisateurs" },
+                    { id: "product", label: "Produits" },
+                    { id: "conversation", label: "Conversations" },
+                    { id: "message", label: "Messages" }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setReportFilter(tab.id)}
+                      className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors text-sm font-medium ${
+                        reportFilter === tab.id
+                          ? "bg-gray-800 text-white"
+                          : "bg-transparent text-gray-400 hover:bg-gray-900 hover:text-gray-200"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {reportFilter === "user" ? (
+                  <UserReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} />
+                ) : reportFilter === "product" ? (
+                  <ProductReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} />
+                ) : reportFilter === "conversation" ? (
+                  <ConversationReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} />
+                ) : reportFilter === "message" ? (
+                  <MessageReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} />
+                ) : (
+                  <AllReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} />
+              )}
+            </div>
             )}
           </div>
         )}
@@ -396,6 +359,83 @@ const AdminDashboard = () => {
                   >
                     <FiSave size={16} />
                     Enregistrer
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Sanction */}
+        {sanctionModalOpen && sanctionTargetCandidates.length > 0 && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-[#111] rounded-2xl w-full max-w-md border border-gray-800 shadow-2xl">
+              <div className="flex justify-between items-center p-6 border-b border-gray-800">
+                <h3 className="text-xl font-bold text-white">Appliquer une sanction</h3>
+                <button
+                  onClick={() => setSanctionModalOpen(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FiX size={24} />
+                </button>
+              </div>
+              <form onSubmit={submitSanction} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Qui voulez-vous sanctionner ?</label>
+                  <div className="space-y-2">
+                    {sanctionTargetCandidates.map((candidate, idx) => (
+                      <label key={idx} className="flex items-center space-x-3 cursor-pointer bg-[#1A1A1A] p-3 rounded-lg border border-gray-700 hover:border-red-500 transition-colors">
+                        <input 
+                          type="radio" 
+                          name="targetUser" 
+                          value={candidate.id}
+                          checked={String(sanctionFormData.targetUserId) === String(candidate.id)}
+                          onChange={() => setSanctionFormData({ ...sanctionFormData, targetUserId: candidate.id, targetUserPseudo: candidate.pseudo })}
+                          className="w-4 h-4 text-red-600 bg-[#111] border-gray-600 focus:ring-red-500"
+                        />
+                        <span className="text-white text-sm">
+                          <span className="font-bold">{candidate.role}</span> : {candidate.pseudo || "Inconnu"}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Type de Sanction</label>
+                  <select
+                    value={sanctionFormData.type}
+                    onChange={(e) => setSanctionFormData({ ...sanctionFormData, type: e.target.value })}
+                    className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded-lg px-4 py-2.5 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all"
+                  >
+                    <option value="WARNING">Avertissement</option>
+                    <option value="MUTE">Mute (Désactivation temporaire)</option>
+                    <option value="BAN">Bannissement Définitif</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Motif (Optionnel)</label>
+                  <textarea
+                    value={sanctionFormData.reason}
+                    onChange={(e) => setSanctionFormData({ ...sanctionFormData, reason: e.target.value })}
+                    rows={4}
+                    placeholder="Précisez la raison de la sanction..."
+                    className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded-lg px-4 py-2.5 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all resize-none"
+                  />
+                </div>
+                <div className="pt-4 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSanctionModalOpen(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg flex items-center gap-2 transition-colors"
+                  >
+                    <FiSave size={16} />
+                    Appliquer
                   </button>
                 </div>
               </form>

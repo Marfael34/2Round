@@ -87,7 +87,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $budget = null;
 
     #[ORM\Column]
-    #[Groups(['user:read', 'user:write', 'admin:write'])]
+    #[Groups(['user:read', 'user:write', 'admin:write', 'admin:read'])]
     private ?bool $isActive = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -152,11 +152,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $reports;
 
     /**
+     * @var Collection<int, Report>
+     */
+    #[ORM\OneToMany(targetEntity: Report::class, mappedBy: 'reportedUser')]
+    private Collection $reportsReceived;
+
+    /**
      * @var Collection<int, Adress>
      */
     #[ORM\OneToMany(targetEntity: Adress::class, mappedBy: 'user')]
     #[Groups(['user:read'])]
     private Collection $adresses;
+
+    /**
+     * @var Collection<int, Sanction>
+     */
+    #[ORM\OneToMany(targetEntity: Sanction::class, mappedBy: 'targetUser')]
+    #[Groups(['admin:read'])]
+    private Collection $sanctions;
 
     #[ORM\Column]
     private ?bool $is_onboarding_completed = null;
@@ -181,6 +194,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->messages = new ArrayCollection();
         $this->conversations = new ArrayCollection();
         $this->reports = new ArrayCollection();
+        $this->reportsReceived = new ArrayCollection();
         $this->adresses = new ArrayCollection();
         $this->receivedEvaluations = new ArrayCollection();
         $this->sentEvaluations = new ArrayCollection();
@@ -563,6 +577,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($report->getSender() === $this) {
                 $report->setSender(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Report>
+     */
+    public function getReportsReceived(): Collection
+    {
+        return $this->reportsReceived;
+    }
+
+    public function addReportReceived(Report $report): static
+    {
+        if (!$this->reportsReceived->contains($report)) {
+            $this->reportsReceived->add($report);
+            $report->setReportedUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReportReceived(Report $report): static
+    {
+        if ($this->reportsReceived->removeElement($report)) {
+            // set the owning side to null (unless already changed)
+            if ($report->getReportedUser() === $this) {
+                $report->setReportedUser(null);
             }
         }
 

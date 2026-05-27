@@ -103,7 +103,7 @@ class AppFixtures extends Fixture
         $admin->setSize('1.80');
         $admin->setBudget(0);
         $admin->setIsOnboardingCompleted(true);
-        $admin->setAvatar('https://i.pravatar.cc/150?u=admin');
+        $admin->setAvatar('/images/Profile/pdp_1.webp');
         $admin->setBoxeId($this->getReference('boxe_0', Boxe::class));
         $admin->setLevelId($this->getReference('level_3', Level::class));
         $admin->setGenderId($this->getReference('gender_0', Gender::class));
@@ -134,7 +134,7 @@ class AppFixtures extends Fixture
             $user->setSize($value['size']);
             $user->setBudget($value['budget']);
             $user->setIsOnboardingCompleted(true);
-            $user->setAvatar('https://i.pravatar.cc/150?u=' . $value['pseudo']);
+            $user->setAvatar('/images/Profile/pdp_' . ($key + 1) . '.webp');
             $user->setBoxeId($this->getReference('boxe_' . rand(0, 4), Boxe::class));
             $user->setLevelId($this->getReference('level_' . rand(0, 3), Level::class));
             $user->setGenderId($this->getReference('gender_' . $value['gender'], Gender::class));
@@ -173,35 +173,40 @@ class AppFixtures extends Fixture
                 'brand' => 'Venum',
                 'description' => 'Gants de boxe 14oz très peu servis. Idéal pour l\'entraînement au sac ou sparring léger. Quelques légères traces d\'usure sur le pouce mais mousse intacte.',
                 'price' => '35.00',
-                'weight' => 800
+                'weight' => 800,
+                'images' => ['glove.webp']
             ],
             [
                 'title' => 'Casque de protection Everlast',
                 'brand' => 'Everlast',
                 'description' => 'Casque intégral avec protection pommettes. Taille M. Porté une dizaine de fois, désinfecté après chaque usage. Attache velcro en parfait état.',
                 'price' => '25.50',
-                'weight' => 450
+                'weight' => 450,
+                'images' => ['helmet.webp']
             ],
             [
                 'title' => 'Sac de frappe 120cm Metal Boxe + Fixation',
                 'brand' => 'Metal Boxe',
                 'description' => 'Sac lourd (environ 30kg) idéal pour travailler la puissance. Vendu avec la chaîne et l\'attache plafond. Très robuste, cuir synthétique impeccable.',
                 'price' => '60.00',
-                'weight' => 30000
+                'weight' => 30000,
+                'images' => ['punching bag_1.webp', 'punching bag_2.webp']
             ],
             [
                 'title' => 'Chaussures de boxe anglaise Adidas',
                 'brand' => 'Adidas',
                 'description' => 'Modèle Box Hog 3, pointure 42. Super légères et respirantes. La semelle accroche encore parfaitement sur le ring. Un peu grisées sur le bout mais encore bonnes.',
                 'price' => '40.00',
-                'weight' => 600
+                'weight' => 600,
+                'images' => ['choose.webp']
             ],
             [
                 'title' => 'Bandes de maintien 4m (Lot de 2 paires)',
                 'brand' => 'Outshock',
                 'description' => 'Deux paires de bandes rouges et noires pour protéger vos articulations. Lavées en machine, ne sont plus élastiques comme au premier jour mais font le job.',
                 'price' => '5.00',
-                'weight' => 150
+                'weight' => 150,
+                'images' => ['strips.webp']
             ]
         ];
 
@@ -222,12 +227,10 @@ class AppFixtures extends Fixture
             $randomEtatId = rand(0, 4);
             $product->setEtat($this->getReference('etat_' . $randomEtatId, Etat::class));
 
-            // Ajout de 1 à 3 images aléatoires pour ce produit
-            $nbImages = rand(1, 3);
-            for ($i = 1; $i <= $nbImages; $i++) {
+            // Ajout des images pour ce produit
+            foreach ($data['images'] as $imageName) {
                 $image = new Image();
-                // Utilisation d'une URL d'image de placeholder réaliste pour l'intégration front
-                $image->setPath('https://picsum.photos/seed/product_' . $key . '_' . $i . '/600/400');
+                $image->setPath('/images/Product/' . $imageName);
                 $image->setProduct($product);
                 $manager->persist($image);
             }

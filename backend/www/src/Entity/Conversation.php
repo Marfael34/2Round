@@ -38,11 +38,11 @@ class Conversation
     private Collection $messages;
 
     #[ORM\ManyToOne(inversedBy: 'conversations')]
-    #[Groups(['conversation:read', 'conversation:write'])]
+    #[Groups(['conversation:read', 'conversation:write', 'admin:read'])]
     private ?User $buyer = null;
 
     #[ORM\ManyToOne]
-    #[Groups(['conversation:read', 'conversation:write'])]
+    #[Groups(['conversation:read', 'conversation:write', 'admin:read'])]
     private ?User $seller = null;
 
     #[ORM\ManyToOne(inversedBy: 'conversations')]
@@ -217,5 +217,19 @@ class Conversation
         }
 
         return $this;
+    }
+
+    #[Groups(['conversation:read', 'admin:read'])]
+    public function getIsReported(): bool
+    {
+        if (count($this->reports) > 0) {
+            return true;
+        }
+        foreach ($this->messages as $message) {
+            if (count($message->getReports()) > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 }

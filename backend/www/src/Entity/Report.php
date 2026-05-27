@@ -62,6 +62,16 @@ class Report
     #[Groups(['admin:read'])]
     private ?Message $message = null;
 
+    #[ORM\ManyToOne(inversedBy: 'reports')]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['admin:read'])]
+    private ?Product $product = null;
+
+    #[ORM\ManyToOne(inversedBy: 'reportsReceived')]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['admin:read'])]
+    private ?User $reportedUser = null;
+
     /**
      * @var Collection<int, Image>
      */
@@ -158,6 +168,30 @@ class Report
     public function setMessage(?Message $message): static
     {
         $this->message = $message;
+
+        return $this;
+    }
+
+    public function getReportedUser(): ?User
+    {
+        return $this->reportedUser;
+    }
+
+    public function setReportedUser(?User $reportedUser): static
+    {
+        $this->reportedUser = $reportedUser;
+
+        return $this;
+    }
+
+    public function getProduct(): ?Product
+    {
+        return $this->product;
+    }
+
+    public function setProduct(?Product $product): static
+    {
+        $this->product = $product;
 
         return $this;
     }
