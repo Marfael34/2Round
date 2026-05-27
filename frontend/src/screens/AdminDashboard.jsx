@@ -7,11 +7,14 @@ import ConversationReports from "../components/Admin/ConversationReports";
 import MessageReports from "../components/Admin/MessageReports";
 import UsersTable from "../components/Admin/UsersTable";
 import AllReports from "../components/Admin/AllReports";
+import TransactionsTable from "../components/Admin/TransactionsTable";
+import OrdersTable from "../components/Admin/OrdersTable";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
   const [editFormData, setEditFormData] = useState({});
@@ -48,9 +51,45 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchTransactions = async () => {
+    try {
+      const response = await securedFetch("/api/orders");
+      if (!response.ok) {
+        throw new Error("Erreur lors de la récupération des transactions");
+      }
+      const data = await response.json();
+      const members = data["hydra:member"] || data.member || [];
+      setTransactions(members);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des transactions:", error);
+    }
+  };
+
+  const handleUpdateTransactionStatus = async (transactionId, newStatus) => {
+    try {
+      const response = await securedFetch(`/api/orders/${transactionId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/merge-patch+json",
+        },
+        body: JSON.stringify({
+          status: newStatus,
+        }),
+      });
+      if (response.ok) {
+        fetchTransactions();
+      } else {
+        alert("Erreur lors de la mise à jour du statut.");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      alert("Erreur réseau ou serveur.");
+    }
+  };
+
   const loadData = async () => {
     setLoading(true);
-    await Promise.all([fetchUsers(), fetchReports()]);
+    await Promise.all([fetchUsers(), fetchReports(), fetchTransactions()]);
     setLoading(false);
   };
 
@@ -221,6 +260,26 @@ const AdminDashboard = () => {
           >
             Signalements
           </button>
+          <button
+            onClick={() => setActiveTab("transactions")}
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+              activeTab === "transactions"
+                ? "bg-red-600 text-white shadow-lg shadow-red-900/20"
+                : "bg-[#1A1A1A] text-gray-400 hover:bg-[#252525] hover:text-white"
+            }`}
+          >
+            Transactions
+          </button>
+          <button
+            onClick={() => setActiveTab("orders")}
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+              activeTab === "orders"
+                ? "bg-red-600 text-white shadow-lg shadow-red-900/20"
+                : "bg-[#1A1A1A] text-gray-400 hover:bg-[#252525] hover:text-white"
+            }`}
+          >
+            Commandes
+          </button>
         </div>
 
         {/* Content */}
@@ -232,6 +291,10 @@ const AdminDashboard = () => {
           <div className="bg-[#0A0A0A] border border-gray-800 rounded-2xl overflow-hidden shadow-2xl p-6">
             {activeTab === "users" ? (
               <UsersTable users={users} handleToggleUserStatus={handleToggleUserStatus} handleEditClick={handleEditClick} />
+            ) : activeTab === "transactions" ? (
+              <TransactionsTable transactions={transactions} />
+            ) : activeTab === "orders" ? (
+              <OrdersTable transactions={transactions} handleUpdateTransactionStatus={handleUpdateTransactionStatus} />
             ) : (
               <div>
                 {/* Sous-onglets de signalements */}
