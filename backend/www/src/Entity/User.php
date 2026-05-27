@@ -43,7 +43,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(['user:read', 'admin:write', 'admin:read'])]
+    #[Groups(['user:read', 'user:write', 'admin:write', 'admin:read'])]
     private ?string $email = null;
 
     /**
@@ -60,26 +60,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['admin:write'])]
+    #[Groups(['user:read', 'user:write', 'admin:write'])]
     private ?string $lastname = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['admin:write'])]
+    #[Groups(['user:read', 'user:write', 'admin:write'])]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 150)]
-    #[Groups(['user:read', 'product:read', 'conversation:read', 'admin:write', 'admin:read'])]
+    #[Groups(['user:read', 'user:write', 'product:read', 'conversation:read', 'admin:write', 'admin:read'])]
     private ?string $pseudo = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['user:read', 'product:read', 'conversation:read'])]
+    #[Groups(['user:read', 'user:write', 'product:read', 'conversation:read', 'admin:write'])]
     private ?string $avatar = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['user:read', 'user:write', 'admin:write'])]
     private ?\DateTime $birthday_at = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true)]
-    #[Groups(['user:read', 'admin:write'])]
+    #[Groups(['user:read', 'user:write', 'admin:write'])]
     private ?string $weight = null;
 
     #[ORM\Column(nullable: true)]
@@ -122,11 +123,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $conversations;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'user:write', 'admin:write'])]
     private ?Boxe $boxe = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'user:write', 'admin:write'])]
     private ?Level $level = null;
 
     /**
@@ -143,6 +144,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $sentEvaluations;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
+    #[Groups(['user:read', 'user:write', 'admin:write'])]
     private ?Gender $gender = null;
 
     /**
@@ -177,9 +179,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?\DateTime $createdAt = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 2, nullable: true)]
-    #[Groups(['user:read'])]
-    private ?string $size = null;
+    #[ORM\Column(nullable: true)]
+    #[Groups(['user:read', 'user:write', 'admin:write'])]
+    private ?int $size = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $refreshToken = null;
@@ -327,7 +329,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->birthday_at;
     }
 
-    public function setBirthdayAt(\DateTime $birthday_at): static
+    #[Groups(['user:write', 'admin:write'])]
+    public function setBirthdayAt(?\DateTimeInterface $birthday_at): static
     {
         $this->birthday_at = $birthday_at;
 
@@ -340,6 +343,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->weight;
     }
 
+    #[Groups(['user:write'])]
     public function setWeight(string $weight): static
     {
         $this->weight = $weight;
@@ -352,7 +356,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->budget;
     }
 
-    public function setBudget(int $budget): static
+    #[Groups(['admin:write'])]
+    public function setBudget(?int $budget): static
     {
         $this->budget = $budget;
 
@@ -521,6 +526,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->boxe;
     }
 
+    #[Groups(['user:write', 'admin:write'])]
     public function setBoxeId(?Boxe $boxe): static
     {
         $this->boxe = $boxe;
@@ -534,6 +540,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->level;
     }
 
+    #[Groups(['user:write', 'admin:write'])]
     public function setLevelId(?Level $level): static
     {
         $this->level = $level;
@@ -541,11 +548,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[Groups(['user:read'])]
     public function getGenderId(): ?Gender
     {
         return $this->gender;
     }
 
+    #[Groups(['user:write', 'admin:write'])]
     public function setGenderId(?Gender $gender): static
     {
         $this->gender = $gender;
@@ -643,6 +652,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->size;
     }
 
+    #[Groups(['user:write', 'admin:write'])]
     public function setSize(string $size): static
     {
         $this->size = $size;

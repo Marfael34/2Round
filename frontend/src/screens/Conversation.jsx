@@ -1821,8 +1821,15 @@ const Conversation = () => {
                       className="hidden"
                       ref={fileInputRef}
                       onChange={(e) => {
-                        if (e.target.files[0])
-                          setSelectedImage(e.target.files[0]);
+                        const file = e.target.files[0];
+                        if (file) {
+                          const urlExtRegex = /\.(jpg|jpeg|png|webp|gif)$/i;
+                          if (!urlExtRegex.test(file.name)) {
+                            alert("Le fichier a une extension non valide (.jpg, .jpeg, .png, .webp, .gif attendues).");
+                          } else {
+                            setSelectedImage(file);
+                          }
+                        }
                       }}
                     />
                     <button

@@ -73,8 +73,15 @@ const Register = () => {
     optionalFields.forEach(field => {
       if (dataToSend[field] === '' || dataToSend[field] === undefined) {
         delete dataToSend[field];
-      } else if (['weight', 'size', 'budget'].includes(field)) {
+      } else if (['weight', 'budget'].includes(field)) {
         dataToSend[field] = parseFloat(dataToSend[field]);
+      } else if (field === 'size') {
+        const sizeNum = parseInt(dataToSend[field], 10);
+        if (isNaN(sizeNum) || sizeNum < 50 || sizeNum > 300) {
+          setError('Veuillez saisir une taille valide en centimètres (entre 50 et 300 cm).');
+          throw new Error('Taille invalide'); // Stop execution
+        }
+        dataToSend[field] = sizeNum;
       }
     });
 
@@ -288,7 +295,7 @@ const Register = () => {
                   <h2 className="font-bebas text-2xl text-white uppercase mb-4">Étape 3 : Votre profil</h2>
                   <CustomInput label="Date de naissance" type="date" name="birthday" value={formData.birthday} onChange={handleChange} required />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <CustomInput label="Taille (m)" type="number" step="0.01" name="size" value={formData.size} onChange={handleChange} placeholder="Ex: 1.75" required />
+                    <CustomInput label="Taille (cm)" type="number" step="1" name="size" value={formData.size} onChange={handleChange} placeholder="Ex: 180" required />
                     <CustomInput label="Poids (kg)" type="number" step="0.1" name="weight" value={formData.weight} onChange={handleChange} placeholder="Ex: 70.5" required />
                   </div>
                 </div>

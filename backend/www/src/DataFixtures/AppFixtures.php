@@ -100,7 +100,7 @@ class AppFixtures extends Fixture
         $admin->setCreatedAt(new DateTime());
         $admin->setIsActive(true);
         $admin->setWeight('75.00');
-        $admin->setSize('1.80');
+        $admin->setSize('180');
         $admin->setBudget(0);
         $admin->setIsOnboardingCompleted(true);
         $admin->setAvatar('/images/Profile/pdp_1.webp');
@@ -112,11 +112,11 @@ class AppFixtures extends Fixture
 
         // Ajout de plus d'utilisateurs pour avoir de la variété dans les vendeurs
         $arrayUser = [
-            ['prenom' => 'Léna', 'nom' => 'Bertrand', 'email' => 'l.bertrand.crea@gmail.com', 'pseudo' => 'PixelArtiste_92', 'birthday' => '1992-05-14', 'phone' => '06.11.22.33.44', 'weight' => '62.50', 'size' => '1.65', 'budget' => 200, 'gender' => 1],
-            ['prenom' => 'Julien', 'nom' => 'Masson', 'email' => 'j-masson-85@gmail.com', 'pseudo' => 'JulesLeRandonneur', 'birthday' => '1985-11-03', 'phone' => '07.99.88.77.66', 'weight' => '80.00', 'size' => '1.82', 'budget' => 150, 'gender' => 0],
-            ['prenom' => 'Inès', 'nom' => 'Belkacem', 'email' => 'belkacem.ines@gmail.com', 'pseudo' => 'CyberInes_XP', 'birthday' => '2001-08-22', 'phone' => '06.55.44.33.22', 'weight' => '55.00', 'size' => '1.58', 'budget' => 300, 'gender' => 1],
-            ['prenom' => 'Marc', 'nom' => 'Dubois', 'email' => 'marc.dubois.boxe@gmail.com', 'pseudo' => 'MarcoBoxing', 'birthday' => '1990-02-10', 'phone' => '06.12.34.56.78', 'weight' => '90.00', 'size' => '1.88', 'budget' => 50, 'gender' => 0],
-            ['prenom' => 'Sophie', 'nom' => 'Laurent', 'email' => 'sophie.l@gmail.com', 'pseudo' => 'SosoFight', 'birthday' => '1995-07-30', 'phone' => '07.88.99.00.11', 'weight' => '68.00', 'size' => '1.70', 'budget' => 120, 'gender' => 1],
+            ['prenom' => 'Léna', 'nom' => 'Bertrand', 'email' => 'l.bertrand.crea@gmail.com', 'pseudo' => 'PixelArtiste_92', 'birthday' => '1992-05-14', 'phone' => '06.11.22.33.44', 'weight' => '62.50', 'size' => '165', 'budget' => 200, 'gender' => 1],
+            ['prenom' => 'Julien', 'nom' => 'Masson', 'email' => 'j-masson-85@gmail.com', 'pseudo' => 'JulesLeRandonneur', 'birthday' => '1985-11-03', 'phone' => '07.99.88.77.66', 'weight' => '80.00', 'size' => '182', 'budget' => 150, 'gender' => 0],
+            ['prenom' => 'Inès', 'nom' => 'Belkacem', 'email' => 'belkacem.ines@gmail.com', 'pseudo' => 'CyberInes_XP', 'birthday' => '2001-08-22', 'phone' => '06.55.44.33.22', 'weight' => '55.00', 'size' => '158', 'budget' => 300, 'gender' => 1],
+            ['prenom' => 'Marc', 'nom' => 'Dubois', 'email' => 'marc.dubois.boxe@gmail.com', 'pseudo' => 'MarcoBoxing', 'birthday' => '1990-02-10', 'phone' => '06.12.34.56.78', 'weight' => '90.00', 'size' => '188', 'budget' => 50, 'gender' => 0],
+            ['prenom' => 'Sophie', 'nom' => 'Laurent', 'email' => 'sophie.l@gmail.com', 'pseudo' => 'SosoFight', 'birthday' => '1995-07-30', 'phone' => '07.88.99.00.11', 'weight' => '68.00', 'size' => '170', 'budget' => 120, 'gender' => 1],
         ];
 
         foreach ($arrayUser as $key => $value) {

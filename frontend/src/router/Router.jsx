@@ -19,6 +19,7 @@ import GuideStuff from '../components/Guide/GuideStuff'
 import Advice from '../components/Guide/Advice'
 import AdminRoute from './Admin/AdminRoute'
 import AdminDashboard from '../screens/AdminDashboard'
+import EditProfile from '../components/Profile/EditProfile'
 
 const Router = createBrowserRouter([
     {
@@ -47,6 +48,10 @@ const Router = createBrowserRouter([
             {
                 path: "/guide",
                 element: <Guide />,
+            },
+            {
+                path: "/profile/edit",
+                element: <EditProfile />,
             },
             {
                 path: "/product/:id",

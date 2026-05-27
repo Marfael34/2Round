@@ -3,7 +3,6 @@ import { IMG_BGRAYURE } from "../constants/appConstante"
 import { useNavigate, Link } from "react-router-dom";
 import UserProducts from "../components/Profile/UserProducts";
 import UserEvaluations from "../components/Profile/UserEvaluations";
-
 import { FaChevronLeft } from "react-icons/fa6";
 import { securedFetch } from "../utils/api";
 
@@ -144,9 +143,16 @@ const MyLocker = () => {
 
                 {/* Infos */}
                 <div className="space-y-4 flex-1">
-                  <h3 className="font-bebas text-6xl uppercase text-white border-b-4 border-cyan-400 inline-block pb-1">
-                    {user.pseudo || 'Non renseigné'}
-                  </h3>
+                  <div>
+                    <h3 className="font-bebas text-6xl uppercase text-white border-b-4 border-cyan-400 inline-block pb-1">
+                      {user.pseudo || 'Non renseigné'}
+                    </h3>
+                    {(user.firstname || user.lastname) && (
+                      <p className="text-xl font-inter text-gray-400 mt-2 capitalize">
+                        {user.firstname} {user.lastname}
+                      </p>
+                    )}
+                  </div>
                   
                   {/* Stars */}
                   {hasEvaluations ? (
@@ -169,10 +175,10 @@ const MyLocker = () => {
                   )}
 
                   <div className="space-y-3 font-inter text-xl text-white mt-6">
-                    <p><span className="font-bold">Type de Boxe :</span> <span className="text-gray-300">{user.boxe?.label || 'Non renseigné'}</span></p>
+                    <p><span className="font-bold">Type de Boxe :</span> <span className="text-gray-300">{user.boxeId?.label || 'Non renseigné'}</span></p>
                     <p><span className="font-bold">Poids :</span> <span className="text-gray-300">{user.weight ? `${user.weight} Kg` : 'Non renseigné'}</span></p>
                     <p><span className="font-bold">Taille :</span> <span className="text-gray-300">{user.size ? `${user.size} cm` : 'Non renseignée'}</span></p>
-                    <p><span className="font-bold">Niveau :</span> <span className="text-gray-300">{user.level?.label || 'Non renseigné'}</span></p>
+                    <p><span className="font-bold">Niveau :</span> <span className="text-gray-300">{user.levelId?.label || 'Non renseigné'}</span></p>
                   </div>
 
                   <div className="mt-8">

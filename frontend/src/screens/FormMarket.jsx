@@ -71,11 +71,26 @@ const FormMarket = () => {
 
   const handlePhotoChange = (e) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files).map((file) => ({
-        file,
-        preview: URL.createObjectURL(file)
-      }));
-      setPhotos((prev) => [...prev, ...newFiles]);
+      const urlExtRegex = /\.(jpg|jpeg|png|webp|gif)$/i;
+      const validFiles = [];
+      let hasError = false;
+
+      Array.from(e.target.files).forEach((file) => {
+        if (!urlExtRegex.test(file.name)) {
+          hasError = true;
+        } else {
+          validFiles.push({
+            file,
+            preview: URL.createObjectURL(file)
+          });
+        }
+      });
+
+      if (hasError) {
+        setSubmitError("Un ou plusieurs fichiers ont une extension non valide (.jpg, .jpeg, .png, .webp, .gif attendues).");
+      }
+
+      setPhotos((prev) => [...prev, ...validFiles]);
     }
   };
 
