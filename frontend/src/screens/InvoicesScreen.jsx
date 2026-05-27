@@ -79,10 +79,10 @@ const InvoicesScreen = () => {
     return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
   };
 
-  // Simulation du téléchargement de facture PDF
+  // Ouverture de la page de la facture pour impression
   const handleDownload = (invoice) => {
-    // Dans un cas réel, cela appellerait une route backend générant le PDF.
-    alert(`Génération PDF pour la facture ${invoice.number} en cours de développement...`);
+    const invoiceId = invoice.id || invoice['@id']?.split('/').pop();
+    window.open(`/invoice/${invoiceId}`, '_blank');
   };
 
   return (

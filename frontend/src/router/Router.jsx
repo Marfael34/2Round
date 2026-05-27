@@ -8,6 +8,7 @@ import Guide from '../screens/Guide'
 import ProductDetail from '../components/Product/ProductDetail'
 import WalletScreen from '../screens/WalletScreen'
 import InvoicesScreen from '../screens/InvoicesScreen'
+import InvoiceView from '../screens/InvoiceView'
 import Conversation from '../screens/Conversation'
 import App from '../App'
 import MyCustomised from '../screens/MyCustomised'
@@ -56,6 +57,10 @@ const Router = createBrowserRouter([
             {
                 path: "/product/:id",
                 element: <ProductDetail />,
+            },
+            {
+                path: "/invoice/:id",
+                element: <InvoiceView />,
             },
             {
                 path: "/conversation",
