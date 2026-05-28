@@ -43,6 +43,12 @@ class StripeCheckoutController extends AbstractController
                 $origin = $this->frontendUrl;
             }
 
+            $transferGroup = $conversationId ? 'CONV_' . $conversationId : 'PROD_' . $productId . '_USER_' . $buyerId;
+            $successUrl = $origin . '/conversation?paymentSuccess=true&conversationId=' . ($conversationId ?? '') . '&productId=' . ($productId ?? '') . '&amount=' . $amount;
+            $cancelUrl = $conversationId 
+                ? $origin . '/conversation?paymentCancelled=true&conversationId=' . $conversationId 
+                : $origin . '/product/' . $productId;
+
             $session = Session::create([
                 'payment_method_types' => ['card'],
                 'line_items' => [[
@@ -57,15 +63,15 @@ class StripeCheckoutController extends AbstractController
                     'quantity' => 1,
                 ]],
                 'mode' => 'payment',
-                'success_url' => $origin . '/conversation?paymentSuccess=true&conversationId=' . $conversationId . '&amount=' . $amount,
-                'cancel_url' => $origin . '/conversation?paymentCancelled=true&conversationId=' . $conversationId,
+                'success_url' => $successUrl,
+                'cancel_url' => $cancelUrl,
                 'metadata' => [
                     'conversationId' => $conversationId,
                     'productId' => $productId,
                     'buyerId' => $buyerId,
                 ],
                 'payment_intent_data' => [
-                    'transfer_group' => 'CONV_' . $conversationId,
+                    'transfer_group' => $transferGroup,
                 ],
             ]);
 

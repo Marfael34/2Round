@@ -20,6 +20,9 @@ import {
   FaRotateRight,
   FaFlag,
   FaImage,
+  FaStar,
+  FaTriangleExclamation,
+  FaCircleInfo,
 } from "react-icons/fa6";
 
 const Conversation = () => {
@@ -32,7 +35,7 @@ const Conversation = () => {
   const paymentCancelledParam = searchParams.get("paymentCancelled");
   const paymentConvId = searchParams.get("conversationId");
   const paymentAmountParam = searchParams.get("amount");
-  const adminTargetConv = searchParams.get("conversationId");
+  const adminTargetConv = (!paymentSuccessParam && !paymentCancelledParam) ? searchParams.get("conversationId") : null;
 
   // State
   const [currentUser, setCurrentUser] = useState(null);
@@ -87,6 +90,24 @@ const Conversation = () => {
   const [reportReason, setReportReason] = useState("");
   const [reportDescription, setReportDescription] = useState("");
 
+  // Alert Modal State
+  const [alertModal, setAlertModal] = useState({ isOpen: false, message: "", type: "info" });
+  const showAlert = (message, type = "info") => {
+    setAlertModal({ isOpen: true, message, type });
+  };
+
+  // Confirm Modal State
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, message: "", onConfirm: null });
+  const showConfirm = (message, onConfirm) => {
+    setConfirmModal({ isOpen: true, message, onConfirm });
+  };
+
+  // Evaluation Modal State
+  const [showEvalModal, setShowEvalModal] = useState(false);
+  const [evalRating, setEvalRating] = useState(5);
+  const [evalComment, setEvalComment] = useState("");
+  const [hasEvaluatedLocal, setHasEvaluatedLocal] = useState(false);
+
   // Image upload
   const [selectedImage, setSelectedImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -95,6 +116,7 @@ const Conversation = () => {
   // Refs
   const messagesEndRef = useRef(null);
   const pollIntervalRef = useRef(null);
+  const skipCleanupRef = useRef(false);
 
   const decodeToken = (token) => {
     try {
@@ -259,7 +281,7 @@ const Conversation = () => {
               productData.seller?.id || sellerIri?.split("/").pop();
 
             if (Number(sellerId) === currentUser.id) {
-              alert("Vous ne pouvez pas négocier avec vous-même !");
+              showAlert("Vous ne pouvez pas négocier avec vous-même !", "error");
               setSearchParams({});
               setLoading(false);
               creatingConvRef.current = null;
@@ -291,11 +313,10 @@ const Conversation = () => {
             setSearchParams({});
           } catch (err) {
             console.error(err);
-            alert("Erreur lors de la soumission de l'offre.");
+            showAlert("Erreur lors de la soumission de l'offre.", "error");
             setSearchParams({});
           } finally {
             creatingConvRef.current = null;
-            console.error(err);
           }
         }
       } else if (adminTargetConv) {
@@ -313,7 +334,7 @@ const Conversation = () => {
               const isMine = Number(bId) === currentUser.id || Number(sId) === currentUser.id;
 
               if (isAdmin && !convData.isReported && !isMine) {
-                alert("Vous ne pouvez accéder qu'aux conversations signalées.");
+                showAlert("Vous ne pouvez accéder qu'aux conversations signalées.", "error");
                 navigate('/admin/dashboard');
                 return;
               }
@@ -418,19 +439,8 @@ const Conversation = () => {
     };
   }, [activeConversation]);
 
-  // AJOUT : Nettoyage d'une conversation "fantôme" (créée automatiquement par le checkout mais restée vide)
-  useEffect(() => {
-    const conv = activeConversation;
-    const currentMessages = messages;
-
-    return () => {
-      if (conv?.isNewlyCreated && currentMessages.length === 0) {
-        securedFetch(`${API_URL}/conversations/${conv.id}`, {
-          method: "DELETE",
-        }).catch((err) => console.error("Erreur cleanup conversation:", err));
-      }
-    };
-  }, [activeConversation, messages]);
+  // L'utilisateur veut que la conversation soit supprimée UNIQUEMENT via les boutons d'annulation du modal.
+  // L'effet de nettoyage automatique sur unmount a donc été retiré.
 
   // AJOUT : Vérification de la commande pour le vendeur afin d'afficher l'étiquette
   useEffect(() => {
@@ -501,7 +511,7 @@ const Conversation = () => {
         const uploadData = await uploadRes.json();
         imageIri = uploadData["@id"];
       } catch (err) {
-        alert("Erreur lors de l'envoi de l'image : " + err.message);
+        showAlert("Erreur lors de l'envoi de l'image : " + err.message, "error");
         setIsUploading(false);
         return;
       }
@@ -597,7 +607,7 @@ const Conversation = () => {
       fetchActiveMessages(activeConversation.id, true);
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de la soumission de l'offre.");
+      showAlert("Erreur lors de la soumission de l'offre.", "error");
     } finally {
       setSendingOffer(false);
     }
@@ -677,7 +687,7 @@ const Conversation = () => {
       fetchActiveMessages(activeConversation.id, true);
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de la soumission de la contre-proposition.");
+      showAlert("Erreur lors de la soumission de la contre-proposition.", "error");
     } finally {
       setSendingCounter(false);
     }
@@ -714,7 +724,7 @@ const Conversation = () => {
       fetchActiveMessages(activeConversation.id, true);
     } catch (err) {
       console.error(err);
-      alert("Impossible de mettre à jour le statut de l'offre.");
+      showAlert("Impossible de mettre à jour le statut de l'offre.", "error");
     }
   };
 
@@ -743,7 +753,7 @@ const Conversation = () => {
       !shippingAddress.city ||
       !shippingAddress.zip
     ) {
-      alert("Veuillez remplir toutes les informations de livraison.");
+      showAlert("Veuillez remplir toutes les informations de livraison.", "error");
       return;
     }
 
@@ -775,10 +785,11 @@ const Conversation = () => {
       }
 
       const { url } = await res.json();
+      skipCleanupRef.current = true;
       window.location.href = url;
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de la redirection vers le paiement: " + err.message);
+      showAlert("Erreur lors de la redirection vers le paiement: " + err.message, "error");
     } finally {
       setStripeLoading(false);
     }
@@ -793,7 +804,7 @@ const Conversation = () => {
 
   const submitReport = async () => {
     if (!reportReason) {
-      alert("Veuillez sélectionner une raison.");
+      showAlert("Veuillez sélectionner une raison.", "error");
       return;
     }
     try {
@@ -834,156 +845,159 @@ const Conversation = () => {
       });
 
       if (!res.ok) throw new Error("Erreur de signalement");
-      alert("Signalement envoyé avec succès. Notre équipe va l'examiner.");
+      showAlert("Signalement envoyé avec succès. Notre équipe va l'examiner.", "success");
       setReportModalOpen(false);
     } catch (err) {
-      alert("Erreur lors de l'envoi du signalement.");
+      showAlert("Erreur lors de l'envoi du signalement.", "error");
     }
   };
 
   const handleDeleteConversation = async () => {
     if (!activeConversation) return;
-    if (
-      !window.confirm(
-        "Êtes-vous sûr de vouloir supprimer cette conversation ? Elle disparaîtra de votre liste.",
-      )
-    )
-      return;
+    
+    showConfirm(
+      "Êtes-vous sûr de vouloir supprimer cette conversation ? Elle disparaîtra de votre liste.",
+      async () => {
+        try {
+          const res = await securedFetch(
+            `${API_URL}/conversations/${activeConversation.id}`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/merge-patch+json",
+              },
+              body: JSON.stringify({ isActive: false }),
+            },
+          );
 
-    try {
-      const res = await securedFetch(
-        `${API_URL}/conversations/${activeConversation.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/merge-patch+json",
-          },
-          body: JSON.stringify({ isActive: false }),
-        },
-      );
+          if (!res.ok)
+            throw new Error("Erreur lors de la suppression de la conversation");
 
-      if (!res.ok)
-        throw new Error("Erreur lors de la suppression de la conversation");
-
-      setConversations((prev) =>
-        prev.filter((c) => c.id !== activeConversation.id),
-      );
-      setActiveConversation(null);
-    } catch (err) {
-      alert("Erreur lors de la suppression.");
-    }
+          setConversations((prev) =>
+            prev.filter((c) => c.id !== activeConversation.id),
+          );
+          setActiveConversation(null);
+        } catch (err) {
+          showAlert("Erreur lors de la suppression.", "error");
+        }
+      }
+    );
   };
 
   const handleCancelOffer = async () => {
     if (!acceptedOffer) return;
-    if (!window.confirm("Voulez-vous vraiment annuler cette offre acceptée ?"))
-      return;
+    
+    showConfirm("Voulez-vous vraiment annuler cette offre acceptée ?", async () => {
+      try {
+        const res = await securedFetch(`${API_URL}/offers/${acceptedOffer.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/merge-patch+json" },
+          body: JSON.stringify({ status: "cancelled" }),
+        });
+        if (!res.ok) throw new Error("Erreur annulation");
 
-    try {
-      const res = await securedFetch(`${API_URL}/offers/${acceptedOffer.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/merge-patch+json" },
-        body: JSON.stringify({ status: "cancelled" }),
-      });
-      if (!res.ok) throw new Error("Erreur annulation");
+        await securedFetch(`${API_URL}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/ld+json" },
+          body: JSON.stringify({
+            content: "L'acheteur a annulé l'offre acceptée.",
+            isRead: false,
+            createdAt: new Date().toISOString(),
+            users: `/api/users/${currentUser.id}`,
+            conversation: `/api/conversations/${activeConversation.id}`,
+          }),
+        });
 
-      await securedFetch(`${API_URL}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/ld+json" },
-        body: JSON.stringify({
-          content: "L'acheteur a annulé l'offre acceptée.",
-          isRead: false,
-          createdAt: new Date().toISOString(),
-          users: `/api/users/${currentUser.id}`,
-          conversation: `/api/conversations/${activeConversation.id}`,
-        }),
-      });
-
-      fetchActiveMessages(activeConversation.id, true);
-    } catch (e) {
-      alert("Erreur lors de l'annulation.");
-    }
+        fetchActiveMessages(activeConversation.id, true);
+      } catch (e) {
+        showAlert("Erreur lors de l'annulation.", "error");
+      }
+    });
   };
 
   const handleValidateReception = async () => {
     if (!currentOrder || !activeConversation) return;
-    if (!window.confirm("Êtes-vous sûr d'avoir bien reçu l'article ? Cela débloquera l'argent pour le vendeur.")) return;
     
-    try {
-      const res = await securedFetch(`${API_URL}/orders/validate-reception`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: currentOrder.id,
-          conversationId: activeConversation.id
-        })
-      });
-      if (!res.ok) {
-         const data = await res.json();
-         throw new Error(data.error || "Erreur de validation");
+    showConfirm("Êtes-vous sûr d'avoir bien reçu l'article ? Cela débloquera l'argent pour le vendeur.", async () => {
+      try {
+        const res = await securedFetch(`${API_URL}/orders/validate-reception`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: currentOrder.id,
+            conversationId: activeConversation.id
+          })
+        });
+        if (!res.ok) {
+           const data = await res.json();
+           throw new Error(data.error || "Erreur de validation");
+        }
+        
+        showAlert("Réception validée. Le vendeur a été payé.", "success");
+        setCurrentOrder(prev => ({...prev, status: "completed"}));
+        fetchActiveMessages(activeConversation.id, true);
+        setShowEvalModal(true);
+      } catch (err) {
+        console.error(err);
+        showAlert("Erreur : " + err.message, "error");
       }
-      
-      alert("Réception validée. Le vendeur a été payé.");
-      setCurrentOrder(prev => ({...prev, status: "completed"}));
-      fetchActiveMessages(activeConversation.id, true);
-    } catch (err) {
-      console.error(err);
-      alert("Erreur : " + err.message);
-    }
+    });
   };
 
   const handleValidateShipping = async () => {
     if (!currentOrder || !activeConversation) return;
-    if (!window.confirm("Avez-vous bien déposé le colis au point relais ?")) return;
     
-    try {
-      const res = await securedFetch(`${API_URL}/orders/validate-shipping`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: currentOrder.id,
-          conversationId: activeConversation.id
-        })
-      });
-      if (!res.ok) {
-         const data = await res.json();
-         throw new Error(data.error || "Erreur de validation");
+    showConfirm("Avez-vous bien déposé le colis au point relais ?", async () => {
+      try {
+        const res = await securedFetch(`${API_URL}/orders/validate-shipping`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: currentOrder.id,
+            conversationId: activeConversation.id
+          })
+        });
+        if (!res.ok) {
+           const data = await res.json();
+           throw new Error(data.error || "Erreur de validation");
+        }
+        
+        showAlert("Envoi validé. L'acheteur sera notifié.", "success");
+        setCurrentOrder(prev => ({...prev, status: "shipped"}));
+        fetchActiveMessages(activeConversation.id, true);
+      } catch (err) {
+        console.error(err);
+        showAlert("Erreur : " + err.message, "error");
       }
-      
-      alert("Envoi validé. L'acheteur sera notifié.");
-      setCurrentOrder(prev => ({...prev, status: "shipped"}));
-      fetchActiveMessages(activeConversation.id, true);
-    } catch (err) {
-      console.error(err);
-      alert("Erreur : " + err.message);
-    }
+    });
   };
 
   const handleDispute = async () => {
     if (!currentOrder || !activeConversation) return;
-    if (!window.confirm("Êtes-vous sûr de vouloir signaler un problème ? Les fonds seront bloqués jusqu'à résolution.")) return;
     
-    try {
-      const res = await securedFetch(`${API_URL}/orders/dispute`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: currentOrder.id,
-          conversationId: activeConversation.id
-        })
-      });
-      if (!res.ok) {
-         const data = await res.json();
-         throw new Error(data.error || "Erreur de déclaration de litige");
+    showConfirm("Êtes-vous sûr de vouloir signaler un problème ? Les fonds seront bloqués jusqu'à résolution.", async () => {
+      try {
+        const res = await securedFetch(`${API_URL}/orders/dispute`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: currentOrder.id,
+            conversationId: activeConversation.id
+          })
+        });
+        if (!res.ok) {
+           const data = await res.json();
+           throw new Error(data.error || "Erreur de déclaration de litige");
+        }
+        
+        showAlert("Litige déclaré. Veuillez en discuter à l'amiable dans ce chat.", "error");
+        setCurrentOrder(prev => ({...prev, status: "disputed"}));
+        fetchActiveMessages(activeConversation.id, true);
+      } catch (err) {
+        console.error(err);
+        showAlert("Erreur : " + err.message, "error");
       }
-      
-      alert("Litige déclaré. Veuillez en discuter à l'amiable dans ce chat.");
-      setCurrentOrder(prev => ({...prev, status: "disputed"}));
-      fetchActiveMessages(activeConversation.id, true);
-    } catch (err) {
-      console.error(err);
-      alert("Erreur : " + err.message);
-    }
+    });
   };
 
   useEffect(() => {
@@ -1028,7 +1042,7 @@ const Conversation = () => {
 
   useEffect(() => {
     if (!paymentCancelledParam) return;
-    alert("Le paiement a été annulé.");
+    showAlert("Le paiement a été annulé.", "info");
     setSearchParams({});
   }, [paymentCancelledParam, setSearchParams]);
 
@@ -1093,9 +1107,11 @@ const Conversation = () => {
   ];
 
   const handleCancelCheckout = async () => {
+    if (skipCleanupRef.current) return;
     setShowCheckoutModal(false);
     if (activeConversation && messages.length === 0) {
       try {
+        skipCleanupRef.current = true;
         await securedFetch(`${API_URL}/conversations/${activeConversation.id}`, {
           method: "DELETE"
         });
@@ -1691,6 +1707,18 @@ const Conversation = () => {
                                   </div>
                                 </div>
                               )}
+
+                              {currentOrder?.status === "completed" && !hasEvaluatedLocal && (
+                                <div className="mt-4 p-4 border-t border-white/10 flex justify-center">
+                                  <button
+                                    onClick={() => setShowEvalModal(true)}
+                                    className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-500 border border-emerald-500/50 py-2.5 px-6 rounded-sm uppercase font-bold tracking-widest text-xs transition-colors flex items-center gap-2"
+                                  >
+                                    <FaStar />
+                                    {isBuyer ? "Évaluer le vendeur" : "Évaluer l'acheteur"}
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         );
@@ -1838,7 +1866,7 @@ const Conversation = () => {
                         if (file) {
                           const urlExtRegex = /\.(jpg|jpeg|png|webp|gif)$/i;
                           if (!urlExtRegex.test(file.name)) {
-                            alert("Le fichier a une extension non valide (.jpg, .jpeg, .png, .webp, .gif attendues).");
+                            showAlert("Le fichier a une extension non valide (.jpg, .jpeg, .png, .webp, .gif attendues).", "error");
                           } else {
                             setSelectedImage(file);
                           }
@@ -2430,6 +2458,89 @@ const Conversation = () => {
           </div>
         </div>
       )}
+      {/* Confirm Modal */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#151515] border border-white/10 p-6 md:p-8 w-full max-w-sm flex flex-col items-center text-center shadow-2xl relative">
+            <button
+              onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+              className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors cursor-pointer"
+            >
+              <FaXmark size={20} />
+            </button>
+            
+            <div className="mb-4">
+              <FaTriangleExclamation className="text-yellow-500 text-5xl drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
+            </div>
+            
+            <h3 className="text-2xl font-bebas tracking-wider mb-2 uppercase">
+              Confirmation requise
+            </h3>
+            
+            <p className="text-gray-400 text-sm mb-6 font-inter leading-relaxed">
+              {confirmModal.message}
+            </p>
+            
+            <div className="flex gap-4 w-full">
+              <button
+                onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                className="flex-1 bg-transparent border border-white/20 hover:bg-white/5 text-white font-bold uppercase tracking-widest text-xs py-3 transition-colors cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  if (confirmModal.onConfirm) confirmModal.onConfirm();
+                  setConfirmModal({ ...confirmModal, isOpen: false });
+                }}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-widest text-xs py-3 transition-colors cursor-pointer"
+              >
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Alert Modal */}
+      {alertModal.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#151515] border border-white/10 p-6 md:p-8 w-full max-w-sm flex flex-col items-center text-center shadow-2xl relative">
+            <button
+              onClick={() => setAlertModal({ ...alertModal, isOpen: false })}
+              className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors cursor-pointer"
+            >
+              <FaXmark size={20} />
+            </button>
+            
+            <div className="mb-4">
+              {alertModal.type === "error" ? (
+                <FaTriangleExclamation className="text-red-500 text-5xl drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+              ) : alertModal.type === "success" ? (
+                <FaCircleCheck className="text-emerald-500 text-5xl drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+              ) : (
+                <FaCircleInfo className="text-blue-500 text-5xl drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+              )}
+            </div>
+            
+            <h3 className="text-2xl font-bebas tracking-wider mb-2 uppercase">
+              {alertModal.type === "error" ? "Erreur" : alertModal.type === "success" ? "Succès" : "Information"}
+            </h3>
+            
+            <p className="text-gray-400 text-sm mb-6 font-inter leading-relaxed">
+              {alertModal.message}
+            </p>
+            
+            <button
+              onClick={() => setAlertModal({ ...alertModal, isOpen: false })}
+              className="bg-white hover:bg-gray-200 text-black font-bold uppercase tracking-widest text-xs py-3 px-8 transition-all w-full cursor-pointer"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
+
       {reportModalOpen && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-sm max-w-md w-full relative">
@@ -2486,6 +2597,91 @@ const Conversation = () => {
                   className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-4 rounded-sm uppercase tracking-widest text-sm transition-colors"
                 >
                   Envoyer le signalement
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEvalModal && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-sm max-w-md w-full relative">
+            <button
+              onClick={() => setShowEvalModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            >
+              <FaXmark className="text-xl" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-full bg-emerald-950/30 flex items-center justify-center border border-emerald-500/20">
+                <FaStar className="text-emerald-500 text-lg" />
+              </div>
+              <h2 className="text-2xl font-bebas uppercase tracking-wider">
+                Évaluer l'utilisateur
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-gray-400 mb-2 uppercase tracking-wider">
+                  Note
+                </label>
+                <div className="flex gap-2 text-2xl">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <FaStar
+                      key={star}
+                      className={`cursor-pointer transition-colors ${
+                        star <= evalRating ? "text-yellow-500" : "text-gray-700"
+                      }`}
+                      onClick={() => setEvalRating(star)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-2 uppercase tracking-wider">
+                  Commentaire (facultatif)
+                </label>
+                <textarea
+                  value={evalComment}
+                  onChange={(e) => setEvalComment(e.target.value)}
+                  placeholder="Laissez un commentaire sur votre expérience..."
+                  className="w-full bg-[#151515] border border-white/10 rounded-sm px-4 py-3 text-sm text-white focus:border-red-600 outline-none transition-colors resize-none h-24"
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={async () => {
+                    try {
+                      const targetId = isBuyer ? extractId(activeConversation.seller) : extractId(activeConversation.buyer);
+
+                      const res = await securedFetch(`${API_URL}/evaluations`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/ld+json" },
+                        body: JSON.stringify({
+                          rating: evalRating,
+                          comment: evalComment,
+                          sender: `/api/users/${currentUser.id}`,
+                          receiver: `/api/users/${targetId}`
+                        })
+                      });
+                      if (!res.ok) throw new Error("Erreur de l'API");
+                      
+                      setHasEvaluatedLocal(true);
+                      setShowEvalModal(false);
+                      showAlert("Évaluation envoyée avec succès !", "success");
+                    } catch (e) {
+                      console.error(e);
+                      showAlert("Erreur lors de l'envoi de l'évaluation.", "error");
+                    }
+                  }}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-sm uppercase tracking-widest text-sm transition-colors"
+                >
+                  Envoyer l'évaluation
                 </button>
               </div>
             </div>

@@ -3,7 +3,7 @@ import { IMG_BGRAYURE } from "../constants/appConstante"
 import { useNavigate, Link } from "react-router-dom";
 import UserProducts from "../components/Profile/UserProducts";
 import UserEvaluations from "../components/Profile/UserEvaluations";
-import { FaChevronLeft } from "react-icons/fa6";
+import { FaChevronLeft, FaStar } from "react-icons/fa6";
 import { securedFetch } from "../utils/api";
 
 const MyLocker = () => {
@@ -156,19 +156,22 @@ const MyLocker = () => {
                   
                   {/* Stars */}
                   {hasEvaluations ? (
-                    <div className="flex gap-2 text-red-600 text-3xl">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className={i < Math.round(averageRating) ? "text-red-600" : "text-gray-600"}>★</span>
-                      ))}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex gap-2 text-red-600 text-3xl">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar key={i} className={i < Math.round(averageRating) ? "text-red-600" : "text-gray-700"} />
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-400 font-inter uppercase tracking-wider">
+                        {evaluations.length} Évaluation{evaluations.length > 1 ? "s" : ""}
+                      </span>
                     </div>
                   ) : (
                     <div className="flex gap-2 items-center">
-                      <div className="flex gap-2 text-gray-600 text-3xl">
-                        <span>★</span>
-                        <span>★</span>
-                        <span>★</span>
-                        <span>★</span>
-                        <span>★</span>
+                      <div className="flex gap-2 text-gray-700 text-3xl">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar key={i} />
+                        ))}
                       </div>
                       <span className="text-xs md:text-base text-gray-400">(Aucune évaluation)</span>
                     </div>

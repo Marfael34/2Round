@@ -35,7 +35,7 @@ class Evaluation
 
     #[ORM\ManyToOne(inversedBy: 'sentEvaluations')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['evaluation:read', 'evaluation:write'])]
+    #[Groups(['evaluation:read', 'evaluation:write', 'user:read', 'product:read'])]
     private ?User $sender = null;
 
     #[ORM\ManyToOne(inversedBy: 'receivedEvaluations')]
