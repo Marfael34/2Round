@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { FaShieldHalved } from "react-icons/fa6";
 import { securedFetch, getCurrentUserId } from '../../utils/api';
 import { API_URL } from '../../constants/apiConstante';
 
@@ -94,7 +95,13 @@ const ProductCard = ({ product }) => {
       <p className="font-inter text-xs text-gray-400 mt-0.5">
         {product.size || 'M'} - {stateLabel}
       </p>
-      <p className="font-inter text-base font-bold mt-1 text-white">{product.price}€</p>
+      <div className="mt-1">
+        <p className="font-inter text-base font-bold text-white">{product.price}€</p>
+        <div className="flex items-center gap-1 mt-0.5 text-gray-500 text-[10px]">
+          <FaShieldHalved className="text-emerald-500" />
+          <span>+ {(0.7 + product.price * 0.05).toFixed(2)}€ prot. acheteur</span>
+        </div>
+      </div>
     </Link>
   );
 };

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
-import { FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaXmark, FaTag } from "react-icons/fa6";
+import { FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaXmark, FaTag, FaShieldHalved } from "react-icons/fa6";
 import { securedFetch } from "../../utils/api";
 
 const ProductDetail = () => {
@@ -447,8 +447,16 @@ const ProductDetail = () => {
             </h2>
 
             {/* Price */}
-            <div className="text-red font-bebas text-4xl mb-8 tracking-wide">
-              {product.price}€
+            <div className="mb-8">
+              <div className="text-red font-bebas text-4xl tracking-wide">
+                {product.price}€
+              </div>
+              <div className="text-gray-400 text-[11px] mt-1.5 flex items-center gap-1.5 font-light">
+                <FaShieldHalved className="text-emerald-500 text-xs" />
+                <span>
+                  + {(0.7 + product.price * 0.05).toFixed(2)}€ de frais de protection acheteur
+                </span>
+              </div>
             </div>
 
             {/* Specifications List */}
