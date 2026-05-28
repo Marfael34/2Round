@@ -81,8 +81,9 @@ const InvoicesScreen = () => {
 
   // Ouverture de la page de la facture pour impression
   const handleDownload = (invoice) => {
-    const invoiceId = invoice.id || invoice['@id']?.split('/').pop();
-    window.open(`/invoice/${invoiceId}`, '_blank');
+    // URL to the physical PDF via Vite proxy (avoids React Router intercepting /invoice/)
+    const pdfUrl = `/pdf/${invoice.number}.pdf`;
+    window.open(pdfUrl, '_blank');
   };
 
   return (

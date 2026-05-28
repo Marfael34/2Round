@@ -144,7 +144,7 @@ const MyLocker = () => {
                 {/* Infos */}
                 <div className="space-y-4 flex-1">
                   <div>
-                    <h3 className="font-bebas text-6xl uppercase text-white border-b-4 border-cyan-400 inline-block pb-1">
+                    <h3 className="font-bebas text-4xl md:text-6xl uppercase text-white border-b-4 border-cyan-400 inline-block pb-1 break-all">
                       {user.pseudo || 'Non renseigné'}
                     </h3>
                     {(user.firstname || user.lastname) && (
@@ -181,9 +181,12 @@ const MyLocker = () => {
                     <p><span className="font-bold">Niveau :</span> <span className="text-gray-300">{user.levelId?.label || 'Non renseigné'}</span></p>
                   </div>
 
-                  <div className="mt-8">
-                    <Link to="/wallet" className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bebas uppercase tracking-widest text-xl transition-colors rounded-sm shadow-lg">
-                      Accéder à mon Portefeuille Numérique
+                  <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                    <Link to="/wallet" className="w-full sm:flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center break-words">
+                      Portefeuille
+                    </Link>
+                    <Link to="/invoices" className="w-full sm:flex-1 px-4 py-3 border border-gray-600 hover:border-white hover:bg-white/5 text-gray-300 hover:text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center break-words">
+                      Factures & Reçus
                     </Link>
                   </div>
                 </div>

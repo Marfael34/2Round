@@ -492,7 +492,7 @@ const ProductDetail = () => {
               {product.description || "Aucune description fournie pour cet article."}
             </p>
 
-            {/* CTA Buttons CORRIGÉS */}
+            {/* CTA Buttons */}
             {loadingUser ? (
               <div className="flex justify-center py-4 mb-8">
                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

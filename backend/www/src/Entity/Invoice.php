@@ -113,4 +113,19 @@ class Invoice
 
         return $this;
     }
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $snapshot = null;
+
+    public function getSnapshot(): ?array
+    {
+        return $this->snapshot;
+    }
+
+    public function setSnapshot(?array $snapshot): static
+    {
+        $this->snapshot = $snapshot;
+
+        return $this;
+    }
 }

@@ -139,6 +139,81 @@ const MarketPlace = () => {
     return true;
   }).sort((a, b) => b.id - a.id);
 
+  // Pagination Logic
+  const ITEMS_PER_PAGE = 24;
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
+
+  // Reset to page 1 if filtered products change and current page is out of bounds
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [filteredProducts.length, totalPages, currentPage]);
+
+  const paginatedProducts = filteredProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  // Pagination rendering helper
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    let pages = [];
+    // Always show first page, last page, current page, and 1 page before/after current
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i === 1 || 
+        i === totalPages || 
+        (i >= currentPage - 1 && i <= currentPage + 1)
+      ) {
+        pages.push(i);
+      } else if (
+        i === currentPage - 2 || 
+        i === currentPage + 2
+      ) {
+        pages.push('...');
+      }
+    }
+
+    // Remove duplicate ellipsis
+    pages = pages.filter((page, index) => {
+      return page !== '...' || pages[index - 1] !== '...';
+    });
+
+    return (
+      <div className="flex justify-center items-center gap-2 sm:gap-4 mt-16 pt-8 border-t border-white/5 text-xs font-bold text-gray-500 shrink-0 select-none flex-wrap">
+        <button 
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+          className="hover:text-white disabled:opacity-30 transition-colors cursor-pointer px-2 py-1"
+        >
+          <FaChevronLeft />
+        </button>
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
+          {pages.map((p, index) => (
+            p === '...' ? (
+              <span key={`ellipsis-${index}`}>...</span>
+            ) : (
+              <span 
+                key={`page-${p}`}
+                className={`cursor-pointer px-1 sm:px-2 py-1 ${currentPage === p ? 'text-white border-b-2 border-red-600 pb-0.5' : 'hover:text-white transition-colors'}`} 
+                onClick={() => setCurrentPage(p)}
+              >
+                {p}
+              </span>
+            )
+          ))}
+        </div>
+        <button 
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          className="hover:text-white disabled:opacity-30 transition-colors cursor-pointer px-2 py-1"
+        >
+          <FaChevronRight />
+        </button>
+      </div>
+    );
+  };
+
+
   const clearAllFilters = () => {
     setSelectedCategories([]);
     setSelectedSizes([]);
@@ -420,9 +495,9 @@ const MarketPlace = () => {
 
         {/* Product Grid */}
         <div className="flex-1">
-          {filteredProducts.length > 0 ? (
+          {paginatedProducts.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-              {filteredProducts.map((prod) => (
+              {paginatedProducts.map((prod) => (
                 <ProductCard key={prod.id} product={prod} />
               ))}
             </div>
@@ -443,31 +518,7 @@ const MarketPlace = () => {
         </div>
 
         {/* 3. Pagination (Centered) */}
-        {filteredProducts.length > 0 && (
-          <div className="flex justify-center items-center gap-6 mt-16 pt-8 border-t border-white/5 text-xs font-bold text-gray-500 shrink-0 select-none">
-            <button 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              className="hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
-            >
-              <FaChevronLeft />
-            </button>
-            <div className="flex items-center gap-4">
-              <span className={`cursor-pointer ${currentPage === 1 ? 'text-white border-b-2 border-red-600 pb-0.5' : 'hover:text-white transition-colors'}`} onClick={() => setCurrentPage(1)}>1</span>
-              <span className={`cursor-pointer ${currentPage === 2 ? 'text-white border-b-2 border-red-600 pb-0.5' : 'hover:text-white transition-colors'}`} onClick={() => setCurrentPage(2)}>2</span>
-              <span className={`cursor-pointer ${currentPage === 3 ? 'text-white border-b-2 border-red-600 pb-0.5' : 'hover:text-white transition-colors'}`} onClick={() => setCurrentPage(3)}>3</span>
-              <span>...</span>
-              <span className={`cursor-pointer ${currentPage === 12 ? 'text-white border-b-2 border-red-600 pb-0.5' : 'hover:text-white transition-colors'}`} onClick={() => setCurrentPage(12)}>12</span>
-            </div>
-            <button 
-              disabled={currentPage === 12}
-              onClick={() => setCurrentPage(p => Math.min(12, p + 1))}
-              className="hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
-            >
-              <FaChevronRight />
-            </button>
-          </div>
-        )}
+        {renderPagination()}
 
       </div>
 

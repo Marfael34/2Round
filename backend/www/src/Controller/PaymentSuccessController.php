@@ -43,6 +43,27 @@ class PaymentSuccessController extends AbstractController
                 return $this->json(['error' => 'Product not found'], 404);
             }
 
+            // Obtenir le prix de l'article (offre acceptée ou prix du produit)
+            $offer = null;
+            foreach ($conversation->getMessages() as $message) {
+                if ($message->getOffer() && $message->getOffer()->getStatus() === 'accepted') {
+                    $offer = $message->getOffer();
+                    break;
+                }
+            }
+            
+            if (!$offer) {
+                // If there's no offer on the conversation directly, we check messages just in case, but let's use product price
+                $itemPriceEuros = (float)$product->getPrice();
+            } else {
+                $itemPriceEuros = (float)$offer->getAmount();
+            }
+
+            // Calculer les frais
+            $shippingFeesCents = 288; // Frais de port constants 2.88€
+            $protectionFeesCents = 70 + (int)round(($itemPriceEuros * 100) * 0.05); // 0.70€ + 5% du prix de l'article
+            $totalAmountCents = (int)round($itemPriceEuros * 100) + $shippingFeesCents + $protectionFeesCents;
+
             // Chercher une commande existante
             $orderItem = $em->getRepository(OrderItem::class)->findOneBy(['products' => $product]);
             $order = $orderItem ? $orderItem->getOrders() : null;
@@ -51,17 +72,18 @@ class PaymentSuccessController extends AbstractController
                 // Achat direct sans offre préalable
                 $order = new Order();
                 $order->setNumber('CMD-' . strtoupper(substr(uniqid(), -6)));
-                $order->setTotalprice((string)($amount / 100)); // En euros
+                $order->setTotalprice((string)($totalAmountCents / 100)); // En euros
                 $order->setStatus('pending_payment');
                 $order->setCreatedAt(new \DateTime());
-                $order->setServicesFees(250);
-                $order->setShippingFees(490);
+                $order->setServicesFees($protectionFeesCents);
+                $order->setShippingFees($shippingFeesCents);
                 $em->persist($order);
 
                 $orderItem = new OrderItem();
                 $orderItem->setOrders($order);
                 $orderItem->setProducts($product);
-                $orderItem->setPricePurchase((string)($amount / 100));
+                $orderItem->setPricePurchase((string)$itemPriceEuros);
+                $order->addOrderItem($orderItem);
                 $em->persist($orderItem);
             }
 
@@ -104,6 +126,7 @@ class PaymentSuccessController extends AbstractController
 
             return $this->json(['status' => 'success', 'orderNumber' => $order->getNumber()]);
         } catch (\Throwable $e) {
+            file_put_contents(__DIR__ . '/../../payment_error.log', $e->getMessage() . "\n" . $e->getTraceAsString());
             return $this->json([
                 'error' => 'Internal Server Error',
                 'message' => $e->getMessage(),

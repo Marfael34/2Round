@@ -284,6 +284,7 @@ const Conversation = () => {
             const addedConv =
               refreshed.find((c) => c.id === newConv.id) || newConv;
 
+            addedConv.isNewlyCreated = true;
             setActiveConversation(addedConv);
             if (initOfferParam === "true") setShowOfferModal(true);
             if (initCheckoutParam === "true") setAutoCheckout(true);
@@ -416,6 +417,20 @@ const Conversation = () => {
       setMessages([]);
     };
   }, [activeConversation]);
+
+  // AJOUT : Nettoyage d'une conversation "fantôme" (créée automatiquement par le checkout mais restée vide)
+  useEffect(() => {
+    const conv = activeConversation;
+    const currentMessages = messages;
+
+    return () => {
+      if (conv?.isNewlyCreated && currentMessages.length === 0) {
+        securedFetch(`${API_URL}/conversations/${conv.id}`, {
+          method: "DELETE",
+        }).catch((err) => console.error("Erreur cleanup conversation:", err));
+      }
+    };
+  }, [activeConversation, messages]);
 
   // AJOUT : Vérification de la commande pour le vendeur afin d'afficher l'étiquette
   useEffect(() => {
@@ -1077,6 +1092,25 @@ const Conversation = () => {
     { pct: "20%", val: Math.round(price * 0.8) },
   ];
 
+  const handleCancelCheckout = async () => {
+    setShowCheckoutModal(false);
+    if (activeConversation && messages.length === 0) {
+      try {
+        await securedFetch(`${API_URL}/conversations/${activeConversation.id}`, {
+          method: "DELETE"
+        });
+        const prodId = activeConversation.product?.id || (typeof activeConversation.product === 'string' ? activeConversation.product.split('/').pop() : null);
+        setConversations(prev => prev.filter(c => c.id !== activeConversation.id));
+        setActiveConversation(null);
+        if (prodId) {
+          navigate(`/product/${prodId}`);
+        }
+      } catch (e) {
+        console.error("Erreur suppression conv vide", e);
+      }
+    }
+  };
+
   return (
     <div className="h-screen bg-black text-white font-inter flex flex-col pt-[62px] lg:pt-[80px]">
       {/* Container avec le fond rayé pour l'entête */}
@@ -1116,7 +1150,7 @@ const Conversation = () => {
             <div className="flex-1 overflow-y-auto divide-y divide-white/5">
               {conversations.length > 0 ? (
                 [...conversations]
-                  .filter((c) => c.isActive !== false)
+                  .filter((c) => c.isActive !== false && c.messages && c.messages.length > 0)
                   .sort((a, b) => {
                     const aHasUnread = a.messages?.some(
                       (m) =>
@@ -1375,8 +1409,10 @@ const Conversation = () => {
                       <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
                     </div>
                   ) : messages.length > 0 ? (
-                    messages.map((msg) => {
-                      const senderId = extractId(msg.users);
+                    (() => {
+                      const latestPurchaseMsg = messages.slice().reverse().find(m => m.content && m.content.includes("L'article a été payé avec succès"));
+                      return messages.map((msg) => {
+                        const senderId = extractId(msg.users);
                       const isMe = Number(senderId) === currentUser.id;
 
                       if (msg.offer) {
@@ -1532,43 +1568,13 @@ const Conversation = () => {
                         msg.content.startsWith("[SHIPPING_LABEL]");
 
                       if (isShippingLabel) {
-                        if (isBuyer) return null; // L'acheteur ne voit pas le bon d'envoi du vendeur
-                        if (currentOrder && currentOrder.status !== "paid") return null; // Le vendeur ne peut plus voir l'étiquette une fois expédié
-                        const labelUrl = msg.content.replace(
-                          "[SHIPPING_LABEL] ",
-                          "",
-                        );
-                        return (
-                          <div
-                            key={msg.id}
-                            className="w-full flex justify-center my-4"
-                          >
-                            <div className="w-full max-w-[420px] bg-blue-950/20 border border-blue-500/30 rounded-md p-6 text-center space-y-4 shadow-xl">
-                              <div className="w-12 h-12 rounded-full bg-blue-950 border border-blue-500/40 flex items-center justify-center text-blue-400 mx-auto text-xl">
-                                <FaTruck />
-                              </div>
-                              <h4 className="font-bebas text-2xl uppercase tracking-wider text-blue-100">
-                                Bon de livraison généré
-                              </h4>
-                              <p className="text-xs text-gray-400 leading-relaxed max-w-[280px] mx-auto">
-                                L'article a été payé. Voici votre bordereau
-                                d'envoi Mondial Relay à imprimer et coller sur
-                                le colis.
-                              </p>
-                              <a
-                                href={labelUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-3 rounded-sm uppercase tracking-wider transition-colors mt-2"
-                              >
-                                Télécharger le bordereau
-                              </a>
-                            </div>
-                          </div>
-                        );
+                        // Ce message système est masqué car l'interface du bordereau est déjà gérée 
+                        // de manière centralisée dans le bloc 'isPurchaseMessage' ci-dessous pour le vendeur.
+                        return null;
                       }
 
                       if (isPurchaseMessage) {
+                        if (msg.id !== latestPurchaseMsg?.id) return null;
                         return (
                           <div
                             key={msg.id}
@@ -1639,8 +1645,14 @@ const Conversation = () => {
 
                               {/* TEXTE D'ATTENTE POUR L'ACHETEUR */}
                               {isBuyer && currentOrder?.status === "paid" && (
-                                <div className="mt-6 pt-5 border-t border-emerald-500/30 text-center">
+                                <div className="mt-6 pt-5 border-t border-emerald-500/30 flex flex-col gap-3 text-center">
                                   <p className="text-xs text-gray-400">En attente de l'expédition par le vendeur...</p>
+                                  <Link
+                                    to="/invoices"
+                                    className="flex items-center justify-center w-full bg-gray-800 hover:bg-gray-700 text-white py-2.5 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors"
+                                  >
+                                    Voir ma facture / reçu
+                                  </Link>
                                 </div>
                               )}
                               
@@ -1764,7 +1776,8 @@ const Conversation = () => {
                           </div>
                         </div>
                       );
-                    })
+                      });
+                    })()
                   ) : (
                     <div className="h-full flex items-center justify-center text-gray-500 text-xs py-12">
                       Début de la conversation. Envoyez un message ou proposez
@@ -2078,7 +2091,7 @@ const Conversation = () => {
           <div className="w-full max-w-lg bg-[#0c0c0c] border border-white/10 rounded-xl p-6 md:p-8 shadow-2xl relative my-auto">
             {checkoutStep !== "loading" && (
               <button
-                onClick={() => setShowCheckoutModal(false)}
+                onClick={handleCancelCheckout}
                 className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors cursor-pointer"
               >
                 <FaXmark className="text-lg" />
@@ -2356,7 +2369,7 @@ const Conversation = () => {
                     )}
                   </button>
                   <button
-                    onClick={() => setShowCheckoutModal(false)}
+                    onClick={handleCancelCheckout}
                     disabled={stripeLoading}
                     className="w-full bg-transparent hover:bg-white/5 border border-white/10 disabled:opacity-60 text-gray-400 hover:text-white font-bold py-3 uppercase tracking-widest rounded-md text-xs transition-colors cursor-pointer flex items-center justify-center mt-2"
                   >
