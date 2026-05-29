@@ -226,7 +226,7 @@ const MyLocker = () => {
                   {isCurrentUser && (
                     <div className="mt-8 flex flex-col sm:flex-row gap-4">
                       <Link to="/wallet" className="w-full sm:flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center wrap-break-word">
-                        Portefeuille
+                        Porte-monnaie
                       </Link>
                       <Link to="/invoices" className="w-full sm:flex-1 px-4 py-3 border border-gray-600 hover:border-white hover:bg-white/5 text-gray-300 hover:text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center wrap-break-word">
                         Factures & Reçus

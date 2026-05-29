@@ -24,6 +24,7 @@ import {
   FaTriangleExclamation,
   FaCircleInfo,
   FaEllipsisVertical,
+  FaWallet,
 } from "react-icons/fa6";
 
 const Conversation = () => {
@@ -80,6 +81,7 @@ const Conversation = () => {
   const [transactionRef, setTransactionRef] = useState("");
   const [autoCheckout, setAutoCheckout] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   // Address Autocomplete State
   const [addressSuggestions, setAddressSuggestions] = useState([]);
@@ -2464,20 +2466,67 @@ const Conversation = () => {
                     </select>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-3 mt-4">
                     <span className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-                      3. Paiement Sécurisé
+                      3. Paiement
                     </span>
                     <div className="bg-neutral-900/60 border border-white/5 rounded-md p-4 flex items-center gap-3">
                       <FaShieldHalved className="text-emerald-500 text-xl shrink-0" />
                       <p className="text-[11px] text-gray-400 leading-relaxed">
-                        Vous allez être redirigé vers{" "}
-                        <span className="text-white font-bold">Stripe</span>{" "}
-                        pour effectuer votre paiement de manière sécurisée. Vos
-                        données bancaires ne transitent jamais par nos serveurs.
+                        Paiement 100% sécurisé. Vous pouvez utiliser votre solde de porte-monnaie virtuel si vous avez assez de fonds.
                       </p>
                     </div>
                   </div>
+
+                  <div className="flex flex-col gap-2 mt-4">
+                    <button
+                      onClick={async () => {
+                        if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.zip) {
+                          alert("Veuillez remplir votre adresse de livraison complète.");
+                          return;
+                        }
+                        
+                        setStripeLoading(true);
+                        try {
+                          const total = checkoutAmount + (0.7 + checkoutAmount * 0.05) + 2.88;
+                          const res = await securedFetch('/api/orders/wallet-checkout', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              conversationId: activeConversation.id,
+                              amount: Math.round(total * 100),
+                              relayId: selectedRelay
+                            })
+                          });
+                          
+                          if (!res.ok) {
+                            const errData = await res.json();
+                            throw new Error(errData.error || "Erreur lors du paiement par porte-monnaie");
+                          }
+                          
+                          const data = await res.json();
+                          setTransactionRef(data.reference || `WAL-${Date.now()}`);
+                          setCheckoutStep("success");
+                        } catch (err) {
+                          console.error(err);
+                          alert(err.message);
+                        } finally {
+                          setStripeLoading(false);
+                        }
+                      }}
+                      disabled={stripeLoading || walletBalance < (checkoutAmount + (0.7 + checkoutAmount * 0.05) + 2.88)}
+                      className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 uppercase tracking-widest rounded-md text-xs transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
+                    >
+                      {stripeLoading ? (
+                        <><FaCircleNotch className="animate-spin" /> Traitement en cours...</>
+                      ) : (
+                        walletBalance < (checkoutAmount + (0.7 + checkoutAmount * 0.05) + 2.88) ? (
+                          <><FaWallet /> Porte-monnaie insuffisant ({walletBalance.toFixed(2)}€ dispo)</>
+                        ) : (
+                          <><FaWallet /> Payer avec mon Porte-monnaie — {((checkoutAmount + (0.7 + checkoutAmount * 0.05) + 2.88)).toFixed(2)}€</>
+                        )
+                      )}
+                    </button>
 
                   <button
                     onClick={handleStripeCheckout}
@@ -2501,6 +2550,7 @@ const Conversation = () => {
                       </>
                     )}
                   </button>
+                  </div>
                   <button
                     onClick={handleCancelCheckout}
                     disabled={stripeLoading}

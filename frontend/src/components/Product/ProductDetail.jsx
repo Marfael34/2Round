@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
-import { FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaXmark, FaTag, FaShieldHalved, FaFlag, FaCircleCheck } from "react-icons/fa6";
+import { FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaXmark, FaTag, FaShieldHalved, FaFlag, FaWallet, FaCircleCheck } from "react-icons/fa6";
 import { securedFetch } from "../../utils/api";
 import ReportModal from "../ReportModal";
 
@@ -24,6 +24,7 @@ const ProductDetail = () => {
   // Variables Utilisateur connectés
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loadingUser, setLoadingUser] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   // Offer Modal States
   const [showOfferModal, setShowOfferModal] = useState(false);
@@ -59,6 +60,15 @@ const ProductDetail = () => {
               const userObj = members[0];
               if (userObj && userObj.id) {
                 setCurrentUserId(userObj.id);
+                // Récupérer le solde du portefeuille
+                securedFetch('/api/wallet/info')
+                  .then(r => r.ok ? r.json() : null)
+                  .then(wData => {
+                    if (wData && wData.available !== undefined) {
+                      setWalletBalance(parseFloat(wData.available));
+                    }
+                  })
+                  .catch(err => console.error("Wallet error", err));
               } else {
                 console.warn("Utilisateur non trouvé pour l'email:", email, "Réponse API:", data);
               }
@@ -374,15 +384,15 @@ const ProductDetail = () => {
     : 0;
 
   return (
-    <div className="min-h-screen bg-black text-white px-4 md:px-12 lg:px-24 py-8 font-inter">
+    <div className="min-h-screen bg-black text-white px-4 md:px-12 lg:px-24 pt-[100px] lg:pt-[120px] pb-8 font-inter">
       <div className="max-w-[960px] mx-auto">
         {/* Back navigation */}
-        <button
-          onClick={() => navigate(-1)}
+        <Link
+          to="/marketplace"
           className="flex items-center gap-2 text-white hover:text-gray-400 transition-colors text-3xl mb-8 font-bebas tracking-wider"
         >
-          <FaChevronLeft className="text-2xl" />
-        </button>
+          <FaChevronLeft className="text-2xl" /> Retour au Market Place
+        </Link>
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-4 items-start">
@@ -539,6 +549,23 @@ const ProductDetail = () => {
                   className="w-full bg-[#E5E5E5] hover:bg-white text-black font-inter font-bold py-4 text-center tracking-widest uppercase transition-all cursor-pointer rounded-sm text-sm"
                 >
                   Acheter
+                </button>
+
+                <button 
+                  onClick={() => {
+                    if (walletBalance < (parseFloat(product.price) + (0.7 + parseFloat(product.price) * 0.05) + 2.88)) {
+                      alert("Solde insuffisant dans votre porte-monnaie.");
+                      return;
+                    }
+                    navigate(`/conversation?productId=${product.id}&checkout=true`);
+                  }}
+                  disabled={walletBalance < (parseFloat(product.price) + (0.7 + parseFloat(product.price) * 0.05) + 2.88)}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-inter font-bold py-4 text-center tracking-widest uppercase transition-all cursor-pointer rounded-sm text-sm p-2"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <FaWallet className="text-lg ml-5" />
+                    <span>Acheter avec mon Porte-monnaie ({walletBalance.toFixed(2)}€)</span>
+                  </div>
                 </button>
                 
                 <button 

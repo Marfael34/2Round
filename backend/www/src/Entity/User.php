@@ -117,6 +117,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'users')]
     private Collection $messages;
 
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: Wallet::class, cascade: ['persist', 'remove'])]
+    private ?Wallet $wallet = null;
+
     /**
      * @var Collection<int, Conversation>
      */
@@ -773,6 +776,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $evaluation->setSender(null);
             }
         }
+
+        return $this;
+    }
+    public function getWallet(): ?Wallet
+    {
+        return $this->wallet;
+    }
+
+    public function setWallet(?Wallet $wallet): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($wallet === null && $this->wallet !== null) {
+            // we don't unset the user from the wallet if it's strictly typed
+            // but we can set it to null if the Wallet's setUser accepts null. 
+            // Wallet->setUser(User) is not nullable in our Wallet class, so we leave it.
+        }
+
+        // set the owning side of the relation if necessary
+        if ($wallet !== null && $wallet->getUser() !== $this) {
+            $wallet->setUser($this);
+        }
+
+        $this->wallet = $wallet;
 
         return $this;
     }

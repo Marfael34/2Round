@@ -73,7 +73,7 @@ const WalletScreen = () => {
               <Link to="/my-locker" className="text-white text-4xl font-bebas mr-4 hover:text-cyan-400 transition-colors">
                 <FaChevronLeft /> 
               </Link>
-              <h2 className="font-bebas uppercase text-4xl md:text-6xl text-white drop-shadow-md">Mon Portefeuille Numérique</h2>
+              <h2 className="font-bebas uppercase text-4xl md:text-6xl text-white drop-shadow-md">Mon Porte-monnaie Numérique</h2>
             </div>
 
             {loading ? (

@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Order;
 use App\Entity\Conversation;
 use App\Entity\Message;
+use App\Entity\Wallet;
+use App\Entity\WalletTransaction;
 use App\Service\StripeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -59,18 +61,34 @@ class OrderValidationController extends AbstractController
                         $orderItem = $orderItems->first();
                         $pricePurchase = (float) $orderItem->getPricePurchase();
                         
-                        // Ajouter au budget (portefeuille) du vendeur
-                        $currentBudget = $seller->getBudget() ?? 0;
-                        $seller->setBudget($currentBudget + $pricePurchase);
-
                         $amountToTransfer = (int) ($pricePurchase * 100);
                         
+                        // Ajouter au portefeuille (Wallet) du vendeur
+                        $wallet = $seller->getWallet();
+                        if (!$wallet) {
+                            $wallet = new Wallet();
+                            $wallet->setUser($seller);
+                            $seller->setWallet($wallet);
+                            $em->persist($wallet);
+                        }
+                        $currentBalance = (float) $wallet->getBalance();
+                        $wallet->setBalance((string) ($currentBalance + $pricePurchase));
+
                         $stripeService->transferToSeller(
                             $amountToTransfer,
                             'eur',
                             $sellerAccountId,
                             'CONV_' . $conversation->getId()
                         );
+
+                        // Enregistrer la transaction
+                        $tx = new WalletTransaction();
+                        $tx->setUser($seller);
+                        $tx->setAmount((string) $pricePurchase);
+                        $tx->setType('sale');
+                        $tx->setStatus('completed');
+                        $tx->setReference($order->getNumber() ?? 'CONV_' . $conversation->getId());
+                        $em->persist($tx);
                     }
                 } catch (\Exception $e) {
                     // Log the error but continue to validate the order locally
@@ -81,8 +99,26 @@ class OrderValidationController extends AbstractController
                 if (count($orderItems) > 0) {
                     $orderItem = $orderItems->first();
                     $pricePurchase = (float) $orderItem->getPricePurchase();
-                    $currentBudget = $seller->getBudget() ?? 0;
-                    $seller->setBudget($currentBudget + $pricePurchase);
+
+                    // Ajouter au portefeuille (Wallet) du vendeur
+                    $wallet = $seller->getWallet();
+                    if (!$wallet) {
+                        $wallet = new Wallet();
+                        $wallet->setUser($seller);
+                        $seller->setWallet($wallet);
+                        $em->persist($wallet);
+                    }
+                    $currentBalance = (float) $wallet->getBalance();
+                    $wallet->setBalance((string) ($currentBalance + $pricePurchase));
+
+                    // Enregistrer la transaction
+                    $tx = new WalletTransaction();
+                    $tx->setUser($seller);
+                    $tx->setAmount((string) $pricePurchase);
+                    $tx->setType('sale');
+                    $tx->setStatus('completed');
+                    $tx->setReference($order->getNumber() ?? 'CONV_' . $conversation->getId());
+                    $em->persist($tx);
                 }
             }
 

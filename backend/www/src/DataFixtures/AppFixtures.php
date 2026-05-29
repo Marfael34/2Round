@@ -217,7 +217,7 @@ class AppFixtures extends Fixture
             $product->setDescription($data['description']);
             $product->setPrice($data['price']);
             $product->setWeight($data['weight']);
-            $product->setStatus($data['active']);
+            $product->setStatus($data['active'] ?? 'active');
 
             // Liaison avec un Vendeur (User) unique et aléatoire (entre user_0 et user_4)
             // On exclut l'admin car il n'est pas dans la liste des références "user_X"

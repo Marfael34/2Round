@@ -125,7 +125,7 @@ const NavBar = ({ user, onLogout }) => {
                 onClick={() => setIsUserDropdownOpen(false)}
               >
                 <FaWallet  className="h-4 w-4 mr-2 flex items-center justify-center" />
-                Mon Portefeuille
+                Mon Porte-monnaie
               </Link>
               <Link
                 to="/invoices"
@@ -262,7 +262,7 @@ const NavBar = ({ user, onLogout }) => {
                     }}
                   >
                     <FaWallet  className="h-4 w-4 mr-2 flex items-center justify-center" />
-                    Mon Portefeuille
+                    Mon Porte-monnaie
                   </Link>
                   <Link
                     to="/invoices"
