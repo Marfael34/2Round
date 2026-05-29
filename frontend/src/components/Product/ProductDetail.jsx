@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
-import { FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaXmark, FaTag, FaShieldHalved } from "react-icons/fa6";
+import { FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaXmark, FaTag, FaShieldHalved, FaFlag, FaCircleCheck } from "react-icons/fa6";
 import { securedFetch } from "../../utils/api";
+import ReportModal from "../ReportModal";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -29,6 +30,10 @@ const ProductDetail = () => {
   const [offerAmount, setOfferAmount] = useState("");
   const [offerError, setOfferError] = useState("");
   const [sendingOffer, setSendingOffer] = useState(false);
+
+  // Report Modal States
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   // Fetch current user details if logged in
   useEffect(() => {
@@ -441,10 +446,22 @@ const ProductDetail = () => {
           {/* Details Box */}
           <div className="order-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 w-full max-w-[450px] mx-auto lg:mx-0 border border-white/10 bg-[#0A0A0A] p-8 flex flex-col">
             
-            {/* Title */}
-            <h2 className="font-bebas text-5xl uppercase tracking-wider text-white mb-2">
-              {product.title}
-            </h2>
+            {/* Title & Report */}
+            <div className="flex justify-between items-start gap-4 mb-2">
+              <h2 className="font-bebas text-5xl uppercase tracking-wider text-white">
+                {product.title}
+              </h2>
+              
+              {!loadingUser && currentUserId && sellerId && Number(currentUserId) !== Number(sellerId) && (
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="text-gray-500 hover:text-red-500 transition-colors p-2 shrink-0 mt-1 flex items-center gap-2 border border-white/10 rounded-sm bg-[#151515] hover:border-red-500/50"
+                  title="Signaler cet article"
+                >
+                  <FaFlag className="text-sm" />
+                </button>
+              )}
+            </div>
 
             {/* Price */}
             <div className="mb-8">
@@ -555,8 +572,8 @@ const ProductDetail = () => {
 
             {/* Seller Card Section */}
             {seller.pseudo && (
-              <div 
-                onClick={() => navigate(`/my-locker/${sellerId}`)}
+              <Link 
+                to={`/my-locker/${sellerId}`}
                 className="border-t border-white/10 pt-6 mt-2 flex items-center gap-4 cursor-pointer group/seller"
               >
                 {/* Avatar */}
@@ -593,8 +610,9 @@ const ProductDetail = () => {
 
                 {/* Right arrow */}
                 <FaChevronRight className="ml-auto text-gray-500 group-hover/seller:text-white transition-colors text-lg" />
-              </div>
+              </Link>
             )}
+
           </div>
 
           {/* Related Section (Dressing + Suggestions) */}
@@ -773,6 +791,26 @@ const ProductDetail = () => {
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        targetType="product"
+        targetId={product?.id}
+        targetSellerId={sellerId}
+        currentUserId={currentUserId}
+        onReportSuccess={() => {
+          setShowSuccessToast(true);
+          setTimeout(() => setShowSuccessToast(false), 5000);
+        }}
+      />
+
+      {showSuccessToast && (
+        <div className="fixed bottom-6 right-6 bg-emerald-950 border border-emerald-500/50 text-white p-4 rounded-sm shadow-xl flex items-center gap-3 z-50 animate-bounce">
+          <FaCircleCheck className="text-emerald-500 text-xl" />
+          <p className="font-inter text-sm">Le signalement a été envoyé avec succès.</p>
         </div>
       )}
     </div>

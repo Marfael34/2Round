@@ -50,13 +50,13 @@ const MyCustomised = () => {
   return (
     <>
     {/* La div externe inverse l'image de fond */}
-    <div className="w-full bg-return bg-left-bottom bg-no-repeat bg-cover border-b border-black" style={{backgroundImage : `url(${IMG_BGGLOVE})` }}>
+    <div className="w-full bg-return bg-bottom-left bg-no-repeat bg-cover border-b border-black" style={{backgroundImage : `url(${IMG_BGGLOVE})` }}>
       
       {/* La div interne ré-inverse le contenu pour que le texte soit à l'endroit */}
       <div className="relative w-full bg-return py-16 sm:py-24 px-6 md:px-20 lg:px-32 xl:px-40 flex flex-col justify-center min-h-[350px] lg:min-h-[450px]">
         
         {/* Ombre pour la lisibilité du texte (qui s'applique sur la vue "à l'endroit") */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-black/90 via-black/60 to-transparent"></div>
         
         <div className="relative z-10 flex flex-col w-full">
           {/* Ligne du titre et chevron */}
@@ -74,7 +74,7 @@ const MyCustomised = () => {
           </div>
           
           {/* Ligne du sous-titre et du lien profil, alignés avec le texte du titre */}
-          <div className="flex flex-col gap-5 mt-4 ml-[3.5rem] sm:ml-[4.5rem] md:ml-[6rem] lg:ml-[7rem]">
+          <div className="flex flex-col gap-5 mt-4 ml-14  md:ml-24 lg:ml-28">
             <p className="text-gray-300 text-sm sm:text-base md:text-xl lg:text-2xl xl:text-3xl font-inter font-light tracking-wide m-0">
               Niveau : {user?.level?.label || 'Non renseigné'} • {user?.boxe?.label || 'Type non renseigné'} • Budget : {user?.budget ? `${user.budget} €` : 'Non renseigné'}
             </p>

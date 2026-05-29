@@ -23,6 +23,7 @@ import {
   FaStar,
   FaTriangleExclamation,
   FaCircleInfo,
+  FaEllipsisVertical,
 } from "react-icons/fa6";
 
 const Conversation = () => {
@@ -836,6 +837,11 @@ const Conversation = () => {
         if (sId) {
           payload.reportedUser = `/api/users/${sId}`;
         }
+      } else if (reportTarget.type === "user") {
+        const uId = reportTarget.target?.id || (typeof reportTarget.target === 'string' ? reportTarget.target.split('/').pop() : null);
+        if (uId) {
+          payload.reportedUser = `/api/users/${uId}`;
+        }
       }
 
       const res = await securedFetch(`${API_URL}/reports`, {
@@ -1359,24 +1365,31 @@ const Conversation = () => {
                     >
                       <FaXmark className="text-lg" />
                     </button>
-                    <button
-                      onClick={() =>
-                        openReportModal("conversation", activeConversation)
-                      }
-                      className="text-gray-500 hover:text-red-500 transition-colors p-2 hidden sm:block"
-                      title="Signaler la conversation"
-                    >
-                      <FaFlag />
-                    </button>
-                    <button
-                      onClick={() =>
-                        openReportModal("conversation", activeConversation)
-                      }
-                      className="text-gray-500 hover:text-red-500 transition-colors p-2 sm:hidden ml-auto"
-                      title="Signaler"
-                    >
-                      <FaFlag className="text-sm" />
-                    </button>
+                    <div className="relative group flex items-center">
+                      <button className="text-gray-500 hover:text-red-500 transition-colors p-2" title="Signaler">
+                        <FaEllipsisVertical className="text-lg" />
+                      </button>
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-[#151515] border border-white/10 rounded-md shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 flex flex-col py-2">
+                        <button
+                          onClick={() => openReportModal("conversation", activeConversation)}
+                          className="text-left px-4 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                          Signaler la conversation
+                        </button>
+                        <button
+                          onClick={() => openReportModal("product", activeConversation.product)}
+                          className="text-left px-4 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                          Signaler l'article
+                        </button>
+                        <button
+                          onClick={() => openReportModal("user", getParticipant(activeConversation))}
+                          className="text-left px-4 py-2.5 text-sm text-red-500/80 hover:text-red-500 hover:bg-red-950/20 transition-colors"
+                        >
+                          Signaler l'utilisateur
+                        </button>
+                      </div>
+                    </div>
 
                     {isProductSold ? (
                       <span className="bg-neutral-800 text-gray-500 text-xs font-bold px-4 py-2.5 rounded-sm uppercase tracking-widest border border-white/5">

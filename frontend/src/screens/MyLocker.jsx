@@ -3,8 +3,9 @@ import { IMG_BGRAYURE } from "../constants/appConstante"
 import { useNavigate, Link, useParams } from "react-router-dom";
 import UserProducts from "../components/Profile/UserProducts";
 import UserEvaluations from "../components/Profile/UserEvaluations";
-import { FaChevronLeft, FaStar } from "react-icons/fa6";
+import { FaChevronLeft, FaStar, FaFlag, FaCircleCheck } from "react-icons/fa6";
 import { securedFetch } from "../utils/api";
+import ReportModal from "../components/ReportModal";
 
 const MyLocker = () => {
   const navigate = useNavigate();
@@ -24,6 +25,9 @@ const MyLocker = () => {
 
   const { id } = useParams();
   const [currentUserEmail, setCurrentUserEmail] = useState(null);
+  const [loggedInUserId, setLoggedInUserId] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -59,6 +63,15 @@ const MyLocker = () => {
             throw new Error('Erreur lors de la récupération des données utilisateur');
           }
           userData = await response.json();
+
+          if (currentEmail) {
+            const currentRes = await securedFetch(`/api/users?email=${encodeURIComponent(currentEmail)}`);
+            if (currentRes.ok) {
+              const currentData = await currentRes.json();
+              const currObj = currentData.member ? currentData.member[0] : (currentData['hydra:member'] ? currentData['hydra:member'][0] : (Array.isArray(currentData) ? currentData[0] : currentData));
+              if (currObj) setLoggedInUserId(currObj.id);
+            }
+          }
         } else {
           const response = await securedFetch(`/api/users?email=${encodeURIComponent(currentEmail)}`);
           if (!response.ok) {
@@ -66,6 +79,7 @@ const MyLocker = () => {
           }
           const data = await response.json();
           userData = data.member ? data.member[0] : (data['hydra:member'] ? data['hydra:member'][0] : (Array.isArray(data) ? data[0] : data));
+          if (userData) setLoggedInUserId(userData.id);
         }
 
         if (!userData) {
@@ -158,9 +172,20 @@ const MyLocker = () => {
                 {/* Infos */}
                 <div className="space-y-4 flex-1">
                   <div>
-                    <h3 className="font-bebas text-4xl md:text-6xl uppercase text-white border-b-4 border-cyan-400 inline-block pb-1 break-all">
-                      {user.pseudo || 'Non renseigné'}
-                    </h3>
+                    <div className="flex items-center gap-4">
+                      <h3 className="font-bebas text-4xl md:text-6xl uppercase text-white inline-block pb-1 break-all">
+                        {user.pseudo || 'Non renseigné'}
+                      </h3>
+                      {!isCurrentUser && loggedInUserId && (
+                        <button
+                          onClick={() => setShowReportModal(true)}
+                          className="text-gray-500 hover:text-red-500 transition-colors bg-white/5 hover:bg-white/10 w-10 h-10 rounded-full flex items-center justify-center border border-white/10"
+                          title="Signaler l'utilisateur"
+                        >
+                          <FaFlag />
+                        </button>
+                      )}
+                    </div>
                     {(user.firstname || user.lastname) && (
                       <p className="text-xl font-inter text-gray-400 mt-2 capitalize">
                         {user.firstname} {user.lastname}
@@ -200,10 +225,10 @@ const MyLocker = () => {
 
                   {isCurrentUser && (
                     <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                      <Link to="/wallet" className="w-full sm:flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center break-words">
+                      <Link to="/wallet" className="w-full sm:flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center wrap-break-word">
                         Portefeuille
                       </Link>
-                      <Link to="/invoices" className="w-full sm:flex-1 px-4 py-3 border border-gray-600 hover:border-white hover:bg-white/5 text-gray-300 hover:text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center break-words">
+                      <Link to="/invoices" className="w-full sm:flex-1 px-4 py-3 border border-gray-600 hover:border-white hover:bg-white/5 text-gray-300 hover:text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center wrap-break-word">
                         Factures & Reçus
                       </Link>
                     </div>
@@ -244,6 +269,25 @@ const MyLocker = () => {
           </div>
         </div>
       </div>
+
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        targetType="user"
+        targetId={user?.id || (user?.['@id']?.split('/').pop())}
+        currentUserId={loggedInUserId}
+        onReportSuccess={() => {
+          setShowSuccessToast(true);
+          setTimeout(() => setShowSuccessToast(false), 5000);
+        }}
+      />
+
+      {showSuccessToast && (
+        <div className="fixed bottom-6 right-6 bg-emerald-950 border border-emerald-500/50 text-white p-4 rounded-sm shadow-xl flex items-center gap-3 z-50 animate-bounce">
+          <FaCircleCheck className="text-emerald-500 text-xl" />
+          <p className="font-inter text-sm">Le signalement a été envoyé avec succès.</p>
+        </div>
+      )}
     </>
   )
 }
