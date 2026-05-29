@@ -1285,7 +1285,7 @@ const Conversation = () => {
                       <FaArrowLeft />
                     </button>
 
-                    <div className="relative shrink-0">
+                    <Link to={`/my-locker/${getParticipant(activeConversation)?.id || (getParticipant(activeConversation)?.['@id']?.split('/').pop())}`} className="relative shrink-0 block hover:opacity-80 transition-opacity">
                       <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#151515] border border-white/10 overflow-hidden flex items-center justify-center">
                         {getParticipant(activeConversation)?.avatar ? (
                           <img
@@ -1306,14 +1306,16 @@ const Conversation = () => {
                           />
                         </div>
                       )}
-                    </div>
+                    </Link>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline gap-2">
-                        <h3 className="font-bebas text-xl md:text-2xl uppercase tracking-wide truncate">
-                          {getParticipant(activeConversation)?.pseudo ||
-                            "Utilisateur"}
-                        </h3>
+                        <Link to={`/my-locker/${getParticipant(activeConversation)?.id || (getParticipant(activeConversation)?.['@id']?.split('/').pop())}`}>
+                          <h3 className="font-bebas text-xl md:text-2xl uppercase tracking-wide truncate hover:text-red-500 transition-colors">
+                            {getParticipant(activeConversation)?.pseudo ||
+                              "Utilisateur"}
+                          </h3>
+                        </Link>
                         <span className="shrink-0 text-[9px] bg-white/10 text-gray-300 font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wider hidden sm:inline-block">
                           {isBuyer ? "Vendeur" : "Acheteur"}
                         </span>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { IMG_BGRAYURE } from "../constants/appConstante"
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useParams } from "react-router-dom";
 import UserProducts from "../components/Profile/UserProducts";
 import UserEvaluations from "../components/Profile/UserEvaluations";
 import { FaChevronLeft, FaStar } from "react-icons/fa6";
@@ -22,41 +22,51 @@ const MyLocker = () => {
     ? evaluations.reduce((sum, ev) => sum + ev.rating, 0) / evaluations.length
     : 0;
 
+  const { id } = useParams();
+  const [currentUserEmail, setCurrentUserEmail] = useState(null);
+
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem('token');
-      if (!token) {
+      let currentEmail = null;
+
+      if (token) {
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+          const payload = JSON.parse(jsonPayload);
+          currentEmail = payload.username;
+          setCurrentUserEmail(currentEmail);
+        } catch (e) {
+          console.error("Token decode error:", e);
+        }
+      }
+
+      if (!id && !currentEmail) {
         navigate('/login');
         return;
       }
 
       try {
-        // Décoder le token pour obtenir l'email
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        const payload = JSON.parse(jsonPayload);
-        const email = payload.username;
+        let userData;
 
-        if (!email) {
-          throw new Error("Impossible de récupérer l'email du token");
+        if (id) {
+          const response = await securedFetch(`/api/users/${id}`);
+          if (!response.ok) {
+            throw new Error('Erreur lors de la récupération des données utilisateur');
+          }
+          userData = await response.json();
+        } else {
+          const response = await securedFetch(`/api/users?email=${encodeURIComponent(currentEmail)}`);
+          if (!response.ok) {
+            throw new Error('Erreur lors de la récupération des données');
+          }
+          const data = await response.json();
+          userData = data.member ? data.member[0] : (data['hydra:member'] ? data['hydra:member'][0] : (Array.isArray(data) ? data[0] : data));
         }
-
-        // Récupérer les infos de l'utilisateur
-        const response = await securedFetch(`/api/users?email=${encodeURIComponent(email)}`);
-
-        if (!response.ok) {
-          throw new Error('Erreur lors de la récupération des données');
-        }
-
-        const data = await response.json();
-
-
-        // Gérer le format de réponse (collection ou objet)
-        const userData = data.member ? data.member[0] : (data['hydra:member'] ? data['hydra:member'][0] : (Array.isArray(data) ? data[0] : data));
-
 
         if (!userData) {
           throw new Error('Utilisateur non trouvé');
@@ -71,7 +81,9 @@ const MyLocker = () => {
     };
 
     fetchUserData();
-  }, [navigate]);
+  }, [navigate, id]);
+
+  const isCurrentUser = currentUserEmail && user && user.email === currentUserEmail;
 
   useEffect(() => {
     const fetchUserProducts = async () => {
@@ -136,9 +148,11 @@ const MyLocker = () => {
                       </div>
                     )}
                   </div>
-                  <Link to="/profile/edit" className="text-sm text-gray-400 hover:text-white transition-colors mt-4">
-                    Mettre à jour mon profil
-                  </Link>
+                  {isCurrentUser && (
+                    <Link to="/profile/edit" className="text-sm text-gray-400 hover:text-white transition-colors mt-4">
+                      Mettre à jour mon profil
+                    </Link>
+                  )}
                 </div>
 
                 {/* Infos */}
@@ -184,14 +198,16 @@ const MyLocker = () => {
                     <p><span className="font-bold">Niveau :</span> <span className="text-gray-300">{user.levelId?.label || 'Non renseigné'}</span></p>
                   </div>
 
-                  <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                    <Link to="/wallet" className="w-full sm:flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center break-words">
-                      Portefeuille
-                    </Link>
-                    <Link to="/invoices" className="w-full sm:flex-1 px-4 py-3 border border-gray-600 hover:border-white hover:bg-white/5 text-gray-300 hover:text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center break-words">
-                      Factures & Reçus
-                    </Link>
-                  </div>
+                  {isCurrentUser && (
+                    <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                      <Link to="/wallet" className="w-full sm:flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center break-words">
+                        Portefeuille
+                      </Link>
+                      <Link to="/invoices" className="w-full sm:flex-1 px-4 py-3 border border-gray-600 hover:border-white hover:bg-white/5 text-gray-300 hover:text-white font-bebas uppercase tracking-widest text-lg md:text-xl transition-colors rounded-sm shadow-lg text-center break-words">
+                        Factures & Reçus
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : null}

@@ -13,11 +13,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\MaxDepth;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ApiResource(
-    normalizationContext: ['groups' => ['user:read']],
+    normalizationContext: ['groups' => ['user:read'], 'enable_max_depth' => true],
     denormalizationContext: ['groups' => ['user:write']],
     operations: [
         new \ApiPlatform\Metadata\GetCollection(),
@@ -135,12 +136,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Evaluation::class, mappedBy: 'receiver')]
     #[Groups(['user:read', 'product:read'])]
+    #[MaxDepth(1)]
     private Collection $receivedEvaluations;
 
     /**
      * @var Collection<int, Evaluation>
      */
     #[ORM\OneToMany(targetEntity: Evaluation::class, mappedBy: 'sender')]
+    #[MaxDepth(1)]
     private Collection $sentEvaluations;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
@@ -708,6 +711,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($adress->getUser() === $this) {
                 $adress->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Evaluation>
+     */
+    public function getReceivedEvaluations(): Collection
+    {
+        return $this->receivedEvaluations;
+    }
+
+    public function addReceivedEvaluation(Evaluation $evaluation): static
+    {
+        if (!$this->receivedEvaluations->contains($evaluation)) {
+            $this->receivedEvaluations->add($evaluation);
+            $evaluation->setReceiver($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceivedEvaluation(Evaluation $evaluation): static
+    {
+        if ($this->receivedEvaluations->removeElement($evaluation)) {
+            // set the owning side to null (unless already changed)
+            if ($evaluation->getReceiver() === $this) {
+                $evaluation->setReceiver(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Evaluation>
+     */
+    public function getSentEvaluations(): Collection
+    {
+        return $this->sentEvaluations;
+    }
+
+    public function addSentEvaluation(Evaluation $evaluation): static
+    {
+        if (!$this->sentEvaluations->contains($evaluation)) {
+            $this->sentEvaluations->add($evaluation);
+            $evaluation->setSender($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSentEvaluation(Evaluation $evaluation): static
+    {
+        if ($this->sentEvaluations->removeElement($evaluation)) {
+            // set the owning side to null (unless already changed)
+            if ($evaluation->getSender() === $this) {
+                $evaluation->setSender(null);
             }
         }
 

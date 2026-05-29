@@ -556,7 +556,7 @@ const ProductDetail = () => {
             {/* Seller Card Section */}
             {seller.pseudo && (
               <div 
-                onClick={() => navigate(`/locker/${sellerId}`)}
+                onClick={() => navigate(`/my-locker/${sellerId}`)}
                 className="border-t border-white/10 pt-6 mt-2 flex items-center gap-4 cursor-pointer group/seller"
               >
                 {/* Avatar */}

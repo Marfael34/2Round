@@ -47,6 +47,10 @@ const Router = createBrowserRouter([
                 element: <MyLocker />,
             },
             {
+                path: "/my-locker/:id",
+                element: <MyLocker />,
+            },
+            {
                 path: "/guide",
                 element: <Guide />,
             },
