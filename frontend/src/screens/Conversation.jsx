@@ -177,8 +177,18 @@ const Conversation = () => {
               ? data[0]
               : data;
         if (!userObj) throw new Error("Utilisateur introuvable.");
-
         setCurrentUser(userObj);
+        
+        try {
+          const wRes = await securedFetch('/api/wallet/info');
+          if (wRes.ok) {
+            const wData = await wRes.json();
+            setWalletBalance(parseFloat(wData.available || 0));
+          }
+        } catch (we) {
+          console.error("Erreur chargement portefeuille", we);
+        }
+
         setShippingAddress({
           name: `${userObj.firstname || ""} ${userObj.lastname || ""}`.trim(),
           street: "",
@@ -345,7 +355,7 @@ const Conversation = () => {
               setConversations((prev) => [convData, ...prev]);
               setActiveConversation(convData);
             }
-          } catch(e) {
+          } catch {
             console.error("Conversation not found");
           }
         }
@@ -449,7 +459,9 @@ const Conversation = () => {
       setConversations((prev) =>
         prev.map((c) => (c.id === convId ? { ...c, messages: list } : c))
       );
-    } catch (e) {}
+    } catch {
+      console.error("Error updating conversation messages");
+    }
   };
 
   useEffect(() => {
@@ -491,7 +503,9 @@ const Conversation = () => {
           });
           return changed ? updated : prev;
         });
-      } catch (err) {}
+      } catch {
+        console.error("Poll interval error");
+      }
     }, 5000);
     return () => clearInterval(interval);
   }, [currentUser]);
@@ -513,6 +527,7 @@ const Conversation = () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       setMessages([]);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeConversation]);
 
   // L'utilisateur veut que la conversation soit supprimée UNIQUEMENT via les boutons d'annulation du modal.
@@ -541,7 +556,7 @@ const Conversation = () => {
       fetchOrder();
     } else {
       // Use a timeout or move to a separate effect if needed, but for now we safely clear it
-      setCurrentOrder(null);
+      Promise.resolve().then(() => setCurrentOrder(null));
     }
   }, [messages, activeConversation, currentUser]);
 
@@ -935,7 +950,7 @@ const Conversation = () => {
       if (!res.ok) throw new Error("Erreur de signalement");
       showAlert("Signalement envoyé avec succès. Notre équipe va l'examiner.", "success");
       setReportModalOpen(false);
-    } catch (err) {
+    } catch {
       showAlert("Erreur lors de l'envoi du signalement.", "error");
     }
   };
@@ -965,7 +980,7 @@ const Conversation = () => {
             prev.filter((c) => c.id !== activeConversation.id),
           );
           setActiveConversation(null);
-        } catch (err) {
+        } catch {
           showAlert("Erreur lors de la suppression.", "error");
         }
       }
@@ -997,7 +1012,7 @@ const Conversation = () => {
         });
 
         fetchActiveMessages(activeConversation.id, true);
-      } catch (e) {
+      } catch {
         showAlert("Erreur lors de l'annulation.", "error");
       }
     });
@@ -1120,6 +1135,7 @@ const Conversation = () => {
       setSearchParams({});
     };
     handlePaymentReturn();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     paymentSuccessParam,
     currentUser,
@@ -1130,8 +1146,10 @@ const Conversation = () => {
 
   useEffect(() => {
     if (!paymentCancelledParam) return;
-    showAlert("Le paiement a été annulé.", "info");
-    setSearchParams({});
+    Promise.resolve().then(() => {
+      showAlert("Le paiement a été annulé.", "info");
+      setSearchParams({});
+    });
   }, [paymentCancelledParam, setSearchParams]);
 
   const getParticipant = (conv) => {
@@ -1461,7 +1479,7 @@ const Conversation = () => {
                       <button className="text-gray-500 hover:text-red-500 transition-colors p-2" title="Signaler">
                         <FaEllipsisVertical className="text-lg" />
                       </button>
-                      <div className="absolute right-0 top-full mt-2 w-56 bg-[#151515] border border-white/10 rounded-md shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 flex flex-col py-2">
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-white/10 rounded-sm shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 flex flex-col py-2">
                         <button
                           onClick={() => openReportModal("conversation", activeConversation)}
                           className="text-left px-4 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
@@ -2615,7 +2633,7 @@ const Conversation = () => {
       )}
       {/* Confirm Modal */}
       {confirmModal.isOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-110 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-[#151515] border border-white/10 p-6 md:p-8 w-full max-w-sm flex flex-col items-center text-center shadow-2xl relative">
             <button
               onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })}
@@ -2659,7 +2677,7 @@ const Conversation = () => {
 
       {/* Alert Modal */}
       {alertModal.isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-[#151515] border border-white/10 p-6 md:p-8 w-full max-w-sm flex flex-col items-center text-center shadow-2xl relative">
             <button
               onClick={() => setAlertModal({ ...alertModal, isOpen: false })}

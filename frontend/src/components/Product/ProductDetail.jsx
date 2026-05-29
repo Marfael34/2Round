@@ -23,7 +23,7 @@ const ProductDetail = () => {
   
   // Variables Utilisateur connectés
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(!!localStorage.getItem("token"));
   const [walletBalance, setWalletBalance] = useState(0);
 
   // Offer Modal States
@@ -40,7 +40,6 @@ const ProductDetail = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      setLoadingUser(true);
       try {
         const base64Url = token.split(".")[1];
         const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -76,11 +75,11 @@ const ProductDetail = () => {
             .catch((err) => console.error("Erreur de récupération utilisateur:", err))
             .finally(() => setLoadingUser(false));
         } else {
-          setLoadingUser(false);
+          Promise.resolve().then(() => setLoadingUser(false));
         }
       } catch (e) {
         console.error("JWT decoding failed:", e);
-        setLoadingUser(false);
+        Promise.resolve().then(() => setLoadingUser(false));
       }
     }
   }, []);
@@ -264,6 +263,7 @@ const ProductDetail = () => {
 
   // Determine if the product is favorited by the current user
   useEffect(() => {
+    let mounted = true;
     if (product && currentUserId) {
       const userIri = `/api/users/${currentUserId}`;
       const isFav = product.favorites?.some(fav => {
@@ -271,8 +271,11 @@ const ProductDetail = () => {
         const favUserIri = typeof fav.users === 'string' ? fav.users : fav.users?.['@id'];
         return favUserIri === userIri;
       });
-      setIsFavorite(!!isFav);
+      Promise.resolve().then(() => {
+        if (mounted) setIsFavorite(!!isFav);
+      });
     }
+    return () => { mounted = false; };
   }, [product, currentUserId]);
 
   const handleFavoriteClick = async (e) => {

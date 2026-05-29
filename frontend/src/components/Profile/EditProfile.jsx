@@ -410,7 +410,7 @@ const EditProfile = () => {
                 <span>{popup.message}</span>
               )}
             </div>
-            <button onClick={() => setPopup(null)} className="ml-4 hover:opacity-70 transition-opacity flex-shrink-0">
+            <button onClick={() => setPopup(null)} className="ml-4 hover:opacity-70 transition-opacity shrink-0">
               ✕
             </button>
           </div>
@@ -605,7 +605,7 @@ const EditProfile = () => {
           <div>
             <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Avatar de Profil</label>
             <div className="flex items-center gap-6 bg-[#1A1A1A] p-4 rounded-lg border border-gray-700">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <img 
                   src={avatarPreview || formData.avatar || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png"} 
                   alt="Aperçu avatar" 

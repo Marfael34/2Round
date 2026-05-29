@@ -234,7 +234,7 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-black text-white pt-24 px-6 md:px-12 lg:px-24 pb-12">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-8 bg-linear-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
           Dashboard Administrateur
         </h1>
 

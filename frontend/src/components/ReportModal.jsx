@@ -3,7 +3,15 @@ import { securedFetch } from "../utils/api";
 import { API_URL } from "../constants/apiConstante";
 import { FaXmark, FaFlag } from "react-icons/fa6";
 
-const ReportModal = ({ isOpen, onClose, targetType, targetId, targetSellerId, currentUserId, onReportSuccess }) => {
+const ReportModal = ({
+  isOpen,
+  onClose,
+  targetType,
+  targetId,
+  targetSellerId,
+  currentUserId,
+  onReportSuccess,
+}) => {
   const [reportReason, setReportReason] = useState("");
   const [reportDescription, setReportDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,7 +44,8 @@ const ReportModal = ({ isOpen, onClose, targetType, targetId, targetSellerId, cu
         payload.reportedUser = `/api/users/${targetId}`;
       } else if (targetType === "conversation") {
         payload.conversation = `/api/conversations/${targetId}`;
-        if (targetSellerId) { // Used as other user ID
+        if (targetSellerId) {
+          // Used as other user ID
           payload.reportedUser = `/api/users/${targetSellerId}`;
         }
       }
@@ -48,7 +57,7 @@ const ReportModal = ({ isOpen, onClose, targetType, targetId, targetSellerId, cu
       });
 
       if (!res.ok) throw new Error("Erreur de signalement");
-      
+
       setReportReason("");
       setReportDescription("");
       if (onReportSuccess) onReportSuccess();
@@ -62,7 +71,7 @@ const ReportModal = ({ isOpen, onClose, targetType, targetId, targetSellerId, cu
   };
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[150] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-150 flex items-center justify-center p-4">
       <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-sm max-w-md w-full relative">
         <button
           onClick={onClose}
@@ -76,7 +85,12 @@ const ReportModal = ({ isOpen, onClose, targetType, targetId, targetSellerId, cu
             <FaFlag className="text-red-500 text-lg" />
           </div>
           <h2 className="text-2xl font-bebas uppercase tracking-wider text-white">
-            Signaler {targetType === 'product' ? "l'article" : targetType === 'user' ? "l'utilisateur" : ""}
+            Signaler{" "}
+            {targetType === "product"
+              ? "l'article"
+              : targetType === "user"
+                ? "l'utilisateur"
+                : ""}
           </h2>
         </div>
 
