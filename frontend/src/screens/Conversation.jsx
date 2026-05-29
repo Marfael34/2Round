@@ -375,6 +375,16 @@ const Conversation = () => {
       const list = data.member || data["hydra:member"] || data || [];
       list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
       setMessages(list);
+      
+      // Update the conversations array to hold full message objects instead of IRIs
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.id === convId) {
+            return { ...c, messages: list };
+          }
+          return c;
+        })
+      );
 
       const extractLocalId = (val) => {
         if (!val) return null;
@@ -384,10 +394,16 @@ const Conversation = () => {
         return val;
       };
 
+      const checkIsRead = (m) => {
+        if (typeof m !== "object") return true; // Prevent fake unread status for IRIs
+        const val = m.isRead ?? m.read ?? m.is_read ?? m.isread;
+        return val === true || val === 1 || val === "1" || val === "true";
+      };
+
       const unreadIds = list
         .filter(
           (m) =>
-            !m.isRead && Number(extractLocalId(m.users)) !== currentUser?.id,
+            typeof m === "object" && !checkIsRead(m) && Number(extractLocalId(m.users)) !== currentUser?.id,
         )
         .map((m) => m.id);
 
@@ -420,6 +436,63 @@ const Conversation = () => {
       if (!silent) setLoadingMessages(false);
     }
   };
+
+  const fetchSilentConversationMessages = async (convId) => {
+    try {
+      const res = await securedFetch(`${API_URL}/messages?conversation=${convId}`, { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      const list = data.member || data["hydra:member"] || data || [];
+      list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      setConversations((prev) =>
+        prev.map((c) => (c.id === convId ? { ...c, messages: list } : c))
+      );
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await securedFetch(`${API_URL}/conversations`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        const allConvs = data.member || data["hydra:member"] || data || [];
+        
+        const extractId = (val) => {
+          if (!val) return null;
+          if (typeof val === "object") return val.id || (val["@id"] ? val["@id"].split("/").pop() : null);
+          if (typeof val === "string") return val.split("/").pop();
+          return val;
+        };
+
+        const myConvs = allConvs.filter((c) => {
+          const bId = extractId(c.buyer);
+          const sId = extractId(c.seller);
+          const isAdmin = currentUser.roles?.includes("ROLE_ADMIN");
+          return (isAdmin && c.isReported) || Number(bId) === currentUser.id || Number(sId) === currentUser.id;
+        });
+
+        setConversations((prev) => {
+          let updated = [...prev];
+          let changed = false;
+          myConvs.forEach((newC) => {
+            const oldC = prev.find(p => p.id === newC.id);
+            if (!oldC) {
+              updated.push(newC);
+              changed = true;
+              fetchSilentConversationMessages(newC.id);
+            } else if (!oldC.messages || !newC.messages || oldC.messages.length !== newC.messages.length) {
+              // We keep oldC temporarily but trigger a fetch to get the embedded messages
+              fetchSilentConversationMessages(newC.id);
+            }
+          });
+          return changed ? updated : prev;
+        });
+      } catch (err) {}
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [currentUser]);
 
   useEffect(() => {
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
@@ -542,6 +615,13 @@ const Conversation = () => {
 
       const createdMsg = await res.json();
       setMessages((prev) => [...prev, createdMsg]);
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === activeConversation.id
+            ? { ...c, messages: [...(c.messages || []), createdMsg] }
+            : c
+        )
+      );
       setNewMessage("");
       setSelectedImage(null);
       setTimeout(() => {
@@ -1174,14 +1254,19 @@ const Conversation = () => {
                 [...conversations]
                   .filter((c) => c.isActive !== false && c.messages && c.messages.length > 0)
                   .sort((a, b) => {
+                    const checkIsRead = (m) => {
+                      if (typeof m !== "object") return true;
+                      const val = m.isRead ?? m.read ?? m.is_read ?? m.isread;
+                      return val === true || val === 1 || val === "1" || val === "true";
+                    };
                     const aHasUnread = a.messages?.some(
                       (m) =>
-                        !m.isRead &&
+                        typeof m === "object" && !checkIsRead(m) &&
                         Number(extractId(m.users)) !== currentUser.id,
                     );
                     const bHasUnread = b.messages?.some(
                       (m) =>
-                        !m.isRead &&
+                        typeof m === "object" && !checkIsRead(m) &&
                         Number(extractId(m.users)) !== currentUser.id,
                     );
 
@@ -1208,9 +1293,14 @@ const Conversation = () => {
                     const product = conv.product || {};
                     const img = getProductImage(product);
                     const isSelected = activeConversation?.id === conv.id;
+                    const checkIsRead = (m) => {
+                      if (typeof m !== "object") return true;
+                      const val = m.isRead ?? m.read ?? m.is_read ?? m.isread;
+                      return val === true || val === 1 || val === "1" || val === "true";
+                    };
                     const hasUnread = conv.messages?.some(
                       (m) =>
-                        !m.isRead &&
+                        typeof m === "object" && !checkIsRead(m) &&
                         Number(extractId(m.users)) !== currentUser.id,
                     );
 

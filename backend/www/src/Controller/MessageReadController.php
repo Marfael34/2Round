@@ -27,21 +27,20 @@ class MessageReadController extends AbstractController
             return new JsonResponse(['message' => 'Non autorisé'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $qb = $em->createQueryBuilder();
-        $q = $qb->update(Message::class, 'm')
-            ->set('m.isRead', 'true')
-            ->where('m.conversation = :convId')
-            ->andWhere('m.isRead = false')
-            ->andWhere('m.users != :userId')
-            ->setParameter('convId', $id)
-            ->setParameter('userId', $user->getId())
-            ->getQuery();
-
+        $messages = $conversation->getMessages();
         $count = 0;
+        foreach ($messages as $message) {
+            if (!$message->isRead() && $message->getUsers() && $message->getUsers()->getId() !== $user->getId()) {
+                $message->setIsRead(true);
+                $count++;
+            }
+        }
+
         try {
-            $count = $q->execute();
+            if ($count > 0) {
+                $em->flush();
+            }
         } catch (\Throwable $e) {
-            @file_put_contents(__DIR__ . '/../../debug_read_error.txt', $e->getMessage() . "\n" . $e->getTraceAsString(), FILE_APPEND);
             return new JsonResponse(['message' => 'Erreur: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 

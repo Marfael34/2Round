@@ -93,6 +93,11 @@ class Message
         return $this->isRead;
     }
 
+    public function getIsRead(): ?bool
+    {
+        return $this->isRead;
+    }
+
     public function setIsRead(bool $isRead): static
     {
         $this->isRead = $isRead;
