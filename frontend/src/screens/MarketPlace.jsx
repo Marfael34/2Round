@@ -20,7 +20,9 @@ const MarketPlace = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
 
   // Filters State
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const categoryQuery = searchParams.get('category');
+  const initialCategory = categoryQuery ? [categoryQuery] : [];
+  const [selectedCategories, setSelectedCategories] = useState(initialCategory);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedStates, setSelectedStates] = useState([]);
@@ -71,10 +73,10 @@ const MarketPlace = () => {
   // Tailles dynamiques en fonction des catégories sélectionnées
   let dynamicDefaultSizes = [];
   if (selectedCategories.length === 0) {
-    dynamicDefaultSizes = ['8oz', '10oz', '12oz', '14oz', '16oz', '18oz', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '38', '39', '40', '41', '42', '43', '44', '45', '46', 'Unique'];
+    dynamicDefaultSizes = ['8 oz', '10 oz', '12 oz', '14 oz', '16 oz', '18 oz', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '38', '39', '40', '41', '42', '43', '44', '45', '46', 'Unique'];
   } else {
     if (selectedCategories.includes('Gants de boxe')) {
-      dynamicDefaultSizes.push('8oz', '10oz', '12oz', '14oz', '16oz', '18oz');
+      dynamicDefaultSizes.push('8 oz', '10 oz', '12 oz', '14 oz', '16 oz', '18 oz');
     }
     if (selectedCategories.includes('Chaussures')) {
       dynamicDefaultSizes.push('38', '39', '40', '41', '42', '43', '44', '45', '46');
@@ -99,6 +101,18 @@ const MarketPlace = () => {
   const states = Array.from(new Set([...DEFAULT_STATES, ...products.map(p => p.etat?.label || p.state).filter(Boolean)]));
   const colors = ['noir', 'rouge', 'bleu', 'blanc', 'jaune', 'vert', 'or', 'argent', 'rose', 'marron', 'gris'];
 
+  // Group sizes for better UI understanding
+  const groupedSizes = sizes.reduce((acc, sz) => {
+    let group = 'Autres';
+    if (sz.includes('oz')) group = 'Gants (oz)';
+    else if (['XS', 'S', 'M', 'L', 'XL', 'XXL'].includes(sz.toUpperCase())) group = 'Vêtements / Protections';
+    else if (!isNaN(sz)) group = 'Chaussures (EU)';
+    
+    if (!acc[group]) acc[group] = [];
+    acc[group].push(sz);
+    return acc;
+  }, {});
+
   // 3. Render-time Filter & Sort Logic (no useEffect, no cascading renders)
   const filteredProducts = products.filter(p => {
     // 3.1 Text Search Filter
@@ -106,7 +120,8 @@ const MarketPlace = () => {
       const matchTitle = p.title?.toLowerCase().includes(textQuery);
       const matchType = p.type?.toLowerCase().includes(textQuery);
       const matchBrand = p.brand?.toLowerCase().includes(textQuery);
-      if (!matchTitle && !matchType && !matchBrand) {
+      const matchSize = p.size?.toLowerCase().includes(textQuery);
+      if (!matchTitle && !matchType && !matchBrand && !matchSize) {
         return false;
       }
     }
@@ -144,11 +159,13 @@ const MarketPlace = () => {
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
 
   // Reset to page 1 if filtered products change and current page is out of bounds
-  useEffect(() => {
+  const [prevFilteredLength, setPrevFilteredLength] = useState(filteredProducts.length);
+  if (filteredProducts.length !== prevFilteredLength) {
+    setPrevFilteredLength(filteredProducts.length);
     if (currentPage > totalPages) {
       setCurrentPage(1);
     }
-  }, [filteredProducts.length, totalPages, currentPage]);
+  }
 
   const paginatedProducts = filteredProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -316,18 +333,31 @@ const MarketPlace = () => {
                 Taille {selectedSizes.length > 0 && `(${selectedSizes.length})`} <FaChevronDown className="text-[10px]" />
               </button>
               {activeDropdown === 'size' && (
-                <div className="absolute left-0 mt-2 w-56 bg-[#0c0c0c] border border-white/10 p-4 rounded-sm shadow-2xl z-30 space-y-2">
-                  {sizes.length > 0 ? sizes.map(sz => (
-                    <label key={sz} className="flex items-center gap-3 text-xs uppercase tracking-wide text-gray-300 hover:text-white cursor-pointer py-1">
-                      <input 
-                        type="checkbox"
-                        checked={selectedSizes.includes(sz)}
-                        onChange={() => handleToggleFilter(sz, selectedSizes, setSelectedSizes)}
-                        className="accent-red-600 rounded bg-black border-white/25"
-                      />
-                      {sz}
-                    </label>
-                  )) : <p className="text-[10px] text-gray-500">Aucune taille</p>}
+                <div className="absolute left-0 mt-2 w-64 bg-[#0c0c0c] border border-white/10 p-4 rounded-sm shadow-2xl z-30 max-h-80 overflow-y-auto">
+                  {Object.keys(groupedSizes).length > 0 ? (
+                    Object.entries(groupedSizes).map(([groupName, groupSizes]) => (
+                      <div key={groupName} className="mb-4 last:mb-0">
+                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 border-b border-white/10 pb-1">
+                          {groupName}
+                        </div>
+                        <div className="space-y-2">
+                          {groupSizes.map(sz => (
+                            <label key={sz} className="flex items-center gap-3 text-xs uppercase tracking-wide text-gray-300 hover:text-white cursor-pointer py-1">
+                              <input 
+                                type="checkbox"
+                                checked={selectedSizes.includes(sz)}
+                                onChange={() => handleToggleFilter(sz, selectedSizes, setSelectedSizes)}
+                                className="accent-red-600 rounded bg-black border-white/25"
+                              />
+                              {sz}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-[10px] text-gray-500">Aucune taille</p>
+                  )}
                 </div>
               )}
             </div>

@@ -1,30 +1,33 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaShieldHalved } from "react-icons/fa6";
 import { securedFetch, getCurrentUserId } from '../../utils/api';
 import { API_URL } from '../../constants/apiConstante';
 
 const ProductCard = ({ product }) => {
-  const [isFavorite, setIsFavorite] = useState(false);
+  // Calculer l'état initial des favoris
+  const initialFavorite = product.isFavorite !== undefined 
+    ? product.isFavorite 
+    : (() => {
+        const userId = getCurrentUserId();
+        if (userId && product.favorites && Array.isArray(product.favorites)) {
+          const userIri = `/api/users/${userId}`;
+          return product.favorites.some(fav => {
+            const favUserIri = typeof fav.users === 'string' ? fav.users : fav.users?.['@id'];
+            return favUserIri === userIri;
+          });
+        }
+        return false;
+      })();
 
-  useEffect(() => {
-    // Si isFavorite était envoyé par un normaliseur
-    if (product.isFavorite !== undefined) {
-      setIsFavorite(product.isFavorite);
-      return;
-    }
+  const [isFavorite, setIsFavorite] = useState(initialFavorite);
+  const [prevProduct, setPrevProduct] = useState(product);
 
-    // Sinon on vérifie la liste des favoris avec l'ID utilisateur
-    const userId = getCurrentUserId();
-    if (userId && product.favorites && Array.isArray(product.favorites)) {
-      const userIri = `/api/users/${userId}`;
-      const isFav = product.favorites.some(fav => {
-        const favUserIri = typeof fav.users === 'string' ? fav.users : fav.users?.['@id'];
-        return favUserIri === userIri;
-      });
-      setIsFavorite(isFav);
-    }
-  }, [product]);
+  // Mettre à jour l'état si la prop product change (évite le useEffect pour synchroniser l'état)
+  if (product !== prevProduct) {
+    setPrevProduct(product);
+    setIsFavorite(initialFavorite);
+  }
 
   const getProductImage = (prod) => {
     if (prod.image) return prod.image;

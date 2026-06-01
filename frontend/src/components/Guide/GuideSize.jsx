@@ -2,7 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ChevronDown, ChevronUp } from "lucide-react";
 import { API_URL } from "../../constants/apiConstante";
-import { IMG_ILLU_GLOVES1, IMG_ILLU_GLOVES2, IMG_ILLU_HELMET, IMG_ILLU_BANDAGE, IMG_ILLU_SHOES1, IMG_ILLU_SHOES2 } from "../../constants/appConstante";
+import {
+  IMG_ILLU_GLOVES1,
+  IMG_ILLU_GLOVES2,
+  IMG_ILLU_HELMET,
+  IMG_ILLU_BANDAGE,
+  IMG_ILLU_SHOES1,
+  IMG_ILLU_SHOES2,
+} from "../../constants/appConstante";
 
 const GuideSize = () => {
   const navigate = useNavigate();
@@ -15,17 +22,20 @@ const GuideSize = () => {
 
   useEffect(() => {
     fetch(`${API_URL}/size_guides`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         const formattedData = {};
-        const items = data['hydra:member'] || data.member || (Array.isArray(data) ? data : []);
-        items.forEach(item => {
+        const items =
+          data["hydra:member"] ||
+          data.member ||
+          (Array.isArray(data) ? data : []);
+        items.forEach((item) => {
           formattedData[item.equipment] = item.content;
         });
         setSizeData(formattedData);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Erreur lors du chargement des guides de tailles", err);
         setLoading(false);
       });
@@ -44,9 +54,11 @@ const GuideSize = () => {
   if (!currentData) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-black text-white">
-        <p className="text-red-500 font-inter">Impossible de charger les données pour cette catégorie.</p>
-        <button 
-          onClick={() => navigate(-1)} 
+        <p className="text-red-500 font-inter">
+          Impossible de charger les données pour cette catégorie.
+        </p>
+        <button
+          onClick={() => navigate(-1)}
           className="ml-4 px-4 py-2 bg-gray-800 hover:bg-gray-700 transition-colors"
         >
           Retour
@@ -56,25 +68,27 @@ const GuideSize = () => {
   }
 
   const getImage = (category, genderStr) => {
-    if (category === "GANTS") return genderStr === "homme" ? IMG_ILLU_GLOVES1 : IMG_ILLU_GLOVES2;
+    if (category === "GANTS")
+      return genderStr === "homme" ? IMG_ILLU_GLOVES1 : IMG_ILLU_GLOVES2;
     if (category === "BANDES") return IMG_ILLU_BANDAGE;
     if (category === "CASQUE") return IMG_ILLU_HELMET;
-    if (category === "CHAUSSURES") return genderStr === "homme" ? IMG_ILLU_SHOES1 : IMG_ILLU_SHOES2;
+    if (category === "CHAUSSURES")
+      return genderStr === "homme" ? IMG_ILLU_SHOES1 : IMG_ILLU_SHOES2;
     return IMG_ILLU_GLOVES1;
   };
 
   return (
-    <div 
+    <div
       className="w-full min-h-screen flex flex-col pt-32 pb-8 px-6 sm:px-12 md:px-20 lg:px-32 relative text-white"
       style={{
-        backgroundColor: '#0a0a0a',
-        backgroundImage: `repeating-linear-gradient(-45deg, #070707, #070707 4px, #0e0e0e 4px, #0e0e0e 8px)`
+        backgroundColor: "#0a0a0a",
+        backgroundImage: `repeating-linear-gradient(-45deg, #070707, #070707 4px, #0e0e0e 4px, #0e0e0e 8px)`,
       }}
     >
       {/* Close button (Top Right) */}
       <button 
         onClick={() => navigate(-1)} 
-        className="absolute top-8 right-6 sm:right-12 md:right-20 lg:right-32 text-gray-400 hover:text-white transition-colors"
+        className="absolute top-28 right-6 sm:right-12 md:right-20 lg:right-32 text-gray-400 hover:text-white transition-colors z-50"
       >
         <X strokeWidth={1.5} className="w-8 h-8 md:w-10 md:h-10" />
       </button>
@@ -92,7 +106,7 @@ const GuideSize = () => {
           {/* Category Selector */}
           <div className="relative inline-block w-48">
             {!isDropdownOpen ? (
-              <button 
+              <button
                 onClick={() => setIsDropdownOpen(true)}
                 className="flex items-center justify-between w-full border border-red-600 px-4 py-2 hover:bg-red-900/20 transition-colors bg-transparent"
               >
@@ -103,7 +117,7 @@ const GuideSize = () => {
               </button>
             ) : (
               <div className="absolute top-0 left-0 flex flex-col border border-red-600 bg-[#555] z-20 w-full shadow-2xl">
-                <button 
+                <button
                   onClick={() => setIsDropdownOpen(false)}
                   className="flex items-center justify-between px-4 py-2 hover:bg-white/10 transition-colors border-b border-gray-400"
                 >
@@ -112,17 +126,22 @@ const GuideSize = () => {
                   </span>
                   <ChevronUp className="text-gray-300 w-4 h-4" />
                 </button>
-                {categories.filter(c => c !== selectedCategory).map((cat, idx, arr) => (
-                  <button 
-                    key={cat}
-                    onClick={() => { setSelectedCategory(cat); setIsDropdownOpen(false); }}
-                    className={`flex items-center justify-start px-4 py-2 hover:bg-white/10 transition-colors text-left ${idx !== arr.length - 1 ? 'border-b border-gray-400' : ''}`}
-                  >
-                    <span className="font-inter font-bold text-white uppercase tracking-widest text-sm">
-                      {cat}
-                    </span>
-                  </button>
-                ))}
+                {categories
+                  .filter((c) => c !== selectedCategory)
+                  .map((cat, idx, arr) => (
+                    <button
+                      key={cat}
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`flex items-center justify-start px-4 py-2 hover:bg-white/10 transition-colors text-left ${idx !== arr.length - 1 ? "border-b border-gray-400" : ""}`}
+                    >
+                      <span className="font-inter font-bold text-white uppercase tracking-widest text-sm">
+                        {cat}
+                      </span>
+                    </button>
+                  ))}
               </div>
             )}
           </div>
@@ -136,7 +155,7 @@ const GuideSize = () => {
               <h2 className="font-bebas text-4xl md:text-5xl lg:text-6xl tracking-widest mb-6">
                 HOMME
               </h2>
-              
+
               <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
                 {/* Table */}
                 <div className="w-full lg:w-3/5 overflow-x-auto">
@@ -144,7 +163,10 @@ const GuideSize = () => {
                     <thead>
                       <tr className="border border-gray-600 bg-black/50">
                         {currentData.headers.map((header, i) => (
-                          <th key={i} className={`p-4 ${i < currentData.headers.length - 1 ? 'border-r border-gray-600' : ''} font-bold text-sm md:text-base uppercase tracking-wider`}>
+                          <th
+                            key={i}
+                            className={`p-4 ${i < currentData.headers.length - 1 ? "border-r border-gray-600" : ""} font-bold text-sm md:text-base uppercase tracking-wider`}
+                          >
                             {header}
                           </th>
                         ))}
@@ -152,9 +174,16 @@ const GuideSize = () => {
                     </thead>
                     <tbody>
                       {currentData.homme.map((row, idx) => (
-                        <tr key={idx} className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors">
-                          <td className="p-4 border-r border-gray-600 font-semibold">{row[0]}</td>
-                          <td className="p-4 border-r border-gray-600 text-gray-300">{row[1]}</td>
+                        <tr
+                          key={idx}
+                          className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors"
+                        >
+                          <td className="p-4 border-r border-gray-600 font-semibold">
+                            {row[0]}
+                          </td>
+                          <td className="p-4 border-r border-gray-600 text-gray-300">
+                            {row[1]}
+                          </td>
                           <td className="p-4 text-gray-300">{row[2]}</td>
                         </tr>
                       ))}
@@ -165,11 +194,13 @@ const GuideSize = () => {
                 {/* Image Homme */}
                 <div className="w-full lg:w-2/5 flex justify-center lg:justify-end">
                   <div className="w-full max-w-[300px] aspect-square bg-gray-900 border border-gray-800 relative overflow-hidden">
-                    <img 
-                      src={getImage(selectedCategory, "homme")} 
-                      alt={`${selectedCategory} Homme`} 
+                    <img
+                      src={getImage(selectedCategory, "homme")}
+                      alt={`${selectedCategory} Homme`}
                       className="object-cover w-full h-full opacity-80"
-                      onError={(e) => { e.target.style.display = 'none'; }}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
                     />
                   </div>
                 </div>
@@ -181,16 +212,18 @@ const GuideSize = () => {
               <h2 className="font-bebas text-4xl md:text-5xl lg:text-6xl tracking-widest mb-6 text-right">
                 FEMME
               </h2>
-              
+
               <div className="flex flex-col-reverse lg:flex-row gap-8 lg:gap-16 items-start">
                 {/* Image Femme */}
                 <div className="w-full lg:w-2/5 flex justify-center lg:justify-start">
                   <div className="w-full max-w-[300px] aspect-square bg-gray-900 border border-gray-800 relative overflow-hidden">
-                    <img 
-                      src={getImage(selectedCategory, "femme")} 
-                      alt={`${selectedCategory} Femme`} 
+                    <img
+                      src={getImage(selectedCategory, "femme")}
+                      alt={`${selectedCategory} Femme`}
                       className="object-cover w-full h-full opacity-80"
-                      onError={(e) => { e.target.style.display = 'none'; }}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
                     />
                   </div>
                 </div>
@@ -201,7 +234,10 @@ const GuideSize = () => {
                     <thead>
                       <tr className="border border-gray-600 bg-black/50">
                         {currentData.headers.map((header, i) => (
-                          <th key={i} className={`p-4 ${i < currentData.headers.length - 1 ? 'border-r border-gray-600' : ''} font-bold text-sm md:text-base uppercase tracking-wider`}>
+                          <th
+                            key={i}
+                            className={`p-4 ${i < currentData.headers.length - 1 ? "border-r border-gray-600" : ""} font-bold text-sm md:text-base uppercase tracking-wider`}
+                          >
                             {header}
                           </th>
                         ))}
@@ -209,9 +245,16 @@ const GuideSize = () => {
                     </thead>
                     <tbody>
                       {currentData.femme.map((row, idx) => (
-                        <tr key={idx} className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors">
-                          <td className="p-4 border-r border-gray-600 font-semibold">{row[0]}</td>
-                          <td className="p-4 border-r border-gray-600 text-gray-300">{row[1]}</td>
+                        <tr
+                          key={idx}
+                          className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors"
+                        >
+                          <td className="p-4 border-r border-gray-600 font-semibold">
+                            {row[0]}
+                          </td>
+                          <td className="p-4 border-r border-gray-600 text-gray-300">
+                            {row[1]}
+                          </td>
                           <td className="p-4 text-gray-300">{row[2]}</td>
                         </tr>
                       ))}
@@ -227,7 +270,7 @@ const GuideSize = () => {
             <h2 className="font-bebas text-4xl md:text-5xl lg:text-6xl tracking-widest mb-6">
               GUIDE STANDARD
             </h2>
-            
+
             <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
               {/* Table */}
               <div className="w-full lg:w-3/5 overflow-x-auto">
@@ -235,7 +278,10 @@ const GuideSize = () => {
                   <thead>
                     <tr className="border border-gray-600 bg-black/50">
                       {currentData.headers.map((header, i) => (
-                        <th key={i} className={`p-4 ${i < currentData.headers.length - 1 ? 'border-r border-gray-600' : ''} font-bold text-sm md:text-base uppercase tracking-wider`}>
+                        <th
+                          key={i}
+                          className={`p-4 ${i < currentData.headers.length - 1 ? "border-r border-gray-600" : ""} font-bold text-sm md:text-base uppercase tracking-wider`}
+                        >
                           {header}
                         </th>
                       ))}
@@ -243,9 +289,16 @@ const GuideSize = () => {
                   </thead>
                   <tbody>
                     {currentData.data.map((row, idx) => (
-                      <tr key={idx} className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors">
-                        <td className="p-4 border-r border-gray-600 font-semibold">{row[0]}</td>
-                        <td className="p-4 border-r border-gray-600 text-gray-300">{row[1]}</td>
+                      <tr
+                        key={idx}
+                        className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors"
+                      >
+                        <td className="p-4 border-r border-gray-600 font-semibold">
+                          {row[0]}
+                        </td>
+                        <td className="p-4 border-r border-gray-600 text-gray-300">
+                          {row[1]}
+                        </td>
                         <td className="p-4 text-gray-300">{row[2]}</td>
                       </tr>
                     ))}
@@ -256,18 +309,19 @@ const GuideSize = () => {
               {/* Image */}
               <div className="w-full lg:w-2/5 flex justify-center lg:justify-end">
                 <div className="w-full max-w-[300px] aspect-square bg-gray-900 border border-gray-800 relative overflow-hidden">
-                  <img 
-                    src={getImage(selectedCategory, "standard")} 
-                    alt={`${selectedCategory} Guide`} 
+                  <img
+                    src={getImage(selectedCategory, "standard")}
+                    alt={`${selectedCategory} Guide`}
                     className="object-cover w-full h-full opacity-80"
-                    onError={(e) => { e.target.style.display = 'none'; }}
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
                   />
                 </div>
               </div>
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

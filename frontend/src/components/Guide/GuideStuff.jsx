@@ -53,14 +53,16 @@ const GuideStuff = () => {
         style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.1) 10px, rgba(255, 255, 255, 0.1) 20px)' }}
       />
 
+      <button 
+        onClick={() => navigate(-1)} 
+        className="absolute top-28 right-6 sm:right-12 md:right-20 lg:right-32 text-gray-400 hover:text-white transition-colors z-50"
+      >
+        <X strokeWidth={1.5} className="w-8 h-8 md:w-10 md:h-10" />
+      </button>
+
       <div className="max-w-7xl mx-auto relative z-10 flex flex-col items-center">
         {/* Header Section */}
         <div className="w-full flex flex-col items-center text-center mb-8 lg:mb-12">
-          <div className="w-full flex justify-start mb-4">
-            <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group font-inter">
-              <span className="transform transition-transform group-hover:-translate-x-1">←</span> Retour
-            </button>
-          </div>
           <h3 className="font-bebas text-5xl md:text-7xl tracking-widest text-white mb-4 uppercase">
             Guide de <span className="text-red-600">L'équipement</span>
           </h3>

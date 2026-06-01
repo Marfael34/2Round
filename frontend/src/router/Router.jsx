@@ -14,7 +14,6 @@ import App from '../App'
 import MyCustomised from '../screens/MyCustomised'
 import FormMarket from '../screens/FormMarket'
 import Resale from '../screens/Resale'
-import Packs from '../screens/Packs'
 import GuideSize from '../components/Guide/GuideSize'
 import GuideStuff from '../components/Guide/GuideStuff'
 import Advice from '../components/Guide/Advice'
@@ -81,10 +80,6 @@ const Router = createBrowserRouter([
             {
                 path: "/resale",
                 element: <Resale />,
-            },
-            {
-                path: "/packs",
-                element: <Packs />,
             },
             {
                 path: "/guidesize",

@@ -33,7 +33,7 @@ const NavBar = ({ user, onLogout }) => {
           .join("")
       );
       return JSON.parse(jsonPayload);
-    } catch (e) {
+    } catch {
       return null;
     }
   };

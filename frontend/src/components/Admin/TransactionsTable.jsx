@@ -1,5 +1,4 @@
 import { FiExternalLink, FiEye } from "react-icons/fi";
-import { Link } from "react-router-dom";
 
 const TransactionsTable = ({ transactions }) => {
   const getStatusColor = (status) => {

@@ -117,6 +117,11 @@ class AppFixtures extends Fixture
             ['prenom' => 'Inès', 'nom' => 'Belkacem', 'email' => 'belkacem.ines@gmail.com', 'pseudo' => 'CyberInes_XP', 'birthday' => '2001-08-22', 'phone' => '06.55.44.33.22', 'weight' => '55.00', 'size' => '158', 'budget' => 300, 'gender' => 1],
             ['prenom' => 'Marc', 'nom' => 'Dubois', 'email' => 'marc.dubois.boxe@gmail.com', 'pseudo' => 'MarcoBoxing', 'birthday' => '1990-02-10', 'phone' => '06.12.34.56.78', 'weight' => '90.00', 'size' => '188', 'budget' => 50, 'gender' => 0],
             ['prenom' => 'Sophie', 'nom' => 'Laurent', 'email' => 'sophie.l@gmail.com', 'pseudo' => 'SosoFight', 'birthday' => '1995-07-30', 'phone' => '07.88.99.00.11', 'weight' => '68.00', 'size' => '170', 'budget' => 120, 'gender' => 1],
+            ['prenom' => 'Thomas', 'nom' => 'Roux', 'email' => 'thomas.roux@mail.com', 'pseudo' => 'TomTomBoxe', 'birthday' => '1998-12-05', 'phone' => '06.12.98.34.76', 'weight' => '72.00', 'size' => '175', 'budget' => 90, 'gender' => 0],
+            ['prenom' => 'Clara', 'nom' => 'Moreau', 'email' => 'claramoreau@mail.com', 'pseudo' => 'ClaraPunch', 'birthday' => '2000-03-15', 'phone' => '07.45.67.89.01', 'weight' => '60.00', 'size' => '168', 'budget' => 250, 'gender' => 1],
+            ['prenom' => 'Hugo', 'nom' => 'Blanc', 'email' => 'hugo.b@mail.com', 'pseudo' => 'HugoFighter', 'birthday' => '1993-09-22', 'phone' => '06.87.65.43.21', 'weight' => '85.00', 'size' => '185', 'budget' => 110, 'gender' => 0],
+            ['prenom' => 'Emma', 'nom' => 'Petit', 'email' => 'emma.petit@mail.com', 'pseudo' => 'EmmaBox', 'birthday' => '1997-01-11', 'phone' => '07.12.34.56.78', 'weight' => '58.00', 'size' => '162', 'budget' => 180, 'gender' => 1],
+            ['prenom' => 'Lucas', 'nom' => 'Garnier', 'email' => 'lucas.g@mail.com', 'pseudo' => 'LucK_O', 'birthday' => '1996-06-18', 'phone' => '06.99.88.77.11', 'weight' => '78.00', 'size' => '179', 'budget' => 140, 'gender' => 0],
         ];
 
         foreach ($arrayUser as $key => $value) {
@@ -134,7 +139,8 @@ class AppFixtures extends Fixture
             $user->setSize($value['size']);
             $user->setBudget($value['budget']);
             $user->setIsOnboardingCompleted(true);
-            $user->setAvatar('/images/Profile/pdp_' . ($key + 1) . '.webp');
+            $avatarId = ($key % 5) + 1;
+            $user->setAvatar('/images/Profile/pdp_' . $avatarId . '.webp');
             $user->setBoxeId($this->getReference('boxe_' . rand(0, 4), Boxe::class));
             $user->setLevelId($this->getReference('level_' . rand(0, 3), Level::class));
             $user->setGenderId($this->getReference('gender_' . $value['gender'], Gender::class));
@@ -174,7 +180,9 @@ class AppFixtures extends Fixture
                 'description' => 'Gants de boxe 14oz très peu servis. Idéal pour l\'entraînement au sac ou sparring léger. Quelques légères traces d\'usure sur le pouce mais mousse intacte.',
                 'price' => '35.00',
                 'weight' => 800,
-                'images' => ['glove.webp']
+                'images' => ['glove.webp'],
+                'type' => 'Gants de boxe',
+                'size' => '14 oz'
             ],
             [
                 'title' => 'Casque de protection Everlast',
@@ -182,7 +190,9 @@ class AppFixtures extends Fixture
                 'description' => 'Casque intégral avec protection pommettes. Taille M. Porté une dizaine de fois, désinfecté après chaque usage. Attache velcro en parfait état.',
                 'price' => '25.50',
                 'weight' => 450,
-                'images' => ['helmet.webp']
+                'images' => ['helmet.webp'],
+                'type' => 'Casques',
+                'size' => 'M'
             ],
             [
                 'title' => 'Sac de frappe 120cm Metal Boxe + Fixation',
@@ -190,7 +200,9 @@ class AppFixtures extends Fixture
                 'description' => 'Sac lourd (environ 30kg) idéal pour travailler la puissance. Vendu avec la chaîne et l\'attache plafond. Très robuste, cuir synthétique impeccable.',
                 'price' => '60.00',
                 'weight' => 30000,
-                'images' => ['punching bag_1.webp', 'punching bag_2.webp']
+                'images' => ['punching bag_1.webp', 'punching bag_2.webp'],
+                'type' => 'Sacs de frappe',
+                'size' => '120 cm'
             ],
             [
                 'title' => 'Chaussures de boxe anglaise Adidas',
@@ -198,7 +210,9 @@ class AppFixtures extends Fixture
                 'description' => 'Modèle Box Hog 3, pointure 42. Super légères et respirantes. La semelle accroche encore parfaitement sur le ring. Un peu grisées sur le bout mais encore bonnes.',
                 'price' => '40.00',
                 'weight' => 600,
-                'images' => ['choose.webp']
+                'images' => ['choose.webp'],
+                'type' => 'Chaussures',
+                'size' => '42'
             ],
             [
                 'title' => 'Bandes de maintien 4m (Lot de 2 paires)',
@@ -206,7 +220,59 @@ class AppFixtures extends Fixture
                 'description' => 'Deux paires de bandes rouges et noires pour protéger vos articulations. Lavées en machine, ne sont plus élastiques comme au premier jour mais font le job.',
                 'price' => '5.00',
                 'weight' => 150,
-                'images' => ['strips.webp']
+                'images' => ['strips_2.webp'],
+                'type' => 'Accessoires',
+                'size' => '4 m'
+            ],
+            [
+                'title' => 'Gants de boxe Cleto Reyes',
+                'brand' => 'Cleto Reyes',
+                'description' => 'Gants professionnels 12oz. Très bonne qualité de cuir. Portés pour quelques combats seulement.',
+                'price' => '120.00',
+                'weight' => 700,
+                'images' => ['gloves_2.webp'],
+                'type' => 'Gants de boxe',
+                'size' => '12 oz'
+            ],
+            [
+                'title' => 'Short de boxe thaï Fairtex',
+                'brand' => 'Fairtex',
+                'description' => 'Short Muay Thaï taille L, très confortable. Rouge et or.',
+                'price' => '25.00',
+                'weight' => 200,
+                'images' => ['short.webp'],
+                'type' => 'Vêtements',
+                'size' => 'L'
+            ],
+            [
+                'title' => 'Protège-tibias Venum',
+                'brand' => 'Venum',
+                'description' => 'Protège-tibias taille M. Bon état, scratch qui tient bien.',
+                'price' => '30.00',
+                'weight' => 500,
+                'images' => ['shin_guard.webp'],
+                'type' => 'Protections',
+                'size' => 'M'
+            ],
+            [
+                'title' => 'Corde à sauter rapide',
+                'brand' => 'Everlast',
+                'description' => 'Corde à sauter en acier, idéale pour le double under.',
+                'price' => '10.00',
+                'weight' => 150,
+                'images' => ['skipping_rope.webp'],
+                'type' => 'Accessoires',
+                'size' => 'Unique'
+            ],
+            [
+                'title' => 'Coquille de protection',
+                'brand' => 'Shock Doctor',
+                'description' => 'Coquille homme taille L. Lavée et désinfectée.',
+                'price' => '15.00',
+                'weight' => 200,
+                'images' => ['protective_shell.webp'],
+                'type' => 'Protections',
+                'size' => 'L'
             ]
         ];
 
@@ -218,10 +284,14 @@ class AppFixtures extends Fixture
             $product->setPrice($data['price']);
             $product->setWeight($data['weight']);
             $product->setStatus($data['active'] ?? 'active');
+            $product->setType($data['type']);
+            if (isset($data['size'])) {
+                $product->setSize($data['size']);
+            }
 
-            // Liaison avec un Vendeur (User) unique et aléatoire (entre user_0 et user_4)
+            // Liaison avec un Vendeur (User) unique et aléatoire (entre user_0 et user_9)
             // On exclut l'admin car il n'est pas dans la liste des références "user_X"
-            $randomUserId = rand(0, 4);
+            $randomUserId = rand(0, 9);
             $product->setSeller($this->getReference('user_' . $randomUserId, User::class));
 
             // Liaison avec un État aléatoire

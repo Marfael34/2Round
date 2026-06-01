@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { securedFetch } from "../utils/api";
 import { FiX, FiSave } from "react-icons/fi";
 import UserReports from "../components/Admin/UserReports";
@@ -23,7 +23,7 @@ const AdminDashboard = () => {
   const [sanctionTargetCandidates, setSanctionTargetCandidates] = useState([]);
   const [sanctionFormData, setSanctionFormData] = useState({ targetUserId: "", targetUserPseudo: "", type: "WARNING", reason: "" });
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const response = await securedFetch("/api/users");
       if (!response.ok) {
@@ -35,9 +35,9 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error("Erreur lors de la récupération des utilisateurs:", error);
     }
-  };
+  }, []);
 
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       const response = await securedFetch("/api/reports");
       if (!response.ok) {
@@ -49,9 +49,9 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error("Erreur lors de la récupération des signalements:", error);
     }
-  };
+  }, []);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       const response = await securedFetch("/api/orders");
       if (!response.ok) {
@@ -63,7 +63,7 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error("Erreur lors de la récupération des transactions:", error);
     }
-  };
+  }, []);
 
   const handleUpdateTransactionStatus = async (transactionId, newStatus) => {
     try {
@@ -87,15 +87,14 @@ const AdminDashboard = () => {
     }
   };
 
-  const loadData = async () => {
-    setLoading(true);
-    await Promise.all([fetchUsers(), fetchReports(), fetchTransactions()]);
-    setLoading(false);
-  };
-
   useEffect(() => {
+    const loadData = async () => {
+      // loading est déjà à true initialement
+      await Promise.all([fetchUsers(), fetchReports(), fetchTransactions()]);
+      setLoading(false);
+    };
     loadData();
-  }, []);
+  }, [fetchUsers, fetchReports, fetchTransactions]);
 
   const handleToggleUserStatus = async (user) => {
     // ... rest of the code is there, wait, I can just insert it at the top of the component!
