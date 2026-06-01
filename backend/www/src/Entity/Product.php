@@ -8,6 +8,7 @@ use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 
 use App\Repository\ProductRepository;
+use App\Entity\Color;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -100,6 +101,10 @@ class Product
     #[Groups(['product:read'])]
     private ?string $size = null;
 
+    #[ORM\ManyToMany(targetEntity: Color::class)]
+    #[Groups(['product:read', 'product:write'])]
+    private Collection $colors;
+
     #[ORM\Column]
     #[Groups(['product:read'])]
     private ?bool $isHighlighted = null;
@@ -115,6 +120,7 @@ class Product
         $this->conversations = new ArrayCollection();
         $this->reports = new ArrayCollection();
         $this->images = new ArrayCollection();
+        $this->colors = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -395,6 +401,30 @@ class Product
     public function setSize(?string $size): static
     {
         $this->size = $size;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Color>
+     */
+    public function getColors(): Collection
+    {
+        return $this->colors;
+    }
+
+    public function addColor(Color $color): static
+    {
+        if (!$this->colors->contains($color)) {
+            $this->colors->add($color);
+        }
+
+        return $this;
+    }
+
+    public function removeColor(Color $color): static
+    {
+        $this->colors->removeElement($color);
 
         return $this;
     }

@@ -5,6 +5,7 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\ColorRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ColorRepository::class)]
 #[ApiResource]
@@ -16,6 +17,7 @@ class Color
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['product:read'])]
     private ?string $label = null;
 
     public function getId(): ?int

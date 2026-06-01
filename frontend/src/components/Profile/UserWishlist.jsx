@@ -21,7 +21,14 @@ const UserWishlist = () => {
 
         // Fetch user data to get favorites
         const userRes = await securedFetch(`/api/users/${userId}`);
-        if (!userRes.ok) throw new Error("Erreur lors de la récupération de l'utilisateur");
+        if (!userRes.ok) {
+          if (userRes.status === 404) {
+            localStorage.removeItem('token');
+            setError("Votre session a expiré ou l'utilisateur n'existe plus (BDD réinitialisée). Veuillez vous reconnecter.");
+            return;
+          }
+          throw new Error("Erreur lors de la récupération de l'utilisateur");
+        }
         
         const userData = await userRes.json();
         const userFavorites = userData.favorites || [];

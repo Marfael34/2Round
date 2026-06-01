@@ -10,6 +10,7 @@ use App\Entity\Image;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Entity\SizeGuide;
+use App\Entity\Color;
 use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -26,10 +27,28 @@ class AppFixtures extends Fixture
         $this->loadGender($manager);
         $this->loadEtat($manager);
         $this->loadUser($manager);
+        $this->loadColor($manager);
         $this->loadProduct($manager);
         $this->loadSizeGuide($manager);
 
         $manager->flush();
+    }
+
+    public function loadColor(ObjectManager $manager)
+    {
+        $colors = [
+            'noir', 'rouge', 'bleu', 'blanc', 'jaune', 'vert', 'or', 'argent', 'rose', 'marron', 'gris', 
+            'violet', 'orange', 'kaki', 'beige', 'bordeaux', 'multicolore', 'cyan', 'magenta', 'turquoise', 
+            'corail', 'indigo', 'saumon', 'fuchsia', 'olive', 'prune', 'moutarde', 'lilas', 'menthe', 
+            'lavande', 'ocre', 'anthracite', 'pourpre', 'émeraude', 'bronze', 'cuivre'
+        ];
+
+        foreach ($colors as $key => $colorLabel) {
+            $color = new Color();
+            $color->setLabel($colorLabel);
+            $manager->persist($color);
+            $this->addReference('color_' . $colorLabel, $color);
+        }
     }
 
     public function loadGender(ObjectManager $manager)
@@ -182,7 +201,8 @@ class AppFixtures extends Fixture
                 'weight' => 800,
                 'images' => ['glove.webp'],
                 'type' => 'Gants de boxe',
-                'size' => '14 oz'
+                'size' => '14 oz',
+                'colors' => ['noir']
             ],
             [
                 'title' => 'Casque de protection Everlast',
@@ -192,7 +212,8 @@ class AppFixtures extends Fixture
                 'weight' => 450,
                 'images' => ['helmet.webp'],
                 'type' => 'Casques',
-                'size' => 'M'
+                'size' => 'M',
+                'colors' => ['noir']
             ],
             [
                 'title' => 'Sac de frappe 120cm Metal Boxe + Fixation',
@@ -202,7 +223,8 @@ class AppFixtures extends Fixture
                 'weight' => 30000,
                 'images' => ['punching bag_1.webp', 'punching bag_2.webp'],
                 'type' => 'Sacs de frappe',
-                'size' => '120 cm'
+                'size' => '120 cm',
+                'colors' => ['noir']
             ],
             [
                 'title' => 'Chaussures de boxe anglaise Adidas',
@@ -212,7 +234,8 @@ class AppFixtures extends Fixture
                 'weight' => 600,
                 'images' => ['choose.webp'],
                 'type' => 'Chaussures',
-                'size' => '42'
+                'size' => '42',
+                'colors' => ['noir']
             ],
             [
                 'title' => 'Bandes de maintien 4m (Lot de 2 paires)',
@@ -222,7 +245,8 @@ class AppFixtures extends Fixture
                 'weight' => 150,
                 'images' => ['strips_2.webp'],
                 'type' => 'Accessoires',
-                'size' => '4 m'
+                'size' => '4 m',
+                'colors' => ['vert', 'violet']
             ],
             [
                 'title' => 'Gants de boxe Cleto Reyes',
@@ -232,7 +256,8 @@ class AppFixtures extends Fixture
                 'weight' => 700,
                 'images' => ['gloves_2.webp'],
                 'type' => 'Gants de boxe',
-                'size' => '12 oz'
+                'size' => '12 oz',
+                'colors' => ['rouge']
             ],
             [
                 'title' => 'Short de boxe thaï Fairtex',
@@ -242,7 +267,8 @@ class AppFixtures extends Fixture
                 'weight' => 200,
                 'images' => ['short.webp'],
                 'type' => 'Vêtements',
-                'size' => 'L'
+                'size' => 'L',
+                'colors' => ['rouge', 'or']
             ],
             [
                 'title' => 'Protège-tibias Venum',
@@ -252,7 +278,8 @@ class AppFixtures extends Fixture
                 'weight' => 500,
                 'images' => ['shin_guard.webp'],
                 'type' => 'Protections',
-                'size' => 'M'
+                'size' => 'M',
+                'colors' => ['noir', 'blanc']
             ],
             [
                 'title' => 'Corde à sauter rapide',
@@ -262,7 +289,8 @@ class AppFixtures extends Fixture
                 'weight' => 150,
                 'images' => ['skipping_rope.webp'],
                 'type' => 'Accessoires',
-                'size' => 'Unique'
+                'size' => 'Unique',
+                'colors' => ['noir']
             ],
             [
                 'title' => 'Coquille de protection',
@@ -272,7 +300,8 @@ class AppFixtures extends Fixture
                 'weight' => 200,
                 'images' => ['protective_shell.webp'],
                 'type' => 'Protections',
-                'size' => 'L'
+                'size' => 'L',
+                'colors' => ['blanc', 'gris']
             ]
         ];
 
@@ -287,6 +316,15 @@ class AppFixtures extends Fixture
             $product->setType($data['type']);
             if (isset($data['size'])) {
                 $product->setSize($data['size']);
+            }
+            if (isset($data['colors'])) {
+                foreach ($data['colors'] as $colorLabel) {
+                    $colorRefName = 'color_' . $colorLabel;
+                    if ($this->hasReference($colorRefName, Color::class)) {
+                        $color = $this->getReference($colorRefName, Color::class);
+                        $product->addColor($color);
+                    }
+                }
             }
 
             // Liaison avec un Vendeur (User) unique et aléatoire (entre user_0 et user_9)

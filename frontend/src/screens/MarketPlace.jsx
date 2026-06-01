@@ -13,6 +13,7 @@ const MarketPlace = () => {
 
   // Data states
   const [products, setProducts] = useState([]);
+  const [dbColors, setDbColors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -33,19 +34,28 @@ const MarketPlace = () => {
   // Pagination (Mocked for visual representation)
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 1. Fetch products
+  // 1. Fetch data (products and colors)
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await securedFetch(`${API_URL}/products?status=active`);
-        if (!response.ok) {
-          throw new Error("Impossible de charger les articles de la marketplace.");
+        const [productsRes, colorsRes] = await Promise.all([
+          securedFetch(`${API_URL}/products?status=active`),
+          securedFetch(`${API_URL}/colors`)
+        ]);
+
+        if (!productsRes.ok) throw new Error("Impossible de charger les articles de la marketplace.");
+        
+        const productsData = await productsRes.json();
+        const pItems = productsData.member || productsData['hydra:member'] || (Array.isArray(productsData) ? productsData : []);
+        setProducts(pItems);
+
+        if (colorsRes.ok) {
+          const colorsData = await colorsRes.json();
+          const cItems = colorsData.member || colorsData['hydra:member'] || (Array.isArray(colorsData) ? colorsData : []);
+          setDbColors(cItems.map(c => c.label).filter(Boolean));
         }
-        const data = await response.json();
-        const items = data.member || data['hydra:member'] || (Array.isArray(data) ? data : []);
-        setProducts(items);
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -54,16 +64,9 @@ const MarketPlace = () => {
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
-  // Helper to extract colors from description
-  const extractColors = (desc) => {
-    if (!desc) return [];
-    const colorMap = ['noir', 'rouge', 'bleu', 'blanc', 'jaune', 'vert', 'or', 'argent', 'rose', 'marron', 'gris'];
-    const words = desc.toLowerCase().replace(/[^a-zà-ú\s]/g, '').split(/\s+/);
-    return colorMap.filter(color => words.includes(color));
-  };
 
   // 2. Dynamic Unique Filter values extraction + Static Defaults
   const DEFAULT_CATEGORIES = ['Gants de boxe', 'Casques', 'Chaussures', 'Vêtements', 'Protections', 'Sacs de frappe', 'Accessoires'];
@@ -99,7 +102,8 @@ const MarketPlace = () => {
   const sizes = Array.from(new Set([...dynamicDefaultSizes, ...relevantProductsForSizes.map(p => p.size).filter(Boolean)]));
   const brands = Array.from(new Set([...DEFAULT_BRANDS, ...products.map(p => p.brand).filter(Boolean)]));
   const states = Array.from(new Set([...DEFAULT_STATES, ...products.map(p => p.etat?.label || p.state).filter(Boolean)]));
-  const colors = ['noir', 'rouge', 'bleu', 'blanc', 'jaune', 'vert', 'or', 'argent', 'rose', 'marron', 'gris'];
+  const productColors = products.flatMap(p => p.colors?.map(c => c.label) || []);
+  const colors = Array.from(new Set([...dbColors, ...productColors])).filter(Boolean);
 
   // Group sizes for better UI understanding
   const groupedSizes = sizes.reduce((acc, sz) => {
@@ -121,7 +125,8 @@ const MarketPlace = () => {
       const matchType = p.type?.toLowerCase().includes(textQuery);
       const matchBrand = p.brand?.toLowerCase().includes(textQuery);
       const matchSize = p.size?.toLowerCase().includes(textQuery);
-      if (!matchTitle && !matchType && !matchBrand && !matchSize) {
+      const matchColor = p.colors?.some(c => c.label?.toLowerCase().includes(textQuery));
+      if (!matchTitle && !matchType && !matchBrand && !matchSize && !matchColor) {
         return false;
       }
     }
@@ -140,7 +145,7 @@ const MarketPlace = () => {
       return false;
     }
     if (selectedColors.length > 0) {
-      const pColors = extractColors(p.description);
+      const pColors = (p.colors || []).map(c => c.label);
       if (!pColors.some(c => selectedColors.includes(c))) {
         return false;
       }

@@ -332,15 +332,9 @@ const ProductDetail = () => {
   };
 
   const getColors = (prod) => {
-    const desc = (prod.description || "").toLowerCase();
-    const title = (prod.title || "").toLowerCase();
-    if ((desc.includes("noir") || title.includes("noir")) && (desc.includes("gold") || desc.includes("or") || title.includes("gold"))) {
-      return "Noir & Gold";
+    if (prod.colors && prod.colors.length > 0) {
+      return prod.colors.map(c => c.label.charAt(0).toUpperCase() + c.label.slice(1)).join(', ');
     }
-    if (desc.includes("noir") || title.includes("noir")) return "Noir";
-    if (desc.includes("rouge") || title.includes("rouge")) return "Rouge";
-    if (desc.includes("bleu") || title.includes("bleu")) return "Bleu";
-    if (desc.includes("blanc") || title.includes("blanc")) return "Blanc";
     return "Unique";
   };
 
