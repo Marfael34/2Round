@@ -25,8 +25,8 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
         new \ApiPlatform\Metadata\Post(),
         new \ApiPlatform\Metadata\Get(),
         new \ApiPlatform\Metadata\Patch(
-            security: "is_granted('ROLE_ADMIN')",
-            denormalizationContext: ['groups' => ['admin:write']]
+            security: "is_granted('ROLE_ADMIN') or object == user",
+            securityMessage: "Vous ne pouvez modifier que votre propre profil."
         ),
         new \ApiPlatform\Metadata\Delete(
             security: "is_granted('ROLE_ADMIN')"
@@ -58,6 +58,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Groups(['user:write'])]
     private ?string $password = null;
 
     #[ORM\Column(length: 100)]
@@ -653,13 +654,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     #[Groups(['user:read'])]
-    public function getSize(): ?string
+    public function getSize(): ?int
     {
         return $this->size;
     }
 
     #[Groups(['user:write', 'admin:write'])]
-    public function setSize(string $size): static
+    public function setSize(int $size): static
     {
         $this->size = $size;
 

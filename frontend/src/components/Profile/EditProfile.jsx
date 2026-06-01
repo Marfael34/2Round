@@ -34,8 +34,6 @@ const EditProfile = () => {
     gender: "",
   });
 
-
-
   const [boxes, setBoxes] = useState([]);
   const [levels, setLevels] = useState([]);
   const [genders, setGenders] = useState([]);
@@ -50,62 +48,85 @@ const EditProfile = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        navigate('/login');
+        navigate("/login");
         return;
       }
 
       try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+          window
+            .atob(base64)
+            .split("")
+            .map(function (c) {
+              return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+            })
+            .join(""),
+        );
         const payload = JSON.parse(jsonPayload);
         const email = payload.username;
 
         if (!email) throw new Error("Impossible de récupérer l'email");
 
-        const response = await securedFetch(`/api/users?email=${encodeURIComponent(email)}`);
-        if (!response.ok) throw new Error('Erreur de récupération');
-        
-        const data = await response.json();
-        const userData = data.member ? data.member[0] : (data['hydra:member'] ? data['hydra:member'][0] : (Array.isArray(data) ? data[0] : data));
+        const response = await securedFetch(
+          `/api/users?email=${encodeURIComponent(email)}`,
+        );
+        if (!response.ok) throw new Error("Erreur de récupération");
 
-        if (!userData) throw new Error('Utilisateur non trouvé');
+        const data = await response.json();
+        const userData = data.member
+          ? data.member[0]
+          : data["hydra:member"]
+            ? data["hydra:member"][0]
+            : Array.isArray(data)
+              ? data[0]
+              : data;
+
+        if (!userData) throw new Error("Utilisateur non trouvé");
 
         // Fetch reference data
         const [boxesRes, levelsRes, gendersRes] = await Promise.all([
           securedFetch("/api/boxes"),
           securedFetch("/api/levels"),
-          securedFetch("/api/genders")
+          securedFetch("/api/genders"),
         ]);
 
         if (boxesRes.ok) {
           const bData = await boxesRes.json();
-          setBoxes(bData['hydra:member'] || bData.member || []);
+          setBoxes(bData["hydra:member"] || bData.member || []);
         }
         if (levelsRes.ok) {
           const lData = await levelsRes.json();
-          setLevels(lData['hydra:member'] || lData.member || []);
+          setLevels(lData["hydra:member"] || lData.member || []);
         }
         if (gendersRes.ok) {
           const gData = await gendersRes.json();
-          setGenders(gData['hydra:member'] || gData.member || []);
+          setGenders(gData["hydra:member"] || gData.member || []);
         }
 
         const extractId = (item) => {
           if (!item) return "";
-          if (typeof item === 'object') return item.id ? item.id.toString() : (item['@id'] ? item['@id'].split('/').pop() : "");
-          if (typeof item === 'string') return item.split('/').pop();
-          if (typeof item === 'number') return item.toString();
+          if (typeof item === "object")
+            return item.id
+              ? item.id.toString()
+              : item["@id"]
+                ? item["@id"].split("/").pop()
+                : "";
+          if (typeof item === "string") return item.split("/").pop();
+          if (typeof item === "number") return item.toString();
           return "";
         };
 
         setUser(userData);
-        const bDate = userData.birthdayAt ? userData.birthdayAt.split('T')[0] : (userData.birthday_at ? userData.birthday_at.split('T')[0] : "");
-        
+        const bDate = userData.birthdayAt
+          ? userData.birthdayAt.split("T")[0]
+          : userData.birthday_at
+            ? userData.birthday_at.split("T")[0]
+            : "";
+
         setFormData({
           email: userData.email || "",
           pseudo: userData.pseudo || "",
@@ -121,12 +142,14 @@ const EditProfile = () => {
           gender: extractId(userData.genderId),
         });
 
-        const userId = userData.id || userData['@id']?.split('/').pop();
+        const userId = userData.id || userData["@id"]?.split("/").pop();
         if (userId) {
-          const adressesRes = await securedFetch(`/api/adresses?user=/api/users/${userId}`);
+          const adressesRes = await securedFetch(
+            `/api/adresses?user=/api/users/${userId}`,
+          );
           if (adressesRes.ok) {
             const aData = await adressesRes.json();
-            setUserAddresses(aData['hydra:member'] || aData.member || []);
+            setUserAddresses(aData["hydra:member"] || aData.member || []);
           }
         }
       } catch (err) {
@@ -141,15 +164,13 @@ const EditProfile = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) return;
-    
+
     setSaving(true);
     let validationErrors = [];
 
@@ -163,42 +184,59 @@ const EditProfile = () => {
       validationErrors.push("Le nom contient des caractères non autorisés.");
     }
     if (formData.pseudo && !pseudoRegex.test(formData.pseudo)) {
-      validationErrors.push("Le pseudo contient des caractères non autorisés (lettres, chiffres, tirets, points et underscores uniquement).");
+      validationErrors.push(
+        "Le pseudo contient des caractères non autorisés (lettres, chiffres, tirets, points et underscores uniquement).",
+      );
     }
 
     if (avatarFile) {
       const urlExtRegex = /\.(jpg|jpeg|png|webp|gif)$/i;
       if (!urlExtRegex.test(avatarFile.name)) {
-        validationErrors.push("Le fichier d'avatar a une extension non valide (.jpg, .jpeg, .png, .webp, .gif attendues).");
+        validationErrors.push(
+          "Le fichier d'avatar a une extension non valide (.jpg, .jpeg, .png, .webp, .gif attendues).",
+        );
       }
       if (avatarFile.size > 100 * 1024) {
-        validationErrors.push("La taille de l'image de l'avatar ne doit pas dépasser 100 Ko.");
+        validationErrors.push(
+          "La taille de l'image de l'avatar ne doit pas dépasser 100 Ko.",
+        );
       }
     } else if (formData.avatar) {
       const urlExtRegex = /\.(jpg|jpeg|png|webp|gif)$/i;
-      if (!urlExtRegex.test(formData.avatar) && !formData.avatar.startsWith('data:image/')) {
-        validationErrors.push("L'URL de l'avatar doit se terminer par une extension d'image valide (.jpg, .jpeg, .png, .webp, .gif).");
+      if (
+        !urlExtRegex.test(formData.avatar) &&
+        !formData.avatar.startsWith("data:image/")
+      ) {
+        validationErrors.push(
+          "L'URL de l'avatar doit se terminer par une extension d'image valide (.jpg, .jpeg, .png, .webp, .gif).",
+        );
       }
     }
 
     if (formData.budget) {
       const budgetNum = parseInt(formData.budget, 10);
       if (isNaN(budgetNum) || budgetNum < 0 || budgetNum > 100000) {
-        validationErrors.push("Veuillez saisir un budget valide (entre 0 et 100000 €).");
+        validationErrors.push(
+          "Veuillez saisir un budget valide (entre 0 et 100000 €).",
+        );
       }
     }
-    
+
     if (formData.size) {
       const sizeNum = parseInt(formData.size, 10);
       if (isNaN(sizeNum) || sizeNum < 50 || sizeNum > 300) {
-        validationErrors.push("Veuillez saisir une taille valide en centimètres (entre 50 et 300 cm).");
+        validationErrors.push(
+          "Veuillez saisir une taille valide en centimètres (entre 50 et 300 cm).",
+        );
       }
     }
 
     if (formData.weight) {
       const weightNum = parseFloat(formData.weight);
       if (isNaN(weightNum) || weightNum < 20 || weightNum > 300) {
-        validationErrors.push("Veuillez saisir un poids valide en kg (entre 20 et 300 kg).");
+        validationErrors.push(
+          "Veuillez saisir un poids valide en kg (entre 20 et 300 kg).",
+        );
       }
     }
 
@@ -214,14 +252,14 @@ const EditProfile = () => {
       if (avatarFile) {
         const fileFormData = new FormData();
         fileFormData.append("avatar", avatarFile);
-        
+
         const token = localStorage.getItem("token");
         const uploadRes = await fetch(`/api/users/avatar`, {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
-          body: fileFormData
+          body: fileFormData,
         });
 
         if (!uploadRes.ok) {
@@ -232,11 +270,11 @@ const EditProfile = () => {
         finalAvatarPath = uploadData.path;
       }
 
-      const userId = user.id || user['@id']?.split('/').pop();
+      const userId = user.id || user["@id"]?.split("/").pop();
       const response = await securedFetch(`/api/users/${userId}`, {
         method: "PATCH",
         headers: {
-          "Content-Type": "application/merge-patch+json"
+          "Content-Type": "application/merge-patch+json",
         },
         body: JSON.stringify({
           email: formData.email,
@@ -252,7 +290,7 @@ const EditProfile = () => {
           boxeId: formData.boxe ? `/api/boxes/${formData.boxe}` : null,
           levelId: formData.level ? `/api/levels/${formData.level}` : null,
           genderId: formData.gender ? `/api/genders/${formData.gender}` : null,
-        })
+        }),
       });
 
       if (!response.ok) {
@@ -274,7 +312,9 @@ const EditProfile = () => {
 
     if (query.length > 3) {
       try {
-        const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
+        const response = await fetch(
+          `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`,
+        );
         const data = await response.json();
         setAddressSuggestions(data.features || []);
       } catch (err) {
@@ -288,7 +328,7 @@ const EditProfile = () => {
   const handleSelectAddress = (feature) => {
     const props = feature.properties;
     const geom = feature.geometry.coordinates; // [lon, lat]
-    
+
     // Essayer d'extraire le numéro, sinon mettre "1" par défaut ou vide
     let streetNumber = "0";
     let streetName = props.name;
@@ -306,7 +346,7 @@ const EditProfile = () => {
       city: props.city,
       country: "France",
       longitude: geom[0].toString(),
-      latitude: geom[1].toString()
+      latitude: geom[1].toString(),
     });
     setAddressQuery(props.label);
     setAddressSuggestions([]);
@@ -317,11 +357,15 @@ const EditProfile = () => {
     setAddressSaving(true);
     try {
       const isUpdating = userAddresses.length > 0;
-      const addressId = isUpdating ? (userAddresses[0].id || userAddresses[0]['@id']?.split('/').pop()) : null;
+      const addressId = isUpdating
+        ? userAddresses[0].id || userAddresses[0]["@id"]?.split("/").pop()
+        : null;
       const url = isUpdating ? `/api/adresses/${addressId}` : "/api/adresses";
       const method = isUpdating ? "PATCH" : "POST";
       const headers = {
-        "Content-Type": isUpdating ? "application/merge-patch+json" : "application/ld+json"
+        "Content-Type": isUpdating
+          ? "application/merge-patch+json"
+          : "application/ld+json",
       };
 
       const response = await securedFetch(url, {
@@ -329,21 +373,29 @@ const EditProfile = () => {
         headers,
         body: JSON.stringify({
           ...selectedAddress,
-          user: user['@id'] || `/api/users/${user.id}`
-        })
+          user: user["@id"] || `/api/users/${user.id}`,
+        }),
       });
 
-      if (!response.ok) throw new Error(`Erreur lors de ${isUpdating ? "la modification" : "l'ajout"} de l'adresse`);
-      
-      showPopup(`Adresse ${isUpdating ? "modifiée" : "ajoutée"} avec succès !`, "success");
+      if (!response.ok)
+        throw new Error(
+          `Erreur lors de ${isUpdating ? "la modification" : "l'ajout"} de l'adresse`,
+        );
+
+      showPopup(
+        `Adresse ${isUpdating ? "modifiée" : "ajoutée"} avec succès !`,
+        "success",
+      );
       setAddressQuery("");
       setSelectedAddress(null);
-      
-      const userId = user.id || user['@id']?.split('/').pop();
-      const adressesRes = await securedFetch(`/api/adresses?user=/api/users/${userId}`);
+
+      const userId = user.id || user["@id"]?.split("/").pop();
+      const adressesRes = await securedFetch(
+        `/api/adresses?user=/api/users/${userId}`,
+      );
       if (adressesRes.ok) {
         const aData = await adressesRes.json();
-        setUserAddresses(aData['hydra:member'] || aData.member || []);
+        setUserAddresses(aData["hydra:member"] || aData.member || []);
       }
     } catch (err) {
       showPopup(err.message, "error");
@@ -358,16 +410,22 @@ const EditProfile = () => {
 
   const confirmDeleteAddress = async () => {
     if (!addressToDelete) return;
-    
+
     try {
       const response = await securedFetch(`/api/adresses/${addressToDelete}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
-      if (!response.ok) throw new Error("Erreur lors de la suppression de l'adresse");
+      if (!response.ok)
+        throw new Error("Erreur lors de la suppression de l'adresse");
 
       showPopup("Adresse supprimée avec succès !", "success");
-      setUserAddresses(prev => prev.filter(addr => (addr.id || addr['@id']?.split('/').pop()) !== addressToDelete));
+      setUserAddresses((prev) =>
+        prev.filter(
+          (addr) =>
+            (addr.id || addr["@id"]?.split("/").pop()) !== addressToDelete,
+        ),
+      );
     } catch (err) {
       showPopup(err.message, "error");
     } finally {
@@ -400,9 +458,13 @@ const EditProfile = () => {
       {/* Custom Popup placed in the upper center of the screen */}
       {popup && (
         <div className="fixed top-1/4 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in-down w-[90%] max-w-md">
-          <div className={`px-6 py-4 rounded-lg shadow-2xl border flex items-start justify-between gap-3 backdrop-blur-md ${
-            popup.type === "error" ? "bg-red-600/20 border-red-600 text-red-500" : "bg-green-600/20 border-green-600 text-green-500"
-          }`}>
+          <div
+            className={`px-6 py-4 rounded-lg shadow-2xl border flex items-start justify-between gap-3 backdrop-blur-md ${
+              popup.type === "error"
+                ? "bg-red-600/20 border-red-600 text-red-500"
+                : "bg-green-600/20 border-green-600 text-green-500"
+            }`}
+          >
             <div className="font-inter font-bold flex flex-col gap-1">
               {Array.isArray(popup.message) ? (
                 popup.message.map((msg, idx) => <span key={idx}>• {msg}</span>)
@@ -410,7 +472,10 @@ const EditProfile = () => {
                 <span>{popup.message}</span>
               )}
             </div>
-            <button onClick={() => setPopup(null)} className="ml-4 hover:opacity-70 transition-opacity shrink-0">
+            <button
+              onClick={() => setPopup(null)}
+              className="ml-4 hover:opacity-70 transition-opacity shrink-0"
+            >
               ✕
             </button>
           </div>
@@ -421,9 +486,12 @@ const EditProfile = () => {
       {addressToDelete && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
           <div className="bg-[#0A0A0A] border border-gray-800 p-8 rounded-xl max-w-md w-full mx-4 shadow-2xl">
-            <h3 className="text-3xl font-bebas uppercase text-white mb-4">Confirmer la suppression</h3>
+            <h3 className="text-3xl font-bebas uppercase text-white mb-4">
+              Confirmer la suppression
+            </h3>
             <p className="text-gray-400 mb-8 font-inter">
-              Êtes-vous sûr de vouloir supprimer cette adresse de votre compte ? Cette action est irréversible.
+              Êtes-vous sûr de vouloir supprimer cette adresse de votre compte ?
+              Cette action est irréversible.
             </p>
             <div className="flex items-center gap-4">
               <button
@@ -443,22 +511,35 @@ const EditProfile = () => {
         </div>
       )}
 
-      <div className="bg-rayure p-8 border-b border-white/10" style={{ backgroundImage: `url(${IMG_BGRAYURE})` }}>
+      <div
+        className="bg-rayure p-8 border-b border-white/10"
+        style={{ backgroundImage: `url(${IMG_BGRAYURE})` }}
+      >
         <div className="w-full max-w-4xl mx-auto">
           <div className="mb-12 flex items-center">
-            <Link to="/my-locker" className="text-white text-4xl font-bebas mr-4">
-              <FaChevronLeft /> 
+            <Link
+              to="/my-locker"
+              className="text-white text-4xl font-bebas mr-4"
+            >
+              <FaChevronLeft />
             </Link>
-            <h2 className="font-bebas uppercase text-5xl md:text-6xl">Modifier mon profil</h2>
+            <h2 className="font-bebas uppercase text-5xl md:text-6xl">
+              Modifier mon profil
+            </h2>
           </div>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto p-8 pt-12 relative">
-        <form onSubmit={handleSubmit} className="space-y-6 bg-[#0A0A0A] p-8 rounded-xl border border-gray-800">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 bg-[#0A0A0A] p-8 rounded-xl border border-gray-800"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Prénom</label>
+              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                Prénom
+              </label>
               <input
                 type="text"
                 name="firstname"
@@ -469,7 +550,9 @@ const EditProfile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Nom</label>
+              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                Nom
+              </label>
               <input
                 type="text"
                 name="lastname"
@@ -483,7 +566,9 @@ const EditProfile = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Email</label>
+              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                Email
+              </label>
               <input
                 type="email"
                 name="email"
@@ -495,7 +580,9 @@ const EditProfile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Pseudo</label>
+              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                Pseudo
+              </label>
               <input
                 type="text"
                 name="pseudo"
@@ -508,7 +595,9 @@ const EditProfile = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Date de naissance</label>
+            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+              Date de naissance
+            </label>
             <input
               type="date"
               name="birthday_at"
@@ -520,7 +609,9 @@ const EditProfile = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Genre</label>
+              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                Genre
+              </label>
               <select
                 name="gender"
                 value={formData.gender}
@@ -528,13 +619,20 @@ const EditProfile = () => {
                 className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-colors"
               >
                 <option value="">Non spécifié</option>
-                {genders.map(g => (
-                  <option key={g.id || g['@id']} value={g.id || g['@id']?.split('/').pop()}>{g.label}</option>
+                {genders.map((g) => (
+                  <option
+                    key={g.id || g["@id"]}
+                    value={g.id || g["@id"]?.split("/").pop()}
+                  >
+                    {g.label}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Type de boxe</label>
+              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                Type de boxe
+              </label>
               <select
                 name="boxe"
                 value={formData.boxe}
@@ -542,13 +640,20 @@ const EditProfile = () => {
                 className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-colors"
               >
                 <option value="">Non spécifié</option>
-                {boxes.map(b => (
-                  <option key={b.id || b['@id']} value={b.id || b['@id']?.split('/').pop()}>{b.label}</option>
+                {boxes.map((b) => (
+                  <option
+                    key={b.id || b["@id"]}
+                    value={b.id || b["@id"]?.split("/").pop()}
+                  >
+                    {b.label}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Niveau</label>
+              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                Niveau
+              </label>
               <select
                 name="level"
                 value={formData.level}
@@ -556,8 +661,13 @@ const EditProfile = () => {
                 className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-colors"
               >
                 <option value="">Non spécifié</option>
-                {levels.map(l => (
-                  <option key={l.id || l['@id']} value={l.id || l['@id']?.split('/').pop()}>{l.label}</option>
+                {levels.map((l) => (
+                  <option
+                    key={l.id || l["@id"]}
+                    value={l.id || l["@id"]?.split("/").pop()}
+                  >
+                    {l.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -565,7 +675,9 @@ const EditProfile = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Poids (kg)</label>
+              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                Poids (kg)
+              </label>
               <input
                 type="number"
                 step="0.1"
@@ -577,7 +689,9 @@ const EditProfile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Taille (cm)</label>
+              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                Taille (cm)
+              </label>
               <input
                 type="number"
                 step="1"
@@ -589,7 +703,9 @@ const EditProfile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Budget (€)</label>
+              <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                Budget (€)
+              </label>
               <input
                 type="number"
                 step="1"
@@ -603,13 +719,19 @@ const EditProfile = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Avatar de Profil</label>
+            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+              Avatar de Profil
+            </label>
             <div className="flex items-center gap-6 bg-[#1A1A1A] p-4 rounded-lg border border-gray-700">
               <div className="shrink-0">
-                <img 
-                  src={avatarPreview || formData.avatar || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png"} 
-                  alt="Aperçu avatar" 
-                  className="w-24 h-24 object-cover rounded-full border-2 border-red-600 shadow-lg" 
+                <img
+                  src={
+                    avatarPreview ||
+                    formData.avatar ||
+                    "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png"
+                  }
+                  alt="Aperçu avatar"
+                  className="w-24 h-24 object-cover rounded-full border-2 border-red-600 shadow-lg"
                 />
               </div>
               <div className="flex-1">
@@ -628,7 +750,9 @@ const EditProfile = () => {
                     }}
                   />
                 </label>
-                <p className="text-xs text-gray-500">Formats acceptés : JPG, PNG, WEBP, GIF. Poids max : 100Ko.</p>
+                <p className="text-xs text-gray-500">
+                  Formats acceptés : JPG, PNG, WEBP, GIF. Poids max : 100Ko.
+                </p>
               </div>
             </div>
           </div>
@@ -652,26 +776,47 @@ const EditProfile = () => {
           {userAddresses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
               {userAddresses.map((addr, idx) => (
-                <div key={addr.id || idx} className="p-4 bg-[#151515] border border-gray-700 rounded-lg">
+                <div
+                  key={addr.id || idx}
+                  className="p-4 bg-[#151515] border border-gray-700 rounded-lg"
+                >
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-sm font-bold text-gray-300 uppercase mb-1">{addr.label || "Adresse"}</p>
+                      <p className="text-sm font-bold text-gray-300 uppercase mb-1">
+                        {addr.label || "Adresse"}
+                      </p>
                       <p className="font-bold text-white">
-                        {addr.street_number || addr.streetNumber} {addr.street_name || addr.streetName}
+                        {addr.street_number || addr.streetNumber}{" "}
+                        {addr.street_name || addr.streetName}
                       </p>
                       <p className="text-gray-400">
                         {addr.postal_code || addr.postalCode} {addr.city}
                       </p>
-                      <p className="text-gray-500 text-sm mt-1">{addr.country}</p>
+                      <p className="text-gray-500 text-sm mt-1">
+                        {addr.country}
+                      </p>
                     </div>
                     <button
                       type="button"
-                      onClick={() => handleDeleteAddress(addr.id || addr['@id']?.split('/').pop())}
+                      onClick={() =>
+                        handleDeleteAddress(
+                          addr.id || addr["@id"]?.split("/").pop(),
+                        )
+                      }
                       className="text-red-500 hover:text-red-400 p-2 transition-colors"
                       title="Supprimer cette adresse"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -679,11 +824,15 @@ const EditProfile = () => {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 italic mb-10">Aucune adresse enregistrée pour le moment.</p>
+            <p className="text-gray-500 italic mb-10">
+              Aucune adresse enregistrée pour le moment.
+            </p>
           )}
 
           <h3 className="text-2xl font-bebas uppercase mb-6 text-white border-b-2 border-red-600 inline-block pb-1">
-            {userAddresses.length > 0 ? "Modifier mon adresse" : "Ajouter une nouvelle adresse"}
+            {userAddresses.length > 0
+              ? "Modifier mon adresse"
+              : "Ajouter une nouvelle adresse"}
           </h3>
           <div className="relative mb-4">
             <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
@@ -710,10 +859,12 @@ const EditProfile = () => {
               </ul>
             )}
           </div>
-          
+
           {selectedAddress && (
             <div className="mb-6 p-4 bg-[#151515] border border-gray-700 rounded-lg">
-              <p className="text-sm text-gray-400 mb-1 uppercase font-bold">Adresse sélectionnée :</p>
+              <p className="text-sm text-gray-400 mb-1 uppercase font-bold">
+                Adresse sélectionnée :
+              </p>
               <p className="font-bold text-white">
                 {selectedAddress.street_number} {selectedAddress.street_name}
               </p>
@@ -729,7 +880,11 @@ const EditProfile = () => {
             disabled={!selectedAddress || addressSaving}
             className="w-full md:w-auto px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bebas uppercase tracking-widest text-xl transition-colors rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {addressSaving ? "Enregistrement en cours..." : (userAddresses.length > 0 ? "Mettre à jour l'adresse" : "Ajouter cette adresse")}
+            {addressSaving
+              ? "Enregistrement en cours..."
+              : userAddresses.length > 0
+                ? "Mettre à jour l'adresse"
+                : "Ajouter cette adresse"}
           </button>
         </div>
       </div>
