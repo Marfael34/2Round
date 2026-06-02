@@ -1,6 +1,8 @@
-import { FiExternalLink, FiEye } from "react-icons/fi";
+import { useState } from "react";
+import { FiExternalLink, FiEye, FiX } from "react-icons/fi";
 
-const TransactionsTable = ({ transactions }) => {
+const TransactionsTable = ({ transactions, handleForcePayment, handleRefund }) => {
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
   const getStatusColor = (status) => {
     switch (status) {
       case "CREATED":
@@ -84,11 +86,11 @@ const TransactionsTable = ({ transactions }) => {
                 </td>
                 <td className="py-4 px-4 text-right">
                   <div className="flex justify-end gap-2">
-                    {/* Placeholder for viewing details, e.g. a link to the order or a modal */}
+                    {/* Bouton pour ouvrir la modale de détails */}
                     <button
                       className="p-2 rounded-lg bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
                       title="Voir les détails"
-                      onClick={() => alert("Fonctionnalité en cours de développement")}
+                      onClick={() => setSelectedTransaction(transaction)}
                     >
                       <FiEye size={18} />
                     </button>
@@ -110,6 +112,96 @@ const TransactionsTable = ({ transactions }) => {
           )}
         </tbody>
       </table>
+
+      {/* Modal des détails de la transaction */}
+      {selectedTransaction && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111] border border-gray-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
+            <button 
+              onClick={() => setSelectedTransaction(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <FiX size={24} />
+            </button>
+            <h2 className="text-2xl font-bold mb-6 text-white border-b border-gray-800 pb-4">
+              Détails de la Transaction
+            </h2>
+            
+            <div className="space-y-4 mb-8 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Numéro :</span>
+                <span className="font-mono text-white">{selectedTransaction.number}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Date :</span>
+                <span className="text-white">
+                  {new Date(selectedTransaction.createdAt).toLocaleString("fr-FR")}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Statut :</span>
+                <span className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(selectedTransaction.status)}`}>
+                  {selectedTransaction.status}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Montant total :</span>
+                <span className="font-bold text-white">{parseFloat(selectedTransaction.totalprice).toFixed(2)} €</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">N° Suivi :</span>
+                <span className="text-white">{selectedTransaction.trackingNumber || "Non renseigné"}</span>
+              </div>
+              {selectedTransaction.stripe_payment_intent_id && (
+                <div className="flex justify-between items-center border-t border-gray-800 pt-4 mt-4">
+                  <span className="text-gray-400">Paiement Stripe :</span>
+                  <a
+                    href={`https://dashboard.stripe.com/payments/${selectedTransaction.stripe_payment_intent_id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors"
+                  >
+                    Voir dans Stripe <FiExternalLink />
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Actions Administratives */}
+            <div className="border-t border-gray-800 pt-6">
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Actions de paiement</h3>
+              <div className="flex flex-col gap-3">
+                {selectedTransaction.status !== "COMPLETED" && selectedTransaction.status !== "CANCELLED" ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        handleForcePayment(selectedTransaction.id || selectedTransaction['@id']?.split('/').pop());
+                        setSelectedTransaction(null);
+                      }}
+                      className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
+                    >
+                      Valider et débloquer les fonds (Vendeur)
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleRefund(selectedTransaction.id || selectedTransaction['@id']?.split('/').pop());
+                        setSelectedTransaction(null);
+                      }}
+                      className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors"
+                    >
+                      Annuler et rembourser (Acheteur)
+                    </button>
+                  </>
+                ) : (
+                  <p className="text-gray-500 text-center italic text-sm">
+                    Aucune action disponible pour une transaction {selectedTransaction.status === "COMPLETED" ? "terminée" : "annulée"}.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

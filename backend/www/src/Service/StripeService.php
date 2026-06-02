@@ -97,4 +97,14 @@ class StripeService
     {
         return \Stripe\Account::createLoginLink($accountId);
     }
+
+    /**
+     * Rembourser un paiement Stripe
+     */
+    public function refundPayment(string $paymentIntentId): \Stripe\Refund
+    {
+        return \Stripe\Refund::create([
+            'payment_intent' => $paymentIntentId,
+        ]);
+    }
 }

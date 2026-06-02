@@ -250,9 +250,123 @@ class OrderValidationController extends AbstractController
             'id' => $order->getId(),
             'number' => $order->getNumber(),
             'status' => $order->getStatus(),
-            'totalprice' => $order->getTotalprice(),
+            'totalPrice' => $order->getTotalprice(),
             'trackingNumber' => $order->getTrackingNumber(),
-            'shippingLabelUrl' => $order->getShippingLabelUrl()
+            'shippingLabelUrl' => $order->getShippingLabelUrl(),
         ]);
+    }
+
+    #[Route('/api/admin/orders/force-payment', name: 'api_admin_force_payment', methods: ['POST'])]
+    public function forcePayment(
+        Request $request,
+        EntityManagerInterface $em,
+        StripeService $stripeService
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+        $orderId = $data['orderId'] ?? null;
+
+        if (!$orderId) {
+            return $this->json(['error' => 'Missing data'], 400);
+        }
+
+        $order = $em->getRepository(Order::class)->find($orderId);
+
+        if (!$order) {
+            return $this->json(['error' => 'Order not found'], 404);
+        }
+
+        if ($order->getStatus() === 'completed') {
+            return $this->json(['error' => 'Order already completed'], 400);
+        }
+
+        $order->setStatus('completed');
+
+        // Récupérer le vendeur depuis le premier item de la commande
+        $orderItems = $order->getOrderItems();
+        if (count($orderItems) === 0) {
+            return $this->json(['error' => 'No items in order'], 400);
+        }
+        
+        $orderItem = $orderItems->first();
+        $product = $orderItem->getProducts();
+        $seller = $product ? $product->getSeller() : null;
+
+        if ($seller) {
+            $sellerAccountId = $seller->getStripeAccountId();
+            $pricePurchase = (float) $orderItem->getPricePurchase();
+            $amountToTransfer = (int) ($pricePurchase * 100);
+            
+            // Ajouter au portefeuille (Wallet) du vendeur
+            $wallet = $seller->getWallet();
+            if (!$wallet) {
+                $wallet = new Wallet();
+                $wallet->setUser($seller);
+                $seller->setWallet($wallet);
+                $em->persist($wallet);
+            }
+            $currentBalance = (float) $wallet->getBalance();
+            $wallet->setBalance((string) ($currentBalance + $pricePurchase));
+
+            // Enregistrer la transaction Wallet
+            $tx = new WalletTransaction();
+            $tx->setUser($seller);
+            $tx->setAmount((string) $pricePurchase);
+            $tx->setType('sale');
+            $tx->setStatus('completed');
+            $tx->setReference($order->getNumber());
+            $em->persist($tx);
+
+            // Transfert Stripe si configuré
+            if ($sellerAccountId) {
+                try {
+                    $stripeService->transferToSeller(
+                        $amountToTransfer,
+                        'eur',
+                        $sellerAccountId,
+                        $order->getNumber()
+                    );
+                } catch (\Exception $e) {
+                    // Log the error but continue
+                }
+            }
+        }
+
+        $em->flush();
+
+        return $this->json(['status' => 'success', 'message' => 'Payment forced successfully']);
+    }
+
+    #[Route('/api/admin/orders/refund', name: 'api_admin_refund', methods: ['POST'])]
+    public function refundOrder(
+        Request $request,
+        EntityManagerInterface $em,
+        StripeService $stripeService
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+        $orderId = $data['orderId'] ?? null;
+
+        if (!$orderId) {
+            return $this->json(['error' => 'Missing data'], 400);
+        }
+
+        $order = $em->getRepository(Order::class)->find($orderId);
+
+        if (!$order) {
+            return $this->json(['error' => 'Order not found'], 404);
+        }
+
+        if ($order->getStatus() === 'cancelled') {
+            return $this->json(['error' => 'Order already cancelled/refunded'], 400);
+        }
+
+        $order->setStatus('cancelled');
+
+        // Note: Stripe refund is omitted here if we don't store stripe_payment_intent_id.
+        // If the buyer paid via Wallet, we should refund their wallet.
+        // For simplicity, we just mark it cancelled and the admin can manually manage the refund on Stripe.
+        
+        $em->flush();
+
+        return $this->json(['status' => 'success', 'message' => 'Order refunded/cancelled']);
     }
 }

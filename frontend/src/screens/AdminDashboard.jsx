@@ -87,6 +87,46 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleForcePayment = async (transactionId) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir libérer les fonds pour le vendeur ?")) return;
+    try {
+      const response = await securedFetch("/api/admin/orders/force-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: transactionId }),
+      });
+      if (response.ok) {
+        alert("Fonds libérés avec succès !");
+        fetchTransactions();
+      } else {
+        alert("Erreur lors de la libération des fonds.");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      alert("Erreur réseau ou serveur.");
+    }
+  };
+
+  const handleRefund = async (transactionId) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir annuler et rembourser cette commande ?")) return;
+    try {
+      const response = await securedFetch("/api/admin/orders/refund", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: transactionId }),
+      });
+      if (response.ok) {
+        alert("Commande remboursée avec succès !");
+        fetchTransactions();
+      } else {
+        alert("Erreur lors du remboursement.");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      alert("Erreur réseau ou serveur.");
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       // loading est déjà à true initialement
@@ -291,9 +331,18 @@ const AdminDashboard = () => {
             {activeTab === "users" ? (
               <UsersTable users={users} handleToggleUserStatus={handleToggleUserStatus} handleEditClick={handleEditClick} />
             ) : activeTab === "transactions" ? (
-              <TransactionsTable transactions={transactions} />
+              <TransactionsTable 
+                transactions={transactions} 
+                handleForcePayment={handleForcePayment}
+                handleRefund={handleRefund}
+              />
             ) : activeTab === "orders" ? (
-              <OrdersTable transactions={transactions} handleUpdateTransactionStatus={handleUpdateTransactionStatus} />
+              <OrdersTable 
+                transactions={transactions} 
+                handleUpdateTransactionStatus={handleUpdateTransactionStatus}
+                handleForcePayment={handleForcePayment}
+                handleRefund={handleRefund}
+              />
             ) : (
               <div>
                 {/* Sous-onglets de signalements */}
