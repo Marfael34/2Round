@@ -18,6 +18,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ApiResource(
     normalizationContext: ['groups' => ['product:read'], 'enable_max_depth' => true],
+    paginationEnabled: false
 )]
 #[ApiFilter(BooleanFilter::class, properties: ['isHighlighted'])]
 #[ApiFilter(SearchFilter::class, properties: ['seller' => 'exact', 'status' => 'exact'])]

@@ -193,6 +193,7 @@ class AppFixtures extends Fixture
     public function loadProduct(ObjectManager $manager)
     {
         $products = [
+            // 1 à 10 : Produits d'origine
             [
                 'title' => 'Gants de boxe Venum Challenger 3.0',
                 'brand' => 'Venum',
@@ -302,15 +303,471 @@ class AppFixtures extends Fixture
                 'type' => 'Protections',
                 'size' => 'L',
                 'colors' => ['blanc', 'gris']
+            ],
+            
+            // 11 à 40 : Nouveaux produits
+            [
+                'title' => 'Gants d\'entraînement Adidas Speed 50',
+                'brand' => 'Adidas',
+                'description' => 'Gants 10oz parfaits pour l\'initiation et la frappe sur sac. Simili cuir robuste. Très peu portés, aspect comme neuf.',
+                'price' => '22.00',
+                'weight' => 600,
+                'images' => ['gloves_3.webp'],
+                'type' => 'Gants de boxe',
+                'size' => '10 oz',
+                'colors' => ['noir', 'blanc']
+            ],
+            [
+                'title' => 'Short de Muay Thaï Twins Special',
+                'brand' => 'Twins Special',
+                'description' => 'Short traditionnel thaïlandais, taille M. Tissu satiné bleu avec motifs brodés. Léger accroc sur le côté droit mais ne gêne en rien.',
+                'price' => '28.00',
+                'weight' => 180,
+                'images' => ['short_2.webp'],
+                'type' => 'Vêtements',
+                'size' => 'M',
+                'colors' => ['bleu', 'or']
+            ],
+            [
+                'title' => 'Protège-dents Venum Challenger',
+                'brand' => 'Venum',
+                'description' => 'Neuf, jamais moulé. Dans sa boîte d\'origine avec la notice de thermoformage. Idéal pour tous sports de combat.',
+                'price' => '12.00',
+                'weight' => 80,
+                'images' => ['mouthguard.webp'],
+                'type' => 'Protections',
+                'size' => 'Unique',
+                'colors' => ['noir', 'rouge']
+            ],
+            [
+                'title' => 'Bandes de boxe Meister 4.5m',
+                'brand' => 'Meister',
+                'description' => 'Paire de bandes élastiques de 4.5 mètres, excellentes pour un maintien optimal du poignet. Lavées 2 fois.',
+                'price' => '7.00',
+                'weight' => 120,
+                'images' => ['strips_3.webp'],
+                'type' => 'Accessoires',
+                'size' => '4.5 m',
+                'colors' => ['noir']
+            ],
+            [
+                'title' => 'Sac de frappe sur pied Century BOB',
+                'brand' => 'Century',
+                'description' => 'Mannequin de frappe BOB. La base est à remplir d\'eau ou de sable. Le torse en latex est en excellent état. Idéal pour la précision.',
+                'price' => '250.00',
+                'weight' => 15000,
+                'images' => ['test_dummy.webp'],
+                'type' => 'Sacs de frappe',
+                'size' => 'Unique',
+                'colors' => ['beige', 'noir']
+            ],
+            [
+                'title' => 'Chaussures Nike Machomai 2',
+                'brand' => 'Nike',
+                'description' => 'Pointure 44. Chaussures très légères pour un jeu de jambes rapide. Légère usure sur la pointe du pied gauche.',
+                'price' => '55.00',
+                'weight' => 500,
+                'images' => ['choose_2.webp'],
+                'type' => 'Chaussures',
+                'size' => '44',
+                'colors' => ['blanc', 'or']
+            ],
+            [
+                'title' => 'Casque intégral Rival Boxing',
+                'brand' => 'Rival',
+                'description' => 'Casque avec barre de protection faciale. Modèle pro en taille L. Mousse D3O. Protège parfaitement le nez lors des gros sparrings.',
+                'price' => '85.00',
+                'weight' => 600,
+                'images' => ['helmet_2.webp'],
+                'type' => 'Casques',
+                'size' => 'L',
+                'colors' => ['noir']
+            ],
+            [
+                'title' => 'Gants de sac Hayabusa T3',
+                'brand' => 'Hayabusa',
+                'description' => 'Gants 12oz conçus spécifiquement pour le travail au sac et aux pattes d\'ours. Double velcro de fermeture. Cuir premium.',
+                'price' => '90.00',
+                'weight' => 700,
+                'images' => ['gloves_4.webp'],
+                'type' => 'Gants de boxe',
+                'size' => '12 oz',
+                'colors' => ['noir', 'gris']
+            ],
+            [
+                'title' => 'Protège-tibias Fairtex SP5',
+                'brand' => 'Fairtex',
+                'description' => 'Taille L. Modèle sans protection du pied amovible. Très léger et ne tourne pas pendant les kicks. État neuf.',
+                'price' => '65.00',
+                'weight' => 800,
+                'images' => ['shin_guard_2.webp'],
+                'type' => 'Protections',
+                'size' => 'L',
+                'colors' => ['bleu']
+            ],
+            [
+                'title' => 'T-shirt de compression Under Armour',
+                'brand' => 'Under Armour',
+                'description' => 'Rashguard manches courtes taille M. Évacue très bien la transpiration. Idéal sous les gants de boxe ou en MMA.',
+                'price' => '20.00',
+                'weight' => 150,
+                'images' => ['tshirt.webp'],
+                'type' => 'Vêtements',
+                'size' => 'M',
+                'colors' => ['noir']
+            ],
+            [
+                'title' => 'Corde à sauter lourde (1kg)',
+                'brand' => 'Metal Boxe',
+                'description' => 'Corde lestée pour un travail des épaules et du cardio intense. Poignées en mousse pour une bonne prise en main.',
+                'price' => '18.00',
+                'weight' => 1000,
+                'images' => ['skipping_rope_2.webp'],
+                'type' => 'Accessoires',
+                'size' => 'Unique',
+                'colors' => ['noir', 'rouge']
+            ],
+            [
+                'title' => 'Bouclier de frappe Metal Boxe',
+                'brand' => 'Metal Boxe',
+                'description' => 'Pao de frappe courbé pour l\'entraînement aux coups de pied et genoux. Vendu à l\'unité. Cuir PU très résistant.',
+                'price' => '35.00',
+                'weight' => 1200,
+                'images' => ['strikeShield.webp'],
+                'type' => 'Accessoires',
+                'size' => 'Unique',
+                'colors' => ['noir']
+            ],
+            [
+                'title' => 'Gants de boxe Leone 1947',
+                'brand' => 'Leone 1947',
+                'description' => 'Gants 16oz modèle "Il Tecnico". Un classique italien, mousse très absorbante. Ont fait une saison complète.',
+                'price' => '45.00',
+                'weight' => 900,
+                'images' => ['gloves_5.webp'],
+                'type' => 'Gants de boxe',
+                'size' => '16 oz',
+                'colors' => ['vert', 'or']
+            ],
+              
+            [
+                'title' => 'Short de MMA Venum Gladiator',
+                'brand' => 'Venum',
+                'description' => 'Taille S. Short de combat ultra résistant avec fentes latérales pour une liberté de mouvement maximale au sol.',
+                'price' => '32.00',
+                'weight' => 200,
+                'images' => ['short_3.webp'],
+                'type' => 'Vêtements',
+                'size' => 'S',
+                'colors' => ['noir', 'blanc']
+            ],
+            [
+                'title' => 'Chaussures Everlast Elite',
+                'brand' => 'Everlast',
+                'description' => 'Pointure 39. Modèle mi-montant offrant un bon maintien de la cheville. La semelle Michelin assure un bon grip.',
+                'price' => '60.00',
+                'weight' => 550,
+                'images' => ['shoes_3.webp'],
+                'type' => 'Chaussures',
+                'size' => '39',
+                'colors' => ['rouge', 'noir']
+            ],
+            [
+                'title' => 'Casque ouvert Cleto Reyes',
+                'brand' => 'Cleto Reyes',
+                'description' => 'Casque pro mexicain en cuir véritable. Taille M. Dégage bien la vue tout en protégeant les tempes et sourcils.',
+                'price' => '110.00',
+                'weight' => 400,
+                'images' => ['helmet_3.webp'],
+                'type' => 'Casques',
+                'size' => 'M',
+                'colors' => ['rouge']
+            ],
+            [
+                'title' => 'Pattes d\'ours courbées Title Boxing',
+                'brand' => 'Title Boxing',
+                'description' => 'Paire de pattes d\'ours en cuir pour le travail de précision du coach. Légères et ergonomiques. Bon état.',
+                'price' => '40.00',
+                'weight' => 500,
+                'images' => ['bearsPaw.webp'],
+                'type' => 'Accessoires',
+                'size' => 'Unique',
+                'colors' => ['noir', 'blanc']
+            ],
+            [
+                'title' => 'Protège-poitrine femme',
+                'brand' => 'Outshock',
+                'description' => 'Brassière de protection avec coques amovibles. Taille M. Portée quelques fois, lavée avec soin.',
+                'price' => '15.00',
+                'weight' => 150,
+                'images' => ['brassiere.webp'],
+                'type' => 'Protections',
+                'size' => 'M',
+                'colors' => ['blanc']
+            ],
+            [
+                'title' => 'Sac de frappe uppercut 90cm',
+                'brand' => 'RDX',
+                'description' => 'Sac forme poire pour travailler les uppercuts et crochets. Poids 25kg. Cuir synthétique Maya Hide très durable.',
+                'price' => '70.00',
+                'weight' => 25000,
+                'images' => ['Uppercutpunching_bag.webp'],
+                'type' => 'Sacs de frappe',
+                'size' => '90 cm',
+                'colors' => ['noir', 'rouge']
+            ],
+            [
+                'title' => 'Bandes gel sous-gants',
+                'brand' => 'Venum',
+                'description' => 'Alternative rapide aux bandes classiques. Mitaines avec gel de protection pour les phalanges. Lavables. Taille L/XL.',
+                'price' => '14.00',
+                'weight' => 100,
+                'images' => ['strips_4.webp'],
+                'type' => 'Accessoires',
+                'size' => 'L',
+                'colors' => ['noir']
+            ],
+            
+            [
+                'title' => 'Gants de boxe Winning 16oz',
+                'brand' => 'Winning',
+                'description' => 'Le saint graal des gants de sparring. Mousse incroyablement protectrice. Cuir impeccable. Un investissement pour la vie.',
+                'price' => '300.00',
+                'weight' => 900,
+                'images' => ['gloves_6.webp'],
+                'type' => 'Gants de boxe',
+                'size' => '16 oz',
+                'colors' => ['bleu']
+            ],
+            [
+                'title' => 'Débardeur de boxe anglaise',
+                'brand' => 'Adidas',
+                'description' => 'Débardeur réversible rouge/bleu pour la compétition amateur. Taille L. Matière technique très légère.',
+                'price' => '18.00',
+                'weight' => 120,
+                'images' => ['tshirt_2.webp'],
+                'type' => 'Vêtements',
+                'size' => 'L',
+                'colors' => ['rouge', 'bleu']
+            ],
+            [
+                'title' => 'Coquille pro thaï en métal',
+                'brand' => 'Twins Special',
+                'description' => 'La vraie coquille thaï avec lacets traditionnels. Protection ultime. Taille adulte standard.',
+                'price' => '25.00',
+                'weight' => 300,
+                'images' => ['protective_shell_2.webp'],
+                'type' => 'Protections',
+                'size' => 'Unique',
+                'colors' => ['argent', 'rouge']
+            ],
+            [
+                'title' => 'Chaussures Rival RSX-Genesis',
+                'brand' => 'Rival',
+                'description' => 'Pointure 43. Bottines de boxe très confortables avec semelle renforcée. Très bon état général, lacets neufs.',
+                'price' => '65.00',
+                'weight' => 580,
+                'images' => ['shoes_4.webp'],
+                'type' => 'Chaussures',
+                'size' => '43',
+                'colors' => ['noir', 'argent']
+            ],
+            ///
+            [
+                'title' => 'Poire de vitesse en cuir',
+                'brand' => 'Everlast',
+                'description' => 'Speed bag taille M en cuir de vache. Excellent pour la coordination oeil-main. Livrée sans le plateau rotatif.',
+                'price' => '22.00',
+                'weight' => 200,
+                'images' => ['punching bag_2.webp'],
+                'type' => 'Sacs de frappe',
+                'size' => 'M',
+                'colors' => ['marron']
+            ],
+            [
+                'title' => 'Casque à barre RDX',
+                'brand' => 'RDX',
+                'description' => 'Casque de protection avec barre frontale en PVC. Bon compromis sécurité/prix. Taille XL.',
+                'price' => '35.00',
+                'weight' => 550,
+                'images' => ['helmet.webp'],
+                'type' => 'Casques',
+                'size' => 'XL',
+                'colors' => ['noir', 'blanc']
+            ],
+            [
+                'title' => 'Chevillères de maintien (Paire)',
+                'brand' => 'Fairtex',
+                'description' => 'Chevillères élastiques en coton pour le Muay Thaï. Taille M. Protègent des frottements sur le tatami.',
+                'price' => '8.00',
+                'weight' => 100,
+                'images' => ['strips_2.webp'],
+                'type' => 'Protections',
+                'size' => 'M',
+                'colors' => ['rouge']
+            ],
+            [
+                'title' => 'Corde à sauter vitesse aluminium',
+                'brand' => 'Crossrope',
+                'description' => 'Corde à roulement à billes ultra fluide. Poignées en alu, câble en acier remplaçable. Utilisée pour l\'échauffement rapide.',
+                'price' => '28.00',
+                'weight' => 200,
+                'images' => ['skipping_rope.webp'],
+                'type' => 'Accessoires',
+                'size' => 'Unique',
+                'colors' => ['argent', 'noir']
+            ],
+            [
+                'title' => 'Ensemble Survêtement Sudation',
+                'brand' => 'RDX',
+                'description' => 'Survêtement sauna complet (veste + pantalon). Taille L. Idéal pour les coupes de poids (weight cut).',
+                'price' => '30.00',
+                'weight' => 400,
+                'images' => ['short.webp'],
+                'type' => 'Vêtements',
+                'size' => 'L',
+                'colors' => ['noir', 'gris']
+            ],
+            [
+                'title' => 'Gants de boxe Venum Giant 3.0',
+                'brand' => 'Venum',
+                'description' => 'Gants 16oz en cuir Nappa véritable. Mousse quadruple densité. État presque irréprochable, cuir nourri régulièrement.',
+                'price' => '85.00',
+                'weight' => 900,
+                'images' => ['glove.webp'],
+                'type' => 'Gants de boxe',
+                'size' => '16 oz',
+                'colors' => ['noir', 'or']
+            ],
+            [
+                'title' => 'Plastron de frappe entraîneur',
+                'brand' => 'Metal Boxe',
+                'description' => 'Protège-ventre pour recevoir les coups de pied et genoux. Rembourrage très épais. Taille réglable.',
+                'price' => '50.00',
+                'weight' => 1500,
+                'images' => ['protective_shell.webp'],
+                'type' => 'Protections',
+                'size' => 'Unique',
+                'colors' => ['noir']
+            ],
+            [
+                'title' => 'Bandes mexicaines 4m',
+                'brand' => 'Title Boxing',
+                'description' => 'Style mexicain (légèrement élastiques) pour un contour parfait du poing. Neuves sous blister.',
+                'price' => '9.00',
+                'weight' => 150,
+                'images' => ['strips_2.webp'],
+                'type' => 'Accessoires',
+                'size' => '4 m',
+                'colors' => ['jaune']
+            ],
+            [
+                'title' => 'Casque intégral enfant',
+                'brand' => 'Outshock',
+                'description' => 'Idéal pour l\'initiation des 8-12 ans. Mousse souple et protection des pommettes. Très léger.',
+                'price' => '12.00',
+                'weight' => 300,
+                'images' => ['helmet.webp'],
+                'type' => 'Casques',
+                'size' => 'S',
+                'colors' => ['bleu', 'blanc']
+            ],
+            [
+                'title' => 'Chaussures de boxe Nike Hyperko 1',
+                'brand' => 'Nike',
+                'description' => 'Modèle légendaire introuvable, pointure 42.5. Technologie flywire. Usure normale de la semelle après 1 an de pratique.',
+                'price' => '150.00',
+                'weight' => 450,
+                'images' => ['choose.webp'],
+                'type' => 'Chaussures',
+                'size' => '42',
+                'colors' => ['noir', 'argent']
+            ],
+            ///
+            [
+                'title' => 'Gants de sac Metal Boxe PB480',
+                'brand' => 'Metal Boxe',
+                'description' => 'Gants légers type mitaines fermées pour le travail au sac lourd. Pouce ouvert.',
+                'price' => '15.00',
+                'weight' => 300,
+                'images' => ['gloves_2.webp'],
+                'type' => 'Gants de boxe',
+                'size' => 'M',
+                'colors' => ['noir']
+            ],
+            [
+                'title' => 'Sacoche de sport "Boxing Club"',
+                'brand' => 'Sans marque',
+                'description' => 'Sac de sport spacieux avec compartiment aéré pour les gants et chaussures. Bandoulière solide.',
+                'price' => '20.00',
+                'weight' => 800,
+                'images' => ['punching bag_2.webp'],
+                'type' => 'Accessoires',
+                'size' => 'Unique',
+                'colors' => ['gris', 'noir']
+            ],
+            [
+                'title' => 'Protège-dents OPRO Gold',
+                'brand' => 'OPRO',
+                'description' => 'Protège-dents thermoformable haut de gamme. Jamais utilisé, erreur de commande (trop petit pour moi).',
+                'price' => '18.00',
+                'weight' => 80,
+                'images' => ['protective_shell.webp'],
+                'type' => 'Protections',
+                'size' => 'M',
+                'colors' => ['or', 'noir']
+            ],
+            [
+                'title' => 'Short Boxe Anglaise Lonsdale',
+                'brand' => 'Lonsdale',
+                'description' => 'Style rétro avec large bande élastique à la taille. Coupe ample descendant au genou. Taille XL.',
+                'price' => '22.00',
+                'weight' => 250,
+                'images' => ['short.webp'],
+                'type' => 'Vêtements',
+                'size' => 'XL',
+                'colors' => ['noir', 'blanc']
+            ],
+            [
+                'title' => 'Genouillères rembourrées',
+                'brand' => 'Venum',
+                'description' => 'Idéales pour le MMA et le grappling, protègent la rotule lors des passages au sol. Lavées en machine.',
+                'price' => '16.00',
+                'weight' => 200,
+                'images' => ['shin_guard.webp'],
+                'type' => 'Protections',
+                'size' => 'L',
+                'colors' => ['noir']
+            ],
+            [
+                'title' => 'Gants d\'entraînement Reebok',
+                'brand' => 'Reebok',
+                'description' => 'Gants 12oz parfaits pour les cours de cardio-boxing/fitness. Mesh aéré au niveau de la paume.',
+                'price' => '25.00',
+                'weight' => 700,
+                'images' => ['glove.webp'],
+                'type' => 'Gants de boxe',
+                'size' => '12 oz',
+                'colors' => ['noir', 'rouge']
             ]
         ];
 
-        foreach ($products as $key => $data) {
+        for ($i = 0; $i < 40; $i++) {
+            $data = $products[$i % count($products)];
+            
             $product = new Product();
-            $product->setTitle($data['title']);
+            // On ajoute un suffixe si on dépasse la liste de base pour les différencier
+            $titleSuffix = $i >= count($products) ? ' (#' . ($i + 1) . ')' : '';
+            $product->setTitle($data['title'] . $titleSuffix);
             $product->setBrand($data['brand']);
             $product->setDescription($data['description']);
-            $product->setPrice($data['price']);
+            
+            // On varie légèrement le prix pour plus de réalisme
+            $basePrice = (float) $data['price'];
+            $variation = rand(-10, 15);
+            $newPrice = max(5, $basePrice + $variation); // Prix minimum de 5€
+            $product->setPrice(number_format($newPrice, 2, '.', ''));
+            
             $product->setWeight($data['weight']);
             $product->setStatus($data['active'] ?? 'active');
             $product->setType($data['type']);
@@ -345,7 +802,7 @@ class AppFixtures extends Fixture
             }
 
             // Mettre en avant les 3 premiers produits
-            if ($key < 3) {
+            if ($i < 3) {
                 $product->setIsHighlighted(true);
             } else {
                 $product->setIsHighlighted(false);
