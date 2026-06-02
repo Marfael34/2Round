@@ -18,6 +18,37 @@ const Register = () => {
   const [formType, setFormType] = useState("short"); // 'short' or 'long'
   const [currentStep, setCurrentStep] = useState(1); // 1 to 4 for long form
 
+  const [boxes, setBoxes] = useState([]);
+  const [levels, setLevels] = useState([]);
+  const [genders, setGenders] = useState([]);
+
+  useEffect(() => {
+    const fetchReferences = async () => {
+      try {
+        const [boxesRes, levelsRes, gendersRes] = await Promise.all([
+          fetch(`${API_URL}/boxes`),
+          fetch(`${API_URL}/levels`),
+          fetch(`${API_URL}/genders`),
+        ]);
+        if (boxesRes.ok) {
+          const bData = await boxesRes.json();
+          setBoxes(bData["hydra:member"] || bData.member || []);
+        }
+        if (levelsRes.ok) {
+          const lData = await levelsRes.json();
+          setLevels(lData["hydra:member"] || lData.member || []);
+        }
+        if (gendersRes.ok) {
+          const gData = await gendersRes.json();
+          setGenders(gData["hydra:member"] || gData.member || []);
+        }
+      } catch (err) {
+        console.error("Erreur lors de la récupération des références", err);
+      }
+    };
+    fetchReferences();
+  }, []);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -29,6 +60,9 @@ const Register = () => {
     weight: "",
     size: "",
     budget: "",
+    boxeId: "",
+    levelId: "",
+    genderId: "",
   });
 
   const [error, setError] = useState("");
@@ -66,6 +100,24 @@ const Register = () => {
     if (dataToSend.birthday) {
       dataToSend.birthday_at = dataToSend.birthday;
       delete dataToSend.birthday;
+    }
+
+    if (dataToSend.boxeId) {
+      dataToSend.boxeId = `/api/boxes/${dataToSend.boxeId}`;
+    } else {
+      delete dataToSend.boxeId;
+    }
+
+    if (dataToSend.levelId) {
+      dataToSend.levelId = `/api/levels/${dataToSend.levelId}`;
+    } else {
+      delete dataToSend.levelId;
+    }
+
+    if (dataToSend.genderId) {
+      dataToSend.genderId = `/api/genders/${dataToSend.genderId}`;
+    } else {
+      delete dataToSend.genderId;
     }
 
     // Sanitize optional fields
@@ -130,6 +182,9 @@ const Register = () => {
         weight: "",
         size: "",
         budget: "",
+        boxeId: "",
+        levelId: "",
+        genderId: "",
       });
 
       // Rediriger vers la page de connexion
@@ -227,6 +282,7 @@ const Register = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  autoComplete="off"
                   required
                 />
               </div>
@@ -237,6 +293,7 @@ const Register = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  autoComplete="new-password"
                   required
                   rightElement={
                     <button
@@ -254,6 +311,7 @@ const Register = () => {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  autoComplete="new-password"
                   required
                   rightElement={
                     <button
@@ -325,6 +383,7 @@ const Register = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
+                    autoComplete="off"
                     required
                   />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -334,6 +393,7 @@ const Register = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
+                      autoComplete="new-password"
                       required
                       rightElement={
                         <button
@@ -355,6 +415,7 @@ const Register = () => {
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
+                      autoComplete="new-password"
                       required
                       rightElement={
                         <button
@@ -390,6 +451,67 @@ const Register = () => {
                     onChange={handleChange}
                     required
                   />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                        Genre
+                      </label>
+                      <select
+                        name="genderId"
+                        value={formData.genderId}
+                        onChange={handleChange}
+                        className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-colors"
+                        required
+                      >
+                        <option value="">Sélectionnez un genre</option>
+                        {genders.map((g) => (
+                          <option key={g.id || g["@id"]} value={g.id || g["@id"]?.split("/").pop()}>
+                            {g.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                        Type de boxe
+                      </label>
+                      <select
+                        name="boxeId"
+                        value={formData.boxeId}
+                        onChange={handleChange}
+                        className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-colors"
+                        required
+                      >
+                        <option value="">Sélectionnez un type</option>
+                        {boxes.map((b) => (
+                          <option key={b.id || b["@id"]} value={b.id || b["@id"]?.split("/").pop()}>
+                            {b.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                        Niveau
+                      </label>
+                      <select
+                        name="levelId"
+                        value={formData.levelId}
+                        onChange={handleChange}
+                        className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-colors"
+                        required
+                      >
+                        <option value="">Sélectionnez un niveau</option>
+                        {levels.map((l) => (
+                          <option key={l.id || l["@id"]} value={l.id || l["@id"]?.split("/").pop()}>
+                            {l.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <CustomInput
                       label="Taille (cm)"

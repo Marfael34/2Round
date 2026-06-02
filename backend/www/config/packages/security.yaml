@@ -41,6 +41,11 @@ security:
             methods: [GET]
             security: false
 
+        references:
+            pattern: ^/api/(boxes|levels|genders)
+            methods: [GET]
+            security: false
+
         refresh:
             pattern: ^/api/token/refresh
             security: false
@@ -66,6 +71,9 @@ security:
         - { path: ^/api/token/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api/products, methods: [GET], roles: PUBLIC_ACCESS }
         - { path: ^/api/size_guides, methods: [GET], roles: PUBLIC_ACCESS }
+        - { path: ^/api/boxes, methods: [GET], roles: PUBLIC_ACCESS }
+        - { path: ^/api/levels, methods: [GET], roles: PUBLIC_ACCESS }
+        - { path: ^/api/genders, methods: [GET], roles: PUBLIC_ACCESS }
         - { path: ^/api/users, methods: [POST], roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 

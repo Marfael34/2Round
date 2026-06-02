@@ -135,7 +135,7 @@ const EditProfile = () => {
           birthday_at: bDate,
           weight: userData.weight || "",
           size: userData.size || "",
-          budget: userData.budget || "",
+          budget: userData.budget ?? "",
           avatar: userData.avatar || "",
           boxe: extractId(userData.boxeId),
           level: extractId(userData.levelId),
