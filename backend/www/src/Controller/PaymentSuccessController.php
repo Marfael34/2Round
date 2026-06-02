@@ -134,7 +134,7 @@ class PaymentSuccessController extends AbstractController
             if ($em->getConnection()->isTransactionActive()) {
                 $em->getConnection()->rollBack();
             }
-            file_put_contents(__DIR__ . '/../../payment_error.log', $e->getMessage() . "\n" . $e->getTraceAsString());
+            error_log("PAYMENT ERROR: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             return $this->json([
                 'error' => 'Internal Server Error',
                 'message' => $e->getMessage(),
