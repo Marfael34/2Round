@@ -27,6 +27,14 @@ export default defineConfig({
         target: 'http://localhost:8090',
         changeOrigin: true,
       },
+      '/labels': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+      },
+      '/invoice': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+      },
       '/pdf': {
         target: 'http://localhost:8090/invoice',
         changeOrigin: true,

@@ -64,28 +64,22 @@ class PaymentSuccessController extends AbstractController
             $protectionFeesCents = 70 + (int)round(($itemPriceEuros * 100) * 0.05); // 0.70€ + 5% du prix de l'article
             $totalAmountCents = (int)round($itemPriceEuros * 100) + $shippingFeesCents + $protectionFeesCents;
 
-            // Chercher une commande existante
-            $orderItem = $em->getRepository(OrderItem::class)->findOneBy(['products' => $product]);
-            $order = $orderItem ? $orderItem->getOrders() : null;
+            // Création systématique d'une nouvelle commande
+            $order = new Order();
+            $order->setNumber('CMD-' . strtoupper(substr(uniqid(), -6)));
+            $order->setTotalprice((string)($totalAmountCents / 100)); // En euros
+            $order->setStatus('pending_payment');
+            $order->setCreatedAt(new \DateTime());
+            $order->setServicesFees($protectionFeesCents);
+            $order->setShippingFees($shippingFeesCents);
+            $em->persist($order);
 
-            if (!$order) {
-                // Achat direct sans offre préalable
-                $order = new Order();
-                $order->setNumber('CMD-' . strtoupper(substr(uniqid(), -6)));
-                $order->setTotalprice((string)($totalAmountCents / 100)); // En euros
-                $order->setStatus('pending_payment');
-                $order->setCreatedAt(new \DateTime());
-                $order->setServicesFees($protectionFeesCents);
-                $order->setShippingFees($shippingFeesCents);
-                $em->persist($order);
-
-                $orderItem = new OrderItem();
-                $orderItem->setOrders($order);
-                $orderItem->setProducts($product);
-                $orderItem->setPricePurchase((string)$itemPriceEuros);
-                $order->addOrderItem($orderItem);
-                $em->persist($orderItem);
-            }
+            $orderItem = new OrderItem();
+            $orderItem->setOrders($order);
+            $orderItem->setProducts($product);
+            $orderItem->setPricePurchase((string)$itemPriceEuros);
+            $order->addOrderItem($orderItem);
+            $em->persist($orderItem);
 
             // Mettre à jour le statut
             if ($order->getStatus() !== 'paid') {
@@ -93,7 +87,7 @@ class PaymentSuccessController extends AbstractController
                 $product->setStatus('sold');
 
                 // Générer le bon Mondial Relay
-                $labelData = $mondialRelayService->generateShippingLabel($order);
+                $labelData = $mondialRelayService->generateShippingLabel($order, $conversation->getBuyer());
                 $order->setTrackingNumber($labelData['trackingNumber']);
                 $order->setShippingLabelUrl($labelData['shipping_label_url']);
 

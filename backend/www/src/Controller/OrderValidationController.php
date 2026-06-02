@@ -232,7 +232,13 @@ class OrderValidationController extends AbstractController
             return $this->json(null);
         }
 
-        $orderItem = $em->getRepository(\App\Entity\OrderItem::class)->findOneBy(['products' => $product]);
+        $orderItems = $em->getRepository(\App\Entity\OrderItem::class)->findBy(
+            ['products' => $product],
+            ['id' => 'DESC'],
+            1
+        );
+        $orderItem = count($orderItems) > 0 ? $orderItems[0] : null;
+
         if (!$orderItem || !$orderItem->getOrders()) {
             return $this->json(null);
         }

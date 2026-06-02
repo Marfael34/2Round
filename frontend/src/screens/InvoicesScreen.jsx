@@ -3,6 +3,7 @@ import { IMG_BGRAYURE } from "../constants/appConstante";
 import { useNavigate, Link } from "react-router-dom";
 import { FaChevronLeft, FaDownload } from "react-icons/fa6";
 import { securedFetch } from "../utils/api";
+import { API_URL } from "../constants/apiConstante";
 
 const InvoicesScreen = () => {
   const navigate = useNavigate();
@@ -81,8 +82,9 @@ const InvoicesScreen = () => {
 
   // Ouverture de la page de la facture pour impression
   const handleDownload = (invoice) => {
-    // URL to the physical PDF via Vite proxy (avoids React Router intercepting /invoice/)
-    const pdfUrl = `/pdf/${invoice.number}.pdf`;
+    // Utilisation directe de l'URL du backend pour éviter que React Router n'intercepte la route
+    const baseUrl = API_URL.replace('/api', '');
+    const pdfUrl = `${baseUrl}/invoice/${invoice.number}.pdf`;
     window.open(pdfUrl, '_blank');
   };
 

@@ -1747,7 +1747,7 @@ const Conversation = () => {
                               </div>
 
                               {/* AJOUT : Affichage du bordereau Mondial Relay EXCLUSIF au vendeur */}
-                              {!isBuyer && currentOrder?.shippingLabelUrl && currentOrder?.status === "paid" && (
+                              {!isBuyer && (currentOrder?.shipping_label_url || currentOrder?.shippingLabelUrl) && currentOrder?.status === "paid" && (
                                 <div className="mt-6 pt-5 border-t border-emerald-500/30">
                                   <div className="bg-emerald-900/40 border border-emerald-500/50 p-4 rounded-md">
                                     <h5 className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">
@@ -1755,9 +1755,10 @@ const Conversation = () => {
                                       Bordereau d'expédition
                                     </h5>
                                     <a
-                                      href={currentOrder.shippingLabelUrl}
+                                      href={(currentOrder.shipping_label_url || currentOrder.shippingLabelUrl)?.startsWith('http') ? (currentOrder.shipping_label_url || currentOrder.shippingLabelUrl) : `${API_URL.replace("/api", "")}${(currentOrder.shipping_label_url || currentOrder.shippingLabelUrl)}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
+                                      download={`bordereau_${currentOrder.trackingNumber || 'MR'}.pdf`}
                                       className="flex items-center justify-center w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors"
                                     >
                                       Imprimer l'étiquette

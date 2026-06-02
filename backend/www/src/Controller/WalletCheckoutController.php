@@ -69,29 +69,24 @@ class WalletCheckoutController extends AbstractController
             $tx->setReference('Achat Produit #' . $product->getId());
             $em->persist($tx);
 
-            // Chercher une commande existante
-            $orderItem = $em->getRepository(OrderItem::class)->findOneBy(['products' => $product]);
-            $order = $orderItem ? $orderItem->getOrders() : null;
+            // Création systématique d'une nouvelle commande
+            $order = new Order();
+            $order->setNumber('CMD-' . strtoupper(substr(uniqid(), -6)));
+            $order->setTotalprice((string)$amountEuros);
+            $order->setCreatedAt(new \DateTime());
+            // Calculate fees roughly based on amount
+            $shippingFeesCents = 288;
+            $protectionFeesCents = $amountCents - (int)round($product->getPrice() * 100) - $shippingFeesCents;
+            $order->setServicesFees($protectionFeesCents > 0 ? $protectionFeesCents : 70);
+            $order->setShippingFees($shippingFeesCents);
+            $em->persist($order);
 
-            if (!$order) {
-                $order = new Order();
-                $order->setNumber('CMD-' . strtoupper(substr(uniqid(), -6)));
-                $order->setTotalprice((string)$amountEuros);
-                $order->setCreatedAt(new \DateTime());
-                // Calculate fees roughly based on amount
-                $shippingFeesCents = 288;
-                $protectionFeesCents = $amountCents - (int)round($product->getPrice() * 100) - $shippingFeesCents;
-                $order->setServicesFees($protectionFeesCents > 0 ? $protectionFeesCents : 70);
-                $order->setShippingFees($shippingFeesCents);
-                $em->persist($order);
-
-                $orderItem = new OrderItem();
-                $orderItem->setOrders($order);
-                $orderItem->setProducts($product);
-                $orderItem->setPricePurchase((string)$product->getPrice());
-                $order->addOrderItem($orderItem);
-                $em->persist($orderItem);
-            }
+            $orderItem = new OrderItem();
+            $orderItem->setOrders($order);
+            $orderItem->setProducts($product);
+            $orderItem->setPricePurchase((string)$product->getPrice());
+            $order->addOrderItem($orderItem);
+            $em->persist($orderItem);
 
             // Mettre à jour le statut
             if ($order->getStatus() !== 'paid') {
@@ -99,7 +94,7 @@ class WalletCheckoutController extends AbstractController
                 $product->setStatus('sold');
 
                 // Générer le bon Mondial Relay
-                $labelData = $mondialRelayService->generateShippingLabel($order);
+                $labelData = $mondialRelayService->generateShippingLabel($order, $userEntity);
                 $order->setTrackingNumber($labelData['trackingNumber']);
                 $order->setShippingLabelUrl($labelData['shipping_label_url']);
             }

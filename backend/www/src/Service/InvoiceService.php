@@ -37,13 +37,13 @@ class InvoiceService
                 'firstname' => $buyer->getFirstname(),
                 'lastname' => $buyer->getLastname(),
                 'email' => $buyer->getEmail(),
-                'address' => $buyer->getAdresses()->first() ? $buyer->getAdresses()->first()->getStreet() . ' ' . $buyer->getAdresses()->first()->getCity() . ' ' . $buyer->getAdresses()->first()->getZipCode() : null
+                'address' => $buyer->getAdresses()->first() ? $buyer->getAdresses()->first()->getStreetName() . ' ' . $buyer->getAdresses()->first()->getCity() . ' ' . $buyer->getAdresses()->first()->getPostalCode() : null
             ],
             'seller' => $seller ? [
                 'firstname' => $seller->getFirstname(),
                 'lastname' => $seller->getLastname(),
                 'email' => $seller->getEmail(),
-                'address' => $seller->getAdresses()->first() ? $seller->getAdresses()->first()->getStreet() . ' ' . $seller->getAdresses()->first()->getCity() . ' ' . $seller->getAdresses()->first()->getZipCode() : null
+                'address' => $seller->getAdresses()->first() ? $seller->getAdresses()->first()->getStreetName() . ' ' . $seller->getAdresses()->first()->getCity() . ' ' . $seller->getAdresses()->first()->getPostalCode() : null
             ] : null,
             'product' => $product ? [
                 'name' => $product->getTitle(),

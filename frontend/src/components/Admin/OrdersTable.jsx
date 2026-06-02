@@ -1,4 +1,5 @@
 import { FiEye } from "react-icons/fi";
+import { API_URL } from "../../constants/apiConstante";
 
 const OrdersTable = ({ transactions, handleUpdateTransactionStatus }) => {
   const getStatusColor = (status) => {
@@ -65,7 +66,7 @@ const OrdersTable = ({ transactions, handleUpdateTransactionStatus }) => {
                 <td className="py-4 px-4 text-sm">
                   {transaction.shipping_label_url ? (
                     <a
-                      href={transaction.shipping_label_url}
+                      href={transaction.shipping_label_url?.startsWith('http') ? transaction.shipping_label_url : `${API_URL.replace("/api", "")}${transaction.shipping_label_url}`}
                       target="_blank"
                       rel="noreferrer"
                       className="text-blue-400 hover:underline"
