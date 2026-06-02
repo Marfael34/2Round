@@ -7,6 +7,7 @@ use App\Entity\Conversation;
 use App\Entity\Message;
 use App\Entity\Wallet;
 use App\Entity\WalletTransaction;
+use App\Entity\Report;
 use App\Service\StripeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -185,6 +186,8 @@ class OrderValidationController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $orderId = $data['orderId'] ?? null;
         $conversationId = $data['conversationId'] ?? null;
+        $reason = $data['reason'] ?? 'Litige transaction';
+        $description = $data['description'] ?? 'Aucune description fournie.';
 
         if (!$orderId || !$conversationId) {
             return $this->json(['error' => 'Missing data'], 400);
@@ -203,18 +206,35 @@ class OrderValidationController extends AbstractController
 
         $order->setStatus('disputed');
 
+        // Créer le signalement
+        $report = new Report();
+        $report->setReason(substr($reason, 0, 50));
+        $report->setDescription($description);
+        $report->setCreatedAt(new \DateTime());
+        $report->setSender($conversation->getBuyer());
+        $report->setOrderid($order);
+        $report->setConversation($conversation);
+        
+        $product = $conversation->getProductId();
+        if ($product) {
+            $report->setProduct($product);
+            $report->setReportedUser($product->getSeller());
+        }
+
+        $em->persist($report);
+
         // Message système
         $msg = new Message();
         $msg->setConversation($conversation);
         $msg->setUsers($conversation->getBuyer()); // ou système
-        $msg->setContent("⚠️ L'acheteur a signalé un problème avec la commande. Les fonds sont gelés. Veuillez trouver une solution à l'amiable ici. Si nécessaire, contactez le support 2Round.");
+        $msg->setContent("⚠️ L'acheteur a signalé un problème : \"$reason\". Les fonds sont gelés. L'administration a reçu le signalement. Veuillez trouver une solution à l'amiable ici.");
         $msg->setIsRead(false);
         $msg->setCreatedAt(new \DateTime());
         $em->persist($msg);
 
         $em->flush();
 
-        return $this->json(['status' => 'success', 'message' => 'Order disputed']);
+        return $this->json(['status' => 'success', 'message' => 'Order disputed and reported']);
     }
 
     #[Route('/api/orders/for-conversation/{id}', name: 'api_get_conversation_order', methods: ['GET'])]
@@ -291,6 +311,32 @@ class OrderValidationController extends AbstractController
         $product = $orderItem->getProducts();
         $seller = $product ? $product->getSeller() : null;
 
+        // Trouver la conversation (via l'acheteur dans la facture)
+        $conversation = null;
+        if ($product) {
+            $invoices = $order->getInvoices();
+            if (count($invoices) > 0) {
+                $buyer = $invoices->first()->getUsers();
+                if ($buyer) {
+                    $conversation = $em->getRepository(Conversation::class)->findOneBy([
+                        'productId' => $product,
+                        'buyer' => $buyer
+                    ]);
+                }
+            }
+        }
+
+        if ($conversation) {
+            $msg = new Message();
+            $msg->setConversation($conversation);
+            // $msg->setUsers(null) if system, or just the seller/buyer
+            if ($seller) $msg->setUsers($seller);
+            $msg->setContent("⚖️ L'administration de 2Round a statué sur le litige en faveur du VENDEUR. Les fonds ont été débloqués.");
+            $msg->setIsRead(false);
+            $msg->setCreatedAt(new \DateTime());
+            $em->persist($msg);
+        }
+
         if ($seller) {
             $sellerAccountId = $seller->getStripeAccountId();
             $pricePurchase = (float) $orderItem->getPricePurchase();
@@ -364,6 +410,33 @@ class OrderValidationController extends AbstractController
         // Note: Stripe refund is omitted here if we don't store stripe_payment_intent_id.
         // If the buyer paid via Wallet, we should refund their wallet.
         // For simplicity, we just mark it cancelled and the admin can manually manage the refund on Stripe.
+
+        // Trouver la conversation et envoyer un message
+        $orderItems = $order->getOrderItems();
+        if (count($orderItems) > 0) {
+            $product = $orderItems->first()->getProducts();
+            if ($product) {
+                $invoices = $order->getInvoices();
+                if (count($invoices) > 0) {
+                    $buyer = $invoices->first()->getUsers();
+                    if ($buyer) {
+                        $conversation = $em->getRepository(Conversation::class)->findOneBy([
+                            'productId' => $product,
+                            'buyer' => $buyer
+                        ]);
+                        if ($conversation) {
+                            $msg = new Message();
+                            $msg->setConversation($conversation);
+                            $msg->setUsers($buyer);
+                            $msg->setContent("⚖️ L'administration de 2Round a statué sur le litige en faveur de l'ACHETEUR. La commande est annulée et vous serez remboursé.");
+                            $msg->setIsRead(false);
+                            $msg->setCreatedAt(new \DateTime());
+                            $em->persist($msg);
+                        }
+                    }
+                }
+            }
+        }
         
         $em->flush();
 

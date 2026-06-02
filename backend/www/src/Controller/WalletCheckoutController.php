@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Conversation;
+use App\Entity\Message;
 use App\Entity\Order;
 use App\Entity\OrderItem;
+use App\Entity\Product;
 use App\Entity\WalletTransaction;
 use App\Service\MondialRelayService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,7 +23,8 @@ class WalletCheckoutController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         UserInterface $user,
-        MondialRelayService $mondialRelayService
+        MondialRelayService $mondialRelayService,
+        \App\Service\InvoiceService $invoiceService
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
         $conversationId = $data['conversationId'] ?? null;
@@ -52,10 +55,21 @@ class WalletCheckoutController extends AbstractController
                 return $this->json(['error' => 'Conversation introuvable'], 404);
             }
 
-            $product = $conversation->getProductId();
-            if (!$product) {
-                return $this->json(['error' => 'Produit introuvable'], 404);
-            }
+            // Verrou pessimiste pour éviter les race conditions
+            $em->getConnection()->beginTransaction();
+
+            // Recharge le produit avec un verrou d'écriture
+            $product = $em->getRepository(Product::class)->find($conversation->getProductId()->getId(), \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
+                
+                if (!$product) {
+                    $em->getConnection()->rollBack();
+                    return $this->json(['error' => 'Produit introuvable'], 404);
+                }
+
+                if ($product->getStatus() === 'sold') {
+                    $em->getConnection()->rollBack();
+                    return $this->json(['error' => 'Produit déjà vendu'], 400);
+                }
 
             // Déduire le montant du portefeuille
             $wallet->setBalance((string) ($balance - $amountEuros));
@@ -97,9 +111,31 @@ class WalletCheckoutController extends AbstractController
                 $labelData = $mondialRelayService->generateShippingLabel($order, $userEntity);
                 $order->setTrackingNumber($labelData['trackingNumber']);
                 $order->setShippingLabelUrl($labelData['shipping_label_url']);
+
+                // Générer la facture unique de l'acheteur
+                $invoiceService->generateInvoices($order, $userEntity);
+
+                // Message système avec le bon de livraison (pour le vendeur)
+                $labelMessage = new Message();
+                $labelMessage->setConversation($conversation);
+                $labelMessage->setUsers($product->getSeller());
+                $labelMessage->setContent("[SHIPPING_LABEL] " . $labelData['shipping_label_url']);
+                $labelMessage->setIsRead(false);
+                $labelMessage->setCreatedAt(new \DateTime());
+                $em->persist($labelMessage);
+
+                // Message système pour confirmer l'achat global
+                $buyMessage = new Message();
+                $buyMessage->setConversation($conversation);
+                $buyMessage->setUsers($userEntity);
+                $buyMessage->setContent("L'article a été payé avec succès (" . $amountEuros . "€) via Porte-monnaie ! La commande est en préparation.");
+                $buyMessage->setIsRead(false);
+                $buyMessage->setCreatedAt(new \DateTime());
+                $em->persist($buyMessage);
             }
 
             $em->flush();
+            $em->getConnection()->commit();
 
             return $this->json([
                 'status' => 'success',
@@ -107,6 +143,9 @@ class WalletCheckoutController extends AbstractController
             ]);
 
         } catch (\Exception $e) {
+            if ($em->getConnection()->isTransactionActive()) {
+                $em->getConnection()->rollBack();
+            }
             return $this->json(['error' => $e->getMessage()], 500);
         }
     }

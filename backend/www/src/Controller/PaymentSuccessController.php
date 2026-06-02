@@ -38,10 +38,20 @@ class PaymentSuccessController extends AbstractController
                 return $this->json(['error' => 'Conversation not found'], 404);
             }
 
-            $product = $conversation->getProductId();
-            if (!$product) {
-                return $this->json(['error' => 'Product not found'], 404);
-            }
+            // Utilisation d'un verrou pessimiste pour éviter les race conditions (double exécution)
+            $em->getConnection()->beginTransaction();
+            
+            // Recharge le produit avec un verrou d'écriture
+            $product = $em->getRepository(Product::class)->find($conversation->getProductId()->getId(), \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
+                if (!$product) {
+                    $em->getConnection()->rollBack();
+                    return $this->json(['error' => 'Product not found'], 404);
+                }
+
+                if ($product->getStatus() === 'sold') {
+                    $em->getConnection()->rollBack();
+                    return $this->json(['error' => 'Product already sold'], 400);
+                }
 
             // Obtenir le prix de l'article (offre acceptée ou prix du produit)
             $offer = null;
@@ -116,10 +126,14 @@ class PaymentSuccessController extends AbstractController
                 $em->persist($buyMessage);
 
                 $em->flush();
+                $em->getConnection()->commit();
             }
 
             return $this->json(['status' => 'success', 'orderNumber' => $order->getNumber()]);
         } catch (\Throwable $e) {
+            if ($em->getConnection()->isTransactionActive()) {
+                $em->getConnection()->rollBack();
+            }
             file_put_contents(__DIR__ . '/../../payment_error.log', $e->getMessage() . "\n" . $e->getTraceAsString());
             return $this->json([
                 'error' => 'Internal Server Error',

@@ -201,7 +201,7 @@ const ProductDetail = () => {
 
   const fetchSellerProducts = async (sellerIri, currentId) => {
     try {
-      const response = await securedFetch(`/api/products?seller=${encodeURIComponent(sellerIri)}`);
+      const response = await securedFetch(`/api/products?seller=${encodeURIComponent(sellerIri)}&status=active`);
       if (response.ok) {
         const data = await response.json();
         const items = data.member || data["hydra:member"] || (Array.isArray(data) ? data : []);

@@ -56,10 +56,10 @@ class InvoiceService
             ]
         ];
 
-        // 1. Reçu détaillé pour l'acheteur (ce qu'il a payé : Objet + Frais de service)
+        // 1. Facture unique pour l'acheteur (ce qu'il a payé : Objet + Frais de service)
         $buyerInvoice = new Invoice();
-        $buyerInvoice->setNumber('RE-B-' . strtoupper(substr(uniqid(), -5))); // RE pour Receipt
-        $buyerInvoice->setType('receipt_purchase');
+        $buyerInvoice->setNumber('FA-B-' . strtoupper(substr(uniqid(), -5))); // FA pour Facture
+        $buyerInvoice->setType('invoice_purchase');
         $buyerInvoice->setAmount($order->getTotalprice());
         $buyerInvoice->setUsers($buyer);
         $buyerInvoice->setOrders($order);

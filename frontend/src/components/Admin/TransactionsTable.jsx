@@ -169,9 +169,20 @@ const TransactionsTable = ({ transactions, handleForcePayment, handleRefund }) =
 
             {/* Actions Administratives */}
             <div className="border-t border-gray-800 pt-6">
-              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Actions de paiement</h3>
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">
+                {selectedTransaction.status === "disputed" || selectedTransaction.status === "DISPUTED" 
+                  ? "Résolution du Litige" 
+                  : "Actions de paiement"}
+              </h3>
+              
+              {selectedTransaction.status === "disputed" || selectedTransaction.status === "DISPUTED" ? (
+                <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-sm text-red-400">
+                  ⚠️ Cette transaction est en litige. En tant qu'administrateur, vous devez trancher en faveur de l'une des parties.
+                </div>
+              ) : null}
+
               <div className="flex flex-col gap-3">
-                {selectedTransaction.status !== "COMPLETED" && selectedTransaction.status !== "CANCELLED" ? (
+                {selectedTransaction.status !== "COMPLETED" && selectedTransaction.status !== "CANCELLED" && selectedTransaction.status !== "completed" && selectedTransaction.status !== "cancelled" ? (
                   <>
                     <button
                       onClick={() => {
@@ -180,7 +191,9 @@ const TransactionsTable = ({ transactions, handleForcePayment, handleRefund }) =
                       }}
                       className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
                     >
-                      Valider et débloquer les fonds (Vendeur)
+                      {(selectedTransaction.status === "disputed" || selectedTransaction.status === "DISPUTED")
+                        ? "Donner raison au Vendeur (Débloquer les fonds)"
+                        : "Valider et débloquer les fonds (Vendeur)"}
                     </button>
                     <button
                       onClick={() => {
@@ -189,12 +202,14 @@ const TransactionsTable = ({ transactions, handleForcePayment, handleRefund }) =
                       }}
                       className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors"
                     >
-                      Annuler et rembourser (Acheteur)
+                      {(selectedTransaction.status === "disputed" || selectedTransaction.status === "DISPUTED")
+                        ? "Donner raison à l'Acheteur (Annuler & Rembourser)"
+                        : "Annuler et rembourser (Acheteur)"}
                     </button>
                   </>
                 ) : (
                   <p className="text-gray-500 text-center italic text-sm">
-                    Aucune action disponible pour une transaction {selectedTransaction.status === "COMPLETED" ? "terminée" : "annulée"}.
+                    Aucune action disponible pour une transaction {(selectedTransaction.status === "COMPLETED" || selectedTransaction.status === "completed") ? "terminée" : "annulée"}.
                   </p>
                 )}
               </div>

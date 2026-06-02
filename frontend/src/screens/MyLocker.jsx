@@ -105,7 +105,7 @@ const MyLocker = () => {
 
       setLoadingProducts(true);
       try {
-        const response = await securedFetch(`/api/products?seller=${encodeURIComponent(user['@id'])}`);
+        const response = await securedFetch(`/api/products?seller=${encodeURIComponent(user['@id'])}&status=active`);
 
         if (response.ok) {
           const data = await response.json();

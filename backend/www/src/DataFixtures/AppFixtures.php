@@ -122,7 +122,7 @@ class AppFixtures extends Fixture
         $admin->setSize('180');
         $admin->setBudget(0);
         $admin->setIsOnboardingCompleted(true);
-        $admin->setAvatar('/images/Profile/pdp_1.webp');
+        $admin->setAvatar('/images/Logo.png');
         $admin->setBoxeId($this->getReference('boxe_0', Boxe::class));
         $admin->setLevelId($this->getReference('level_3', Level::class));
         $admin->setGenderId($this->getReference('gender_0', Gender::class));
@@ -136,11 +136,11 @@ class AppFixtures extends Fixture
             ['prenom' => 'Inès', 'nom' => 'Belkacem', 'email' => 'belkacem.ines@gmail.com', 'pseudo' => 'CyberInes_XP', 'birthday' => '2001-08-22', 'phone' => '06.55.44.33.22', 'weight' => '55.00', 'size' => '158', 'budget' => 300, 'gender' => 1],
             ['prenom' => 'Marc', 'nom' => 'Dubois', 'email' => 'marc.dubois.boxe@gmail.com', 'pseudo' => 'MarcoBoxing', 'birthday' => '1990-02-10', 'phone' => '06.12.34.56.78', 'weight' => '90.00', 'size' => '188', 'budget' => 50, 'gender' => 0],
             ['prenom' => 'Sophie', 'nom' => 'Laurent', 'email' => 'sophie.l@gmail.com', 'pseudo' => 'SosoFight', 'birthday' => '1995-07-30', 'phone' => '07.88.99.00.11', 'weight' => '68.00', 'size' => '170', 'budget' => 120, 'gender' => 1],
-            ['prenom' => 'Thomas', 'nom' => 'Roux', 'email' => 'thomas.roux@mail.com', 'pseudo' => 'TomTomBoxe', 'birthday' => '1998-12-05', 'phone' => '06.12.98.34.76', 'weight' => '72.00', 'size' => '175', 'budget' => 90, 'gender' => 0],
+            ['prenom' => 'Thomas', 'nom' => 'Roux', 'email' => 'thomas.roux@gmail.com', 'pseudo' => 'TomTomBoxe', 'birthday' => '1998-12-05', 'phone' => '06.12.98.34.76', 'weight' => '72.00', 'size' => '175', 'budget' => 90, 'gender' => 0],
             ['prenom' => 'Clara', 'nom' => 'Moreau', 'email' => 'claramoreau@mail.com', 'pseudo' => 'ClaraPunch', 'birthday' => '2000-03-15', 'phone' => '07.45.67.89.01', 'weight' => '60.00', 'size' => '168', 'budget' => 250, 'gender' => 1],
-            ['prenom' => 'Hugo', 'nom' => 'Blanc', 'email' => 'hugo.b@mail.com', 'pseudo' => 'HugoFighter', 'birthday' => '1993-09-22', 'phone' => '06.87.65.43.21', 'weight' => '85.00', 'size' => '185', 'budget' => 110, 'gender' => 0],
-            ['prenom' => 'Emma', 'nom' => 'Petit', 'email' => 'emma.petit@mail.com', 'pseudo' => 'EmmaBox', 'birthday' => '1997-01-11', 'phone' => '07.12.34.56.78', 'weight' => '58.00', 'size' => '162', 'budget' => 180, 'gender' => 1],
-            ['prenom' => 'Lucas', 'nom' => 'Garnier', 'email' => 'lucas.g@mail.com', 'pseudo' => 'LucK_O', 'birthday' => '1996-06-18', 'phone' => '06.99.88.77.11', 'weight' => '78.00', 'size' => '179', 'budget' => 140, 'gender' => 0],
+            ['prenom' => 'Hugo', 'nom' => 'Blanc', 'email' => 'hugo.b@gmail.com', 'pseudo' => 'HugoFighter', 'birthday' => '1993-09-22', 'phone' => '06.87.65.43.21', 'weight' => '85.00', 'size' => '185', 'budget' => 110, 'gender' => 0],
+            ['prenom' => 'Emma', 'nom' => 'Petit', 'email' => 'emma.petit@gmail.com', 'pseudo' => 'EmmaBox', 'birthday' => '1997-01-11', 'phone' => '07.12.34.56.78', 'weight' => '58.00', 'size' => '162', 'budget' => 180, 'gender' => 1],
+            ['prenom' => 'Lucas', 'nom' => 'Garnier', 'email' => 'lucas.g@gmail.com', 'pseudo' => 'LucK_O', 'birthday' => '1996-06-18', 'phone' => '06.99.88.77.11', 'weight' => '78.00', 'size' => '179', 'budget' => 140, 'gender' => 0],
         ];
 
         foreach ($arrayUser as $key => $value) {

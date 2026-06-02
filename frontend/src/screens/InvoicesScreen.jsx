@@ -11,6 +11,7 @@ const InvoicesScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [invoices, setInvoices] = useState([]);
+  const [soldProducts, setSoldProducts] = useState([]);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -51,6 +52,14 @@ const InvoicesScreen = () => {
         extractedInvoices.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         
         setInvoices(extractedInvoices);
+
+        // Récupérer les produits vendus
+        const productsResponse = await securedFetch(`/api/products?seller=${encodeURIComponent(user['@id'])}&status=sold`);
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json();
+          const extractedProducts = productsData['hydra:member'] || productsData.member || [];
+          setSoldProducts(extractedProducts);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -63,8 +72,9 @@ const InvoicesScreen = () => {
 
   const getInvoiceTypeInfo = (type) => {
     switch (type) {
+      case 'invoice_purchase':
       case 'receipt_purchase':
-        return { label: "Reçu d'Achat", color: "text-blue-400", bg: "bg-blue-400/10", border: "border-blue-400/30" };
+        return { label: "Facture d'Achat", color: "text-blue-400", bg: "bg-blue-400/10", border: "border-blue-400/30" };
       case 'invoice_commission':
         return { label: "Facture Commission", color: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/30" };
       case 'receipt_transfer':
@@ -116,7 +126,7 @@ const InvoicesScreen = () => {
                 <div className="bg-black/80 backdrop-blur-md border border-white/20 p-6 md:p-10 rounded-sm shadow-2xl">
                   <h3 className="text-3xl font-bebas uppercase mb-6 text-white tracking-widest border-b border-white/10 pb-4">Mes Achats</h3>
                   
-                  {invoices.filter(i => i.type === 'receipt_purchase').length === 0 ? (
+                  {invoices.filter(i => i.type === 'invoice_purchase' || i.type === 'receipt_purchase').length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       <p className="text-sm">Aucun achat effectué.</p>
                     </div>
@@ -133,7 +143,7 @@ const InvoicesScreen = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {invoices.filter(i => i.type === 'receipt_purchase').map((invoice) => {
+                          {invoices.filter(i => i.type === 'invoice_purchase' || i.type === 'receipt_purchase').map((invoice) => {
                             const typeInfo = getInvoiceTypeInfo(invoice.type);
                             return (
                               <tr key={invoice.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
@@ -165,11 +175,11 @@ const InvoicesScreen = () => {
                   )}
                 </div>
 
-                {/* Section Ventes */}
+                {/* Section Ventes (Produits Vendus) */}
                 <div className="bg-black/80 backdrop-blur-md border border-white/20 p-6 md:p-10 rounded-sm shadow-2xl mb-12">
                   <h3 className="text-3xl font-bebas uppercase mb-6 text-white tracking-widest border-b border-white/10 pb-4">Mes Ventes</h3>
                   
-                  {invoices.filter(i => i.type !== 'receipt_purchase').length === 0 ? (
+                  {soldProducts.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       <p className="text-sm">Aucune vente effectuée.</p>
                     </div>
@@ -178,45 +188,44 @@ const InvoicesScreen = () => {
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="border-b border-white/20 text-gray-400 text-sm uppercase font-bold tracking-wider">
-                            <th className="py-3 px-4">Date</th>
-                            <th className="py-3 px-4">Numéro</th>
-                            <th className="py-3 px-4">Type</th>
-                            <th className="py-3 px-4 text-right">Montant</th>
+                            <th className="py-3 px-4">Article</th>
+                            <th className="py-3 px-4">Marque</th>
+                            <th className="py-3 px-4">Taille</th>
+                            <th className="py-3 px-4 text-right">Prix de Vente</th>
                             <th className="py-3 px-4 text-center">Action</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {invoices.filter(i => i.type !== 'receipt_purchase').map((invoice) => {
-                            const typeInfo = getInvoiceTypeInfo(invoice.type);
-                            return (
-                              <tr key={invoice.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                                <td className="py-4 px-4 font-mono text-sm">{formatDate(invoice.createdAt)}</td>
-                                <td className="py-4 px-4 font-mono text-sm text-gray-300">{invoice.number}</td>
-                                <td className="py-4 px-4">
-                                  <span className={`inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm border ${typeInfo.bg} ${typeInfo.color} ${typeInfo.border}`}>
-                                    {typeInfo.label}
-                                  </span>
-                                </td>
-                                <td className="py-4 px-4 text-right font-bold text-lg">
-                                  {invoice.amount} €
-                                </td>
-                                <td className="py-4 px-4 text-center">
-                                  <button
-                                    onClick={() => handleDownload(invoice)}
-                                    className="inline-flex items-center justify-center p-2 rounded-sm bg-gray-800 hover:bg-gray-700 text-gray-300 transition-colors"
-                                    title="Télécharger PDF"
-                                  >
-                                    <FaDownload />
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })}
+                          {soldProducts.map((product) => (
+                            <tr key={product.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                              <td className="py-4 px-4 font-bold text-sm text-gray-200">
+                                {product.title}
+                              </td>
+                              <td className="py-4 px-4 font-mono text-sm text-gray-400">
+                                {product.brand || "N/A"}
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-400">
+                                {product.size || "Standard"}
+                              </td>
+                              <td className="py-4 px-4 text-right font-bold text-lg text-emerald-400">
+                                {product.price} €
+                              </td>
+                              <td className="py-4 px-4 text-center">
+                                <Link
+                                  to={`/product/${product.id}`}
+                                  className="inline-flex items-center justify-center px-4 py-2 rounded-sm bg-emerald-600 hover:bg-emerald-700 text-white text-xs uppercase font-bold tracking-wider transition-colors"
+                                >
+                                  Voir
+                                </Link>
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>
                   )}
                 </div>
+
               </div>
             )}
           </div>

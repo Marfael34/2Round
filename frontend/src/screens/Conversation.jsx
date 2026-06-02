@@ -111,6 +111,11 @@ const Conversation = () => {
   const [evalComment, setEvalComment] = useState("");
   const [hasEvaluatedLocal, setHasEvaluatedLocal] = useState(false);
 
+  // Dispute Modal State
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("Problème avec l'article");
+  const [disputeDescription, setDisputeDescription] = useState("");
+
   // Image upload
   const [selectedImage, setSelectedImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -120,6 +125,7 @@ const Conversation = () => {
   const messagesEndRef = useRef(null);
   const pollIntervalRef = useRef(null);
   const skipCleanupRef = useRef(false);
+  const paymentProcessedRef = useRef(false);
 
   const decodeToken = (token) => {
     try {
@@ -1075,36 +1081,50 @@ const Conversation = () => {
     });
   };
 
-  const handleDispute = async () => {
+  const handleDispute = () => {
     if (!currentOrder || !activeConversation) return;
+    setShowDisputeModal(true);
+  };
+
+  const submitDispute = async () => {
+    if (!currentOrder || !activeConversation) return;
+    if (!disputeDescription.trim()) {
+      showAlert("Veuillez fournir une description détaillée du problème.", "error");
+      return;
+    }
     
-    showConfirm("Êtes-vous sûr de vouloir signaler un problème ? Les fonds seront bloqués jusqu'à résolution.", async () => {
-      try {
-        const res = await securedFetch(`${API_URL}/orders/dispute`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId: currentOrder.id,
-            conversationId: activeConversation.id
-          })
-        });
-        if (!res.ok) {
-           const data = await res.json();
-           throw new Error(data.error || "Erreur de déclaration de litige");
-        }
-        
-        showAlert("Litige déclaré. Veuillez en discuter à l'amiable dans ce chat.", "error");
-        setCurrentOrder(prev => ({...prev, status: "disputed"}));
-        fetchActiveMessages(activeConversation.id, true);
-      } catch (err) {
-        console.error(err);
-        showAlert("Erreur : " + err.message, "error");
+    try {
+      const res = await securedFetch(`${API_URL}/orders/dispute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: currentOrder.id,
+          conversationId: activeConversation.id,
+          reason: disputeReason,
+          description: disputeDescription
+        })
+      });
+      if (!res.ok) {
+         const data = await res.json();
+         throw new Error(data.error || "Erreur de déclaration de litige");
       }
-    });
+      
+      showAlert("Litige déclaré. L'administration a été prévenue. Veuillez en discuter à l'amiable ici.", "error");
+      setCurrentOrder(prev => ({...prev, status: "disputed"}));
+      setShowDisputeModal(false);
+      setDisputeDescription("");
+      fetchActiveMessages(activeConversation.id, true);
+    } catch (err) {
+      console.error(err);
+      showAlert("Erreur : " + err.message, "error");
+    }
   };
 
   useEffect(() => {
     if (!paymentSuccessParam || !currentUser || !paymentConvId) return;
+    if (paymentProcessedRef.current) return;
+    paymentProcessedRef.current = true;
+    
     const handlePaymentReturn = async () => {
       const convs = await fetchConversationsList(currentUser);
       const conv = convs.find((c) => c.id === Number(paymentConvId));
@@ -2632,6 +2652,67 @@ const Conversation = () => {
           </div>
         </div>
       )}
+      {/* Dispute Modal */}
+      {showDisputeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#111] rounded-2xl p-6 w-full max-w-md border border-gray-800 shadow-2xl relative">
+            <button 
+              onClick={() => setShowDisputeModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            >
+              <FaXmark size={24} />
+            </button>
+            <h3 className="text-2xl font-bold text-red-500 mb-2">Déclarer un litige</h3>
+            <p className="text-gray-400 text-sm mb-6">
+              Les fonds seront bloqués et l'administration sera notifiée. Fournissez des détails précis.
+            </p>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Raison principale</label>
+                <select
+                  value={disputeReason}
+                  onChange={(e) => setDisputeReason(e.target.value)}
+                  className="w-full bg-[#1A1A1A] text-white border border-gray-700 rounded-lg p-3 outline-none focus:border-red-500 transition-colors"
+                >
+                  <option value="Problème avec l'article">Problème avec l'article</option>
+                  <option value="Colis non reçu / Perdu">Colis non reçu / Perdu</option>
+                  <option value="Article contrefait">Article contrefait</option>
+                  <option value="Article endommagé">Article endommagé pendant le transport</option>
+                  <option value="Autre">Autre</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Description détaillée</label>
+                <textarea
+                  value={disputeDescription}
+                  onChange={(e) => setDisputeDescription(e.target.value)}
+                  className="w-full bg-[#1A1A1A] text-white border border-gray-700 rounded-lg p-3 h-32 resize-none outline-none focus:border-red-500 transition-colors"
+                  placeholder="Veuillez expliquer le problème en détail pour que l'administration puisse vous aider..."
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDisputeModal(false)}
+                className="flex-1 py-3 bg-[#1A1A1A] text-white rounded-lg hover:bg-[#252525] transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={submitDispute}
+                className="flex-1 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              >
+                Soumettre
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Confirm Modal */}
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-110 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
