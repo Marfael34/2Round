@@ -96,6 +96,9 @@ const Register = () => {
 
     // Set default value for isActive
     dataToSend.isActive = true;
+    
+    // Set default avatar
+    dataToSend.avatar = "pdp_1.webp";
 
     // Map birthday to birthday_at
     if (dataToSend.birthday) {
