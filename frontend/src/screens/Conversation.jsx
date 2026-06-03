@@ -391,7 +391,12 @@ const Conversation = () => {
       if (!res.ok) throw new Error();
       const data = await res.json();
       const list = data.member || data["hydra:member"] || data || [];
-      list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      list.sort((a, b) => {
+        const idA = typeof a === 'object' ? (a.id || parseInt(a['@id']?.split('/').pop()) || 0) : 0;
+        const idB = typeof b === 'object' ? (b.id || parseInt(b['@id']?.split('/').pop()) || 0) : 0;
+        if (idA && idB) return idA - idB;
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      });
       setMessages(list);
       
       // Update the conversations array to hold full message objects instead of IRIs
@@ -461,7 +466,12 @@ const Conversation = () => {
       if (!res.ok) return;
       const data = await res.json();
       const list = data.member || data["hydra:member"] || data || [];
-      list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      list.sort((a, b) => {
+        const idA = typeof a === 'object' ? (a.id || parseInt(a['@id']?.split('/').pop()) || 0) : 0;
+        const idB = typeof b === 'object' ? (b.id || parseInt(b['@id']?.split('/').pop()) || 0) : 0;
+        if (idA && idB) return idA - idB;
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      });
       setConversations((prev) =>
         prev.map((c) => (c.id === convId ? { ...c, messages: list } : c))
       );
