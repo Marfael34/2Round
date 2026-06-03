@@ -3,7 +3,6 @@ import { IMG_BOXE, IMG_LOGO } from '../constants/appConstante';
 import Loader from '../components/Loader/Loader';
 import CustomButton from '../components/UI/CustomButton';
 import { Link } from 'react-router-dom';
-import PackCard from '../components/Product/PackCard';
 import GuideLayout from '../components/Guide/GuideLayout';
 import NotreSelection from '../components/Product/Highlighted';
 import Tagline from '../components/UI/Tagline';

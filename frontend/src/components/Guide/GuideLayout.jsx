@@ -2,6 +2,7 @@ import { IMG_BGRAYURE } from '../../constants/appConstante';
 import { IMAGE_URL } from '../../constants/apiConstante';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { FaArrowRight } from 'react-icons/fa6';
 
 const GuideLayout = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -18,7 +19,7 @@ const GuideLayout = () => {
             
           <div className=
           {
-            `w-full bg-boxe bg-blend-multiply relative transition-opacity duration-500 max-w-[1800px] 
+            `w-full bg-boxe bg-blend-multiply relative transition-opacity duration-500 max-w-[1800px] mx-auto text-white
             ${isLoaded ? 'opacity-100' : 'opacity-0'} py-10 md:py-20`}
             style={{ backgroundImage: `url(${IMG_BGRAYURE})` }}
           >
@@ -54,9 +55,9 @@ const GuideLayout = () => {
             </div>
             {/* Lien Voir tous les guides */}
               <div className="text-right mt-12 mr-5  md:pr-15 md:pt-10">
-                <Link to="/guide" className="text-red font-inter font-bold uppercase text-sm hover:text-red/80 transition-colors inline-flex items-center gap-2">
+                <Link to="/guide" className="text-red font-inter font-bold uppercase md:text-4xl hover:text-red/80 transition-colors inline-flex items-center gap-2">
                   Voir les guides
-                  <span className="text-lg">→</span>
+                  <FaArrowRight />
                 </Link>
               </div>
           </div> 

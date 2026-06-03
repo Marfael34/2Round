@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
 
 const Selection = () => {
@@ -52,14 +51,6 @@ const Selection = () => {
         ) : (
           <p className="text-gray-400 font-inter">Aucun produit mise en avant pour le moment.</p>
         )}
-
-        {/* Lien Voir tous les produits */}
-        <div className="text-right mt-12">
-          <Link to="/marketplace" className="text-red font-inter font-bold uppercase text-sm hover:text-red/80 transition-colors inline-flex items-center gap-2">
-            Voir tout le catalogue
-            <span className="text-lg">→</span>
-          </Link>
-        </div>
       </div>
     </div>
   );

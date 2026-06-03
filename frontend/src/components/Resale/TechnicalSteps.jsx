@@ -135,7 +135,7 @@ const TechnicalSteps = () => {
       </div>
 
       <div className="flex flex-col items-center text-center space-y-8 xl:-translate-y-135 xl:translate-x-65">
-        <h3 className="text-2xl md:text-4xl xl:text-6xl font-bebas uppercase tracking-wide">
+        <h3 className="text-2xl md:text-4xl xl:text-6xl font-bebas mt-5 uppercase tracking-wide">
           Un enchaînement facile, simple et efficace.
         </h3>
 
