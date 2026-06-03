@@ -572,14 +572,14 @@ class AppFixtures extends Fixture
                 'size' => '43',
                 'colors' => ['noir', 'argent']
             ],
-            ///
+            
             [
                 'title' => 'Poire de vitesse en cuir',
                 'brand' => 'Everlast',
                 'description' => 'Speed bag taille M en cuir de vache. Excellent pour la coordination oeil-main. Livrée sans le plateau rotatif.',
                 'price' => '22.00',
                 'weight' => 200,
-                'images' => ['punching bag_2.webp'],
+                'images' => ['speedBulb.webp'],
                 'type' => 'Sacs de frappe',
                 'size' => 'M',
                 'colors' => ['marron']
@@ -590,7 +590,7 @@ class AppFixtures extends Fixture
                 'description' => 'Casque de protection avec barre frontale en PVC. Bon compromis sécurité/prix. Taille XL.',
                 'price' => '35.00',
                 'weight' => 550,
-                'images' => ['helmet.webp'],
+                'images' => ['helmet_4.webp'],
                 'type' => 'Casques',
                 'size' => 'XL',
                 'colors' => ['noir', 'blanc']
@@ -601,7 +601,7 @@ class AppFixtures extends Fixture
                 'description' => 'Chevillères élastiques en coton pour le Muay Thaï. Taille M. Protègent des frottements sur le tatami.',
                 'price' => '8.00',
                 'weight' => 100,
-                'images' => ['strips_2.webp'],
+                'images' => ['AnkleSupports.webp'],
                 'type' => 'Protections',
                 'size' => 'M',
                 'colors' => ['rouge']
@@ -612,7 +612,7 @@ class AppFixtures extends Fixture
                 'description' => 'Corde à roulement à billes ultra fluide. Poignées en alu, câble en acier remplaçable. Utilisée pour l\'échauffement rapide.',
                 'price' => '28.00',
                 'weight' => 200,
-                'images' => ['skipping_rope.webp'],
+                'images' => ['skipping_rope_3.webp'],
                 'type' => 'Accessoires',
                 'size' => 'Unique',
                 'colors' => ['argent', 'noir']
@@ -623,7 +623,7 @@ class AppFixtures extends Fixture
                 'description' => 'Survêtement sauna complet (veste + pantalon). Taille L. Idéal pour les coupes de poids (weight cut).',
                 'price' => '30.00',
                 'weight' => 400,
-                'images' => ['short.webp'],
+                'images' => ['SudationTracksuit.webp', 'SudationTracksuit_2.webp', 'SudationTracksuit_3.webp'],
                 'type' => 'Vêtements',
                 'size' => 'L',
                 'colors' => ['noir', 'gris']
@@ -634,7 +634,7 @@ class AppFixtures extends Fixture
                 'description' => 'Gants 16oz en cuir Nappa véritable. Mousse quadruple densité. État presque irréprochable, cuir nourri régulièrement.',
                 'price' => '85.00',
                 'weight' => 900,
-                'images' => ['glove.webp'],
+                'images' => ['glove_7.webp'],
                 'type' => 'Gants de boxe',
                 'size' => '16 oz',
                 'colors' => ['noir', 'or']
@@ -645,7 +645,7 @@ class AppFixtures extends Fixture
                 'description' => 'Protège-ventre pour recevoir les coups de pied et genoux. Rembourrage très épais. Taille réglable.',
                 'price' => '50.00',
                 'weight' => 1500,
-                'images' => ['protective_shell.webp'],
+                'images' => ['TrainingStriking.webp', 'TrainingStriking_2.webp'],
                 'type' => 'Protections',
                 'size' => 'Unique',
                 'colors' => ['noir']
@@ -656,7 +656,7 @@ class AppFixtures extends Fixture
                 'description' => 'Style mexicain (légèrement élastiques) pour un contour parfait du poing. Neuves sous blister.',
                 'price' => '9.00',
                 'weight' => 150,
-                'images' => ['strips_2.webp'],
+                'images' => ['strips_4.webp'],
                 'type' => 'Accessoires',
                 'size' => '4 m',
                 'colors' => ['jaune']
@@ -667,7 +667,7 @@ class AppFixtures extends Fixture
                 'description' => 'Idéal pour l\'initiation des 8-12 ans. Mousse souple et protection des pommettes. Très léger.',
                 'price' => '12.00',
                 'weight' => 300,
-                'images' => ['helmet.webp'],
+                'images' => ['helmet_5.webp'],
                 'type' => 'Casques',
                 'size' => 'S',
                 'colors' => ['bleu', 'blanc']
@@ -678,19 +678,18 @@ class AppFixtures extends Fixture
                 'description' => 'Modèle légendaire introuvable, pointure 42.5. Technologie flywire. Usure normale de la semelle après 1 an de pratique.',
                 'price' => '150.00',
                 'weight' => 450,
-                'images' => ['choose.webp'],
+                'images' => ['shoes_5.webp'],
                 'type' => 'Chaussures',
                 'size' => '42',
                 'colors' => ['noir', 'argent']
             ],
-            ///
             [
                 'title' => 'Gants de sac Metal Boxe PB480',
                 'brand' => 'Metal Boxe',
                 'description' => 'Gants légers type mitaines fermées pour le travail au sac lourd. Pouce ouvert.',
                 'price' => '15.00',
                 'weight' => 300,
-                'images' => ['gloves_2.webp'],
+                'images' => ['gloves_8.webp'],
                 'type' => 'Gants de boxe',
                 'size' => 'M',
                 'colors' => ['noir']
@@ -701,7 +700,7 @@ class AppFixtures extends Fixture
                 'description' => 'Sac de sport spacieux avec compartiment aéré pour les gants et chaussures. Bandoulière solide.',
                 'price' => '20.00',
                 'weight' => 800,
-                'images' => ['punching bag_2.webp'],
+                'images' => ['bag.webp'],
                 'type' => 'Accessoires',
                 'size' => 'Unique',
                 'colors' => ['gris', 'noir']
@@ -712,7 +711,7 @@ class AppFixtures extends Fixture
                 'description' => 'Protège-dents thermoformable haut de gamme. Jamais utilisé, erreur de commande (trop petit pour moi).',
                 'price' => '18.00',
                 'weight' => 80,
-                'images' => ['protective_shell.webp'],
+                'images' => ['mouthguard_2.webp'],
                 'type' => 'Protections',
                 'size' => 'M',
                 'colors' => ['or', 'noir']
@@ -723,7 +722,7 @@ class AppFixtures extends Fixture
                 'description' => 'Style rétro avec large bande élastique à la taille. Coupe ample descendant au genou. Taille XL.',
                 'price' => '22.00',
                 'weight' => 250,
-                'images' => ['short.webp'],
+                'images' => ['short_4.webp'],
                 'type' => 'Vêtements',
                 'size' => 'XL',
                 'colors' => ['noir', 'blanc']
@@ -734,18 +733,19 @@ class AppFixtures extends Fixture
                 'description' => 'Idéales pour le MMA et le grappling, protègent la rotule lors des passages au sol. Lavées en machine.',
                 'price' => '16.00',
                 'weight' => 200,
-                'images' => ['shin_guard.webp'],
+                'images' => ['KneePads.webp'],
                 'type' => 'Protections',
                 'size' => 'L',
                 'colors' => ['noir']
             ],
+            ///
             [
                 'title' => 'Gants d\'entraînement Reebok',
                 'brand' => 'Reebok',
                 'description' => 'Gants 12oz parfaits pour les cours de cardio-boxing/fitness. Mesh aéré au niveau de la paume.',
                 'price' => '25.00',
                 'weight' => 700,
-                'images' => ['glove.webp'],
+                'images' => ['gloves_9.webp'],
                 'type' => 'Gants de boxe',
                 'size' => '12 oz',
                 'colors' => ['noir', 'rouge']
