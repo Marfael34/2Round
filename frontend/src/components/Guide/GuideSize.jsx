@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ChevronDown, ChevronUp } from "lucide-react";
 import { API_URL } from "../../constants/apiConstante";
@@ -17,6 +17,20 @@ const GuideSize = () => {
   const [selectedCategory, setSelectedCategory] = useState("GANTS");
   const [sizeData, setSizeData] = useState({});
   const [loading, setLoading] = useState(true);
+
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const categories = ["GANTS", "BANDES", "CASQUE", "CHAUSSURES"];
 
@@ -104,7 +118,7 @@ const GuideSize = () => {
           </p>
 
           {/* Category Selector */}
-          <div className="relative inline-block w-48">
+          <div className="relative inline-block w-48" ref={dropdownRef}>
             {!isDropdownOpen ? (
               <button
                 onClick={() => setIsDropdownOpen(true)}

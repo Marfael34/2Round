@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   FiSearch,
   FiCamera,
@@ -20,6 +20,21 @@ const NavBar = ({ user, onLogout }) => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+
+  const navRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (navRef.current && !navRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+        setIsUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const decodeToken = (token) => {
     if (!token) return null;
@@ -57,7 +72,7 @@ const NavBar = ({ user, onLogout }) => {
   };
 
   return (
-    <nav className="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-gray-800 fixed top0 left-0 w-full z-50">
+    <nav ref={navRef} className="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-gray-800 fixed top-0 left-0 w-full z-50">
       {/* Logo */}
       <div className="text-2xl font-bold tracking-tighter">
         <img
