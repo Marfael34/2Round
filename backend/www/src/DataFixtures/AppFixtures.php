@@ -632,7 +632,7 @@ class AppFixtures extends Fixture
                 'description' => 'Gants 16oz en cuir Nappa véritable. Mousse quadruple densité. État presque irréprochable, cuir nourri régulièrement.',
                 'price' => '85.00',
                 'weight' => 900,
-                'images' => ['glove_7.webp'],
+                'images' => ['gloves_7.webp'],
                 'type' => 'Gants de boxe',
                 'size' => '16 oz',
                 'colors' => ['noir', 'or']
