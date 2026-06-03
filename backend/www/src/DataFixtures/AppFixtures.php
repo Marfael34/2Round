@@ -200,7 +200,7 @@ class AppFixtures extends Fixture
                 'description' => 'Gants de boxe 14oz très peu servis. Idéal pour l\'entraînement au sac ou sparring léger. Quelques légères traces d\'usure sur le pouce mais mousse intacte.',
                 'price' => '35.00',
                 'weight' => 800,
-                'images' => ['glove.webp'],
+                'images' => ['gloves.webp'],
                 'type' => 'Gants de boxe',
                 'size' => '14 oz',
                 'colors' => ['noir']
@@ -233,7 +233,7 @@ class AppFixtures extends Fixture
                 'description' => 'Modèle Box Hog 3, pointure 42. Super légères et respirantes. La semelle accroche encore parfaitement sur le ring. Un peu grisées sur le bout mais encore bonnes.',
                 'price' => '40.00',
                 'weight' => 600,
-                'images' => ['choose.webp'],
+                'images' => ['shoes.webp'],
                 'type' => 'Chaussures',
                 'size' => '42',
                 'colors' => ['noir']
@@ -304,8 +304,6 @@ class AppFixtures extends Fixture
                 'size' => 'L',
                 'colors' => ['blanc', 'gris']
             ],
-            
-            // 11 à 40 : Nouveaux produits
             [
                 'title' => 'Gants d\'entraînement Adidas Speed 50',
                 'brand' => 'Adidas',
@@ -367,7 +365,7 @@ class AppFixtures extends Fixture
                 'description' => 'Pointure 44. Chaussures très légères pour un jeu de jambes rapide. Légère usure sur la pointe du pied gauche.',
                 'price' => '55.00',
                 'weight' => 500,
-                'images' => ['choose_2.webp'],
+                'images' => ['shoes_2.webp'],
                 'type' => 'Chaussures',
                 'size' => '44',
                 'colors' => ['blanc', 'or']
@@ -579,7 +577,7 @@ class AppFixtures extends Fixture
                 'description' => 'Speed bag taille M en cuir de vache. Excellent pour la coordination oeil-main. Livrée sans le plateau rotatif.',
                 'price' => '22.00',
                 'weight' => 200,
-                'images' => ['speedBulb.webp'],
+                'images' => ['SpeedBulb.webp'],
                 'type' => 'Sacs de frappe',
                 'size' => 'M',
                 'colors' => ['marron']
