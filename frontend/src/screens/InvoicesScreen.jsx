@@ -79,6 +79,10 @@ const InvoicesScreen = () => {
         return { label: "Facture Commission", color: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/30" };
       case 'receipt_transfer':
         return { label: "Bordereau Transfert", color: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/30" };
+      case 'Boost Stripe':
+      case 'Boost Wallet':
+      case 'Boost':
+        return { label: "Facture Boost", color: "text-orange-400", bg: "bg-orange-400/10", border: "border-orange-400/30" };
       default:
         return { label: "Facture", color: "text-gray-400", bg: "bg-gray-400/10", border: "border-gray-400/30" };
     }
@@ -126,9 +130,9 @@ const InvoicesScreen = () => {
                 <div className="bg-black/80 backdrop-blur-md border border-white/20 p-6 md:p-10 rounded-sm shadow-2xl">
                   <h3 className="text-3xl font-bebas uppercase mb-6 text-white tracking-widest border-b border-white/10 pb-4">Mes Achats</h3>
                   
-                  {invoices.filter(i => i.type === 'invoice_purchase' || i.type === 'receipt_purchase').length === 0 ? (
+                  {invoices.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
-                      <p className="text-sm">Aucun achat effectué.</p>
+                      <p className="text-sm">Aucun achat ou service effectué.</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
@@ -143,7 +147,7 @@ const InvoicesScreen = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {invoices.filter(i => i.type === 'invoice_purchase' || i.type === 'receipt_purchase').map((invoice) => {
+                          {invoices.map((invoice) => {
                             const typeInfo = getInvoiceTypeInfo(invoice.type);
                             return (
                               <tr key={invoice.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">

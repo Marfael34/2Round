@@ -27,7 +27,7 @@ const MyLocker = () => {
   const [currentUserEmail, setCurrentUserEmail] = useState(null);
   const [loggedInUserId, setLoggedInUserId] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -121,6 +121,31 @@ const MyLocker = () => {
 
     fetchUserProducts();
   }, [user, activeTab, products.length]);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const boostSuccess = urlParams.get('boostSuccess');
+    const productId = urlParams.get('productId');
+
+    if (boostSuccess === 'true' && productId) {
+      const markAsBoosted = async () => {
+        try {
+          const res = await securedFetch(`/api/products/${productId}/boost-success`, {
+            method: 'POST'
+          });
+          if (res.ok) {
+            setSuccessMessage("Votre produit a bien été mis en avant !"); 
+            setTimeout(() => setSuccessMessage(""), 5000);
+            // remove query params from url cleanly
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (e) {
+          console.error('Boost processing error', e);
+        }
+      };
+      markAsBoosted();
+    }
+  }, []);
 
   return (
     <>
@@ -277,15 +302,15 @@ const MyLocker = () => {
         targetId={user?.id || (user?.['@id']?.split('/').pop())}
         currentUserId={loggedInUserId}
         onReportSuccess={() => {
-          setShowSuccessToast(true);
-          setTimeout(() => setShowSuccessToast(false), 5000);
+          setSuccessMessage("Le signalement a été envoyé avec succès.");
+          setTimeout(() => setSuccessMessage(""), 5000);
         }}
       />
 
-      {showSuccessToast && (
+      {successMessage && (
         <div className="fixed bottom-6 right-6 bg-emerald-950 border border-emerald-500/50 text-white p-4 rounded-sm shadow-xl flex items-center gap-3 z-50 animate-bounce">
           <FaCircleCheck className="text-emerald-500 text-xl" />
-          <p className="font-inter text-sm">Le signalement a été envoyé avec succès.</p>
+          <p className="font-inter text-sm">{successMessage}</p>
         </div>
       )}
     </>

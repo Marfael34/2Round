@@ -67,7 +67,8 @@ class ProductCreateController extends AbstractController
         $product->setWeight((int)$weight);
         $product->setEtat($etat);
         $product->setSeller($user);
-        $product->setIsHighlighted(false);
+        $isHighlighted = $request->request->get('isHighlighted', '0');
+        $product->setIsHighlighted($isHighlighted === '1');
 
         // Set type and size
         if (method_exists($product, 'setType')) {
@@ -75,6 +76,26 @@ class ProductCreateController extends AbstractController
         }
         if (method_exists($product, 'setSize')) {
             $product->setSize($size);
+        }
+
+        $colorIdsOrIris = $request->request->all('colors');
+        if (!empty($colorIdsOrIris)) {
+            foreach ($colorIdsOrIris as $colorIdOrIri) {
+                $colorId = null;
+                if (is_numeric($colorIdOrIri)) {
+                    $colorId = (int)$colorIdOrIri;
+                } else {
+                    if (preg_match('/\/api\/colors\/(\d+)/', $colorIdOrIri, $matches)) {
+                        $colorId = (int)$matches[1];
+                    }
+                }
+                if ($colorId) {
+                    $color = $em->getRepository(\App\Entity\Color::class)->find($colorId);
+                    if ($color) {
+                        $product->addColor($color);
+                    }
+                }
+            }
         }
 
         try {
@@ -117,6 +138,41 @@ class ProductCreateController extends AbstractController
                         $em->persist($image);
                     }
                 }
+            }
+
+            // Handle Wallet payment directly if requested
+            $paymentMethod = $request->request->get('paymentMethod');
+            if ($product->isHighlighted() && $paymentMethod === 'wallet') {
+                $wallet = $user->getWallet();
+                if (!$wallet || $wallet->getBalance() < 5) {
+                    throw new \Exception('Solde portefeuille insuffisant.');
+                }
+                $wallet->setBalance((string)($wallet->getBalance() - 5));
+                
+                $tx = new \App\Entity\WalletTransaction();
+                $tx->setAmount('-5.00');
+                $tx->setCreatedAt(new \DateTimeImmutable());
+                $tx->setType('Boost');
+                $tx->setStatus('completed');
+                $tx->setUser($user);
+                $em->persist($tx);
+
+                $invoice = new \App\Entity\Invoice();
+                $invoice->setNumber('FA-B-' . strtoupper(uniqid()));
+                $invoice->setCreatedAt(new \DateTime());
+                $invoice->setType('Boost Wallet');
+                $invoice->setAmount('5.00');
+                $invoice->setUsers($user);
+                $invoice->setSnapshot([
+                    'product_title' => $product->getTitle(),
+                    'boost_price' => '5.00',
+                    'date' => (new \DateTime())->format('Y-m-d H:i:s')
+                ]);
+                $em->persist($invoice);
+                
+                // Add InvoiceService call for PDF
+                $invoiceService = new \App\Service\InvoiceService($em);
+                $invoiceService->generateBoostInvoice($invoice, $product, $user);
             }
 
             $em->flush();

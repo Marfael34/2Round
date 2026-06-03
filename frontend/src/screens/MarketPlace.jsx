@@ -109,6 +109,7 @@ const MarketPlace = () => {
   const groupedSizes = sizes.reduce((acc, sz) => {
     let group = 'Autres';
     if (sz.includes('oz')) group = 'Gants (oz)';
+    else if (sz.endsWith('m') && !isNaN(sz.replace('m', ''))) group = 'Bandes (m)';
     else if (['XS', 'S', 'M', 'L', 'XL', 'XXL'].includes(sz.toUpperCase())) group = 'Vêtements / Protections';
     else if (!isNaN(sz)) group = 'Chaussures (EU)';
     
@@ -157,7 +158,11 @@ const MarketPlace = () => {
       return false;
     }
     return true;
-  }).sort((a, b) => b.id - a.id);
+  }).sort((a, b) => {
+    if (a.isHighlighted && !b.isHighlighted) return -1;
+    if (!a.isHighlighted && b.isHighlighted) return 1;
+    return b.id - a.id;
+  });
 
   // Pagination Logic
   const ITEMS_PER_PAGE = 24;

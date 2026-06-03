@@ -18,11 +18,18 @@ const FormMarket = () => {
   const [description, setDescription] = useState("");
   const [photos, setPhotos] = useState([]);
   const [etats, setEtats] = useState([]);
+  const [colors, setColors] = useState([]);
+  const [selectedColors, setSelectedColors] = useState([]);
 
   // Submission states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // Boost Modal states
+  const [showBoostModal, setShowBoostModal] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   // Guard routing: redirect to login if not authenticated
   useEffect(() => {
@@ -55,7 +62,43 @@ const FormMarket = () => {
       }
     };
 
+    const fetchColors = async () => {
+      try {
+        const response = await securedFetch(`${API_URL}/colors`);
+        if (response.ok) {
+          const data = await response.json();
+          let members = [];
+          if (Array.isArray(data)) {
+            members = data;
+          } else if (data && Array.isArray(data["hydra:member"])) {
+            members = data["hydra:member"];
+          } else if (data && Array.isArray(data["member"])) {
+            members = data["member"];
+          }
+          setColors(members);
+        }
+      } catch (error) {
+        console.error("Erreur chargement couleurs :", error);
+      }
+    };
+
     fetchEtats();
+    fetchColors();
+  }, []);
+
+  useEffect(() => {
+    const fetchWalletInfo = async () => {
+      try {
+        const response = await securedFetch(`${API_URL}/wallet/info`);
+        if (response.ok) {
+          const data = await response.json();
+          setWalletBalance(data.availableFunds || 0);
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement du porte-monnaie :", error);
+      }
+    };
+    fetchWalletInfo();
   }, []);
 
   // Cleanup object URLs when component unmounts
@@ -71,7 +114,7 @@ const FormMarket = () => {
 
   const handlePhotoChange = (e) => {
     if (e.target.files) {
-      const urlExtRegex = /\.(jpg|jpeg|png|webp|gif)$/i;
+      const urlExtRegex = /\.(jpg|jpeg|png|webp|gif|avif)$/i;
       const validFiles = [];
       let hasError = false;
 
@@ -87,7 +130,7 @@ const FormMarket = () => {
       });
 
       if (hasError) {
-        setSubmitError("Un ou plusieurs fichiers ont une extension non valide (.jpg, .jpeg, .png, .webp, .gif attendues).");
+        setSubmitError("Un ou plusieurs fichiers ont une extension non valide (.jpg, .jpeg, .png, .webp, .gif, .avif attendues).");
       }
 
       setPhotos((prev) => [...prev, ...validFiles]);
@@ -101,8 +144,16 @@ const FormMarket = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleInitialSubmit = (e) => {
     e.preventDefault();
+    if (!title || !price || photos.length === 0) {
+      setSubmitError("Veuillez remplir tous les champs et ajouter au moins une photo.");
+      return;
+    }
+    setShowBoostModal(true);
+  };
+
+  const submitProduct = async (highlighted) => {
     setIsSubmitting(true);
     setSubmitError("");
     setSubmitSuccess(false);
@@ -118,6 +169,17 @@ const FormMarket = () => {
       formDataToSend.append("price", price);
       formDataToSend.append("weight", weight);
       formDataToSend.append("description", description);
+      
+      // IS HIGHLIGHTED
+      formDataToSend.append("isHighlighted", highlighted ? "1" : "0");
+      if (highlighted) {
+        formDataToSend.append("paymentMethod", "wallet");
+      }
+
+      // Append colors
+      selectedColors.forEach(colorId => {
+        formDataToSend.append("colors[]", colorId);
+      });
 
       // Append files as array
       photos.forEach((photoObj) => {
@@ -155,6 +217,73 @@ const FormMarket = () => {
       setSubmitError("Impossible de se connecter au serveur.");
     } finally {
       setIsSubmitting(false);
+      setShowBoostModal(false);
+    }
+  };
+
+  const submitProductForStripe = async () => {
+    setIsSubmitting(true);
+    setSubmitError("");
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("title", title);
+      formDataToSend.append("brand", brand);
+      formDataToSend.append("equipementType", equipementType);
+      formDataToSend.append("type", equipementType);
+      formDataToSend.append("size", size);
+      formDataToSend.append("etat", condition);
+      formDataToSend.append("price", price);
+      formDataToSend.append("weight", weight);
+      formDataToSend.append("description", description);
+      formDataToSend.append("isHighlighted", "0");
+
+      selectedColors.forEach(colorId => {
+        formDataToSend.append("colors[]", colorId);
+      });
+
+      photos.forEach((photoObj) => {
+        formDataToSend.append("photos[]", photoObj.file);
+      });
+
+      const response = await securedFetch(`${API_URL}/products-create`, {
+        method: "POST",
+        body: formDataToSend
+      });
+
+      if (response.ok) {
+        const productData = await response.json();
+        
+        // Appeler la session Stripe
+        const stripeRes = await securedFetch(`${API_URL}/stripe/create-checkout-session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            productName: `Boost - ${title}`,
+            amount: 500, // 5€
+            productId: productData.id,
+            type: "boost"
+          })
+        });
+
+        if (stripeRes.ok) {
+          const stripeData = await stripeRes.json();
+          window.location.href = stripeData.url;
+        } else {
+          setSubmitError("Erreur lors de la création de la session Stripe.");
+          setIsProcessingPayment(false);
+          setIsSubmitting(false);
+        }
+      } else {
+        const errData = await response.json();
+        setSubmitError(errData.message || "Erreur de création de l'annonce.");
+        setIsProcessingPayment(false);
+        setIsSubmitting(false);
+      }
+    } catch (error) {
+      console.error(error);
+      setSubmitError("Impossible de se connecter au serveur.");
+      setIsProcessingPayment(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -181,7 +310,7 @@ const FormMarket = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleInitialSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-stretch">
               {/* Colonne Gauche : Détails de l'équipement */}
               <div className="flex flex-col gap-6 justify-between">
@@ -219,6 +348,7 @@ const FormMarket = () => {
                     <optgroup label="Protections">
                       <option value="helmet">Casques</option>
                       <option value="mouthguard">Protège-dents</option>
+                      <option value="shin-guard">Protège-tibias</option>
                       <option value="groin-guard">Coquilles</option>
                       <option value="groin-guard-holder">
                         Coquille et porte-coquille
@@ -291,6 +421,14 @@ const FormMarket = () => {
                       <option value="44">44</option>
                       <option value="45">45</option>
                     </optgroup>
+                    <optgroup label="Bandes (m)">
+                      <option value="2.5m">2.5 m</option>
+                      <option value="3m">3 m</option>
+                      <option value="3.5m">3.5 m</option>
+                      <option value="4m">4 m</option>
+                      <option value="4.5m">4.5 m</option>
+                      <option value="5m">5 m</option>
+                    </optgroup>
                   </select>
                 </div>
 
@@ -314,6 +452,35 @@ const FormMarket = () => {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Couleurs */}
+                <div className="flex flex-col gap-1 w-full">
+                  <label className="font-inter text-xs uppercase text-gray-400 mb-2">
+                    Couleurs
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.isArray(colors) && colors.map((col) => {
+                      const colorId = col["@id"] || `/api/colors/${col.id}`;
+                      const isSelected = selectedColors.includes(colorId);
+                      return (
+                        <button
+                          key={colorId}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedColors(selectedColors.filter(id => id !== colorId));
+                            } else {
+                              setSelectedColors([...selectedColors, colorId]);
+                            }
+                          }}
+                          className={`py-2 px-4 rounded-full text-xs font-bold transition-colors ${isSelected ? "bg-red-600 text-white" : "bg-[#1A1A1A] text-gray-400 border border-white/10 hover:border-white/30"}`}
+                        >
+                          {col.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Prix (€) */}
@@ -396,7 +563,7 @@ const FormMarket = () => {
                           Glissez vos photos ou cliquez pour parcourir
                         </span>
                         <span className="font-inter text-xs text-gray-500">
-                          PNG, JPG, WEBP jusqu'à 5MB
+                          PNG, JPG, WEBP, AVIF jusqu'à 5MB
                         </span>
                       </div>
                     </div>
@@ -453,6 +620,70 @@ const FormMarket = () => {
           </form>
         </div>
       </div>
+
+      {/* Modal Boost */}
+      {showBoostModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#1A1A1A] border border-white/10 rounded-lg p-6 max-w-md w-full shadow-2xl relative">
+            <h2 className="text-2xl font-bebas uppercase tracking-wide mb-4 text-white">Mettre en avant votre annonce ?</h2>
+            <p className="text-gray-400 text-sm font-inter mb-6">
+              Boostez la visibilité de votre article dans le catalogue pour le vendre plus vite ! Votre produit apparaîtra en tête des résultats de recherche pour seulement <strong className="text-white">5,00 €</strong>.
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsProcessingPayment(true);
+                  // Simulate Wallet payment logic then submit
+                  setTimeout(() => {
+                    submitProduct(true);
+                  }, 1500);
+                }}
+                disabled={isProcessingPayment || walletBalance < 5}
+                className="bg-[#2A2A2A] hover:bg-[#333] border border-white/10 text-white font-bold py-3 px-4 rounded-sm transition-colors text-sm uppercase flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isProcessingPayment 
+                  ? "Traitement..." 
+                  : (walletBalance < 5 
+                      ? `💰 Porte-monnaie (Solde: ${walletBalance.toFixed(2)}€ - Insuffisant)` 
+                      : `💰 Payer avec mon Porte-monnaie (Solde: ${walletBalance.toFixed(2)}€)`)}
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsProcessingPayment(true);
+                  // We will create the product first without highlight, then redirect to Stripe
+                  await submitProductForStripe();
+                }}
+                disabled={isProcessingPayment}
+                className="bg-[#635BFF] hover:bg-[#5249e5] text-white font-bold py-3 px-4 rounded-sm transition-colors text-sm uppercase flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isProcessingPayment ? "Redirection Stripe..." : "💳 Payer par Carte (Stripe)"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => submitProduct(false)}
+                disabled={isProcessingPayment}
+                className="bg-transparent border border-white/20 hover:border-white/40 hover:bg-white/5 text-gray-300 font-bold py-3 px-4 mt-2 rounded-sm transition-colors text-sm uppercase disabled:opacity-50"
+              >
+                Non merci, publier normalement
+              </button>
+            </div>
+            {!isProcessingPayment && (
+              <button 
+                type="button"
+                onClick={() => setShowBoostModal(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-white"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 };

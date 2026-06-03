@@ -43,11 +43,18 @@ class StripeCheckoutController extends AbstractController
                 $origin = $this->frontendUrl;
             }
 
+            $type = $data['type'] ?? 'order';
             $transferGroup = $conversationId ? 'CONV_' . $conversationId : 'PROD_' . $productId . '_USER_' . $buyerId;
-            $successUrl = $origin . '/conversation?paymentSuccess=true&conversationId=' . ($conversationId ?? '') . '&productId=' . ($productId ?? '') . '&amount=' . $amount;
-            $cancelUrl = $conversationId 
-                ? $origin . '/conversation?paymentCancelled=true&conversationId=' . $conversationId 
-                : $origin . '/product/' . $productId;
+            
+            if ($type === 'boost') {
+                $successUrl = $origin . '/my-locker?boostSuccess=true&productId=' . ($productId ?? '');
+                $cancelUrl = $origin . '/my-locker';
+            } else {
+                $successUrl = $origin . '/conversation?paymentSuccess=true&conversationId=' . ($conversationId ?? '') . '&productId=' . ($productId ?? '') . '&amount=' . $amount;
+                $cancelUrl = $conversationId 
+                    ? $origin . '/conversation?paymentCancelled=true&conversationId=' . $conversationId 
+                    : $origin . '/product/' . $productId;
+            }
 
             $session = Session::create([
                 'payment_method_types' => ['card'],
