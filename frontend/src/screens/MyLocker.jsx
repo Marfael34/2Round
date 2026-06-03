@@ -6,6 +6,7 @@ import UserEvaluations from "../components/Profile/UserEvaluations";
 import { FaChevronLeft, FaStar, FaFlag, FaCircleCheck } from "react-icons/fa6";
 import { securedFetch } from "../utils/api";
 import ReportModal from "../components/ReportModal";
+import UserSanctions from "../components/User/UserSanctions";
 
 const MyLocker = () => {
   const navigate = useNavigate();
@@ -281,16 +282,25 @@ const MyLocker = () => {
                 onClick={() => setActiveTab('evaluations')}
               >
                 <span className="font-inter font-extralight uppercase text-xl md:text-3xl">Évaluations</span>
-                
               </button>
+              {isCurrentUser && (
+                <button 
+                  className={`${activeTab === 'sanctions' ? 'text-white border-b-2 border-red-600' : 'text-gray-500 hover:text-white'} pb-2`}
+                  onClick={() => setActiveTab('sanctions')}
+                >
+                  <span className="font-inter font-extralight uppercase text-xl md:text-3xl text-red-500/80 hover:text-red-500 transition-colors">Mes Sanctions</span>
+                </button>
+              )}
             </div>
           </div>
           <div className="w-full px-4 md:px-12 lg:px-24">
             {activeTab === 'articles' ? (
               <UserProducts products={products} loading={loadingProducts} />
-            ) : (
+            ) : activeTab === 'evaluations' ? (
               <UserEvaluations evaluations={evaluations} />
-            )}
+            ) : activeTab === 'sanctions' && isCurrentUser ? (
+              <UserSanctions sanctionUris={user?.sanctions || []} />
+            ) : null}
           </div>
         </div>
       </div>

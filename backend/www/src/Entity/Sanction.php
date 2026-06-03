@@ -24,19 +24,19 @@ class Sanction
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['sanction:read'])]
+    #[Groups(['sanction:read', 'user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['sanction:read', 'sanction:write'])]
+    #[Groups(['sanction:read', 'sanction:write', 'user:read'])]
     private ?string $type = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['sanction:read', 'sanction:write'])]
+    #[Groups(['sanction:read', 'sanction:write', 'user:read'])]
     private ?string $reason = null;
 
     #[ORM\Column]
-    #[Groups(['sanction:read'])]
+    #[Groups(['sanction:read', 'user:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'sanctions')]

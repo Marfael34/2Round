@@ -5,6 +5,7 @@ import UserReports from "../components/Admin/UserReports";
 import ProductReports from "../components/Admin/ProductReports";
 import ConversationReports from "../components/Admin/ConversationReports";
 import MessageReports from "../components/Admin/MessageReports";
+import AllSanctions from "../components/Admin/AllSanctions";
 import UsersTable from "../components/Admin/UsersTable";
 import AllReports from "../components/Admin/AllReports";
 import TransactionsTable from "../components/Admin/TransactionsTable";
@@ -319,6 +320,16 @@ const AdminDashboard = () => {
           >
             Commandes
           </button>
+          <button
+            onClick={() => setActiveTab("sanctions")}
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+              activeTab === "sanctions"
+                ? "bg-red-600 text-white shadow-lg shadow-red-900/20"
+                : "bg-[#1A1A1A] text-gray-400 hover:bg-[#252525] hover:text-white"
+            }`}
+          >
+            Sanctions
+          </button>
         </div>
 
         {/* Content */}
@@ -343,7 +354,7 @@ const AdminDashboard = () => {
                 handleForcePayment={handleForcePayment}
                 handleRefund={handleRefund}
               />
-            ) : (
+            ) : activeTab === "reports" ? (
               <div>
                 {/* Sous-onglets de signalements */}
                 <div className="flex gap-2 mb-6 overflow-x-auto border-b border-gray-800 pb-4">
@@ -380,7 +391,9 @@ const AdminDashboard = () => {
                   <AllReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} />
               )}
             </div>
-            )}
+            ) : activeTab === "sanctions" ? (
+              <AllSanctions />
+            ) : null}
           </div>
         )}
 

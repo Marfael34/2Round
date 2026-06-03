@@ -1,6 +1,6 @@
 import { FiTrash2, FiMessageSquare, FiTag, FiShield } from "react-icons/fi";
 
-const AllReports = ({ reports, handleDeleteReport, handleOpenSanctionModal }) => {
+const AllReports = ({ reports, handleDeleteReport, handleOpenSanctionModal, handleOpenProductModal }) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
@@ -60,7 +60,14 @@ const AllReports = ({ reports, handleDeleteReport, handleOpenSanctionModal }) =>
               >
                 <td className="py-4 px-4">#{report.id}</td>
                 <td className="py-4 px-4 font-semibold text-red-400">
-                  {report.reason}
+                  <div className="flex items-center gap-2">
+                    {report.reason}
+                    {report.status === 'processed' && (
+                      <span className="bg-green-900/50 text-green-400 text-[10px] px-2 py-0.5 rounded-full border border-green-500/30 uppercase tracking-widest">
+                        Traité
+                      </span>
+                    )}
+                  </div>
                   {report.description && (
                     <p className="text-xs text-gray-400 max-w-xs truncate mt-1" title={report.description}>
                       {report.description}
@@ -107,10 +114,14 @@ const AllReports = ({ reports, handleDeleteReport, handleOpenSanctionModal }) =>
                         <FiMessageSquare size={20} />
                       </button>
                     )}
-                    {report.product?.id && (
+                    {report.product && (
                       <button
                         onClick={() => {
-                          window.location.href = `/product/${report.product.id}`;
+                          if (handleOpenProductModal) {
+                            handleOpenProductModal(report);
+                          } else {
+                            window.location.href = `/product/${report.product.id}`;
+                          }
                         }}
                         className="p-2 bg-green-500/10 text-green-500 hover:bg-green-500/20 rounded-lg transition-colors"
                         title="Voir le produit"
@@ -118,9 +129,9 @@ const AllReports = ({ reports, handleDeleteReport, handleOpenSanctionModal }) =>
                         <FiTag size={20} />
                       </button>
                     )}
-                    {candidates.length > 0 && (
+                    {candidates.length > 0 && report.status !== 'processed' && (
                       <button
-                        onClick={() => handleOpenSanctionModal(candidates)}
+                        onClick={() => handleOpenSanctionModal(candidates, report.id)}
                         className="p-2 bg-red-900/20 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors flex items-center justify-center border border-red-900/50 hover:border-red-500"
                         title="Appliquer une sanction"
                       >

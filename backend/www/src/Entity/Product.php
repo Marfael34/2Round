@@ -42,6 +42,7 @@ class Product
 
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['product:read'])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 2)]

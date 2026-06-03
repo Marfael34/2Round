@@ -42,6 +42,10 @@ class Report
     #[Groups(['admin:read'])]
     private ?\DateTime $createdAt = null;
 
+    #[ORM\Column(length: 20, options: ["default" => "pending"])]
+    #[Groups(['admin:read', 'admin:write'])]
+    private ?string $status = 'pending';
+
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(['admin:read'])]
@@ -120,6 +124,18 @@ class Report
     public function setCreatedAt(\DateTime $createdAt): static
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }

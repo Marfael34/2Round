@@ -52,7 +52,14 @@ const ConversationReports = ({ reports, handleDeleteReport, handleOpenSanctionMo
                 >
                   <td className="py-4 px-4">#{report.id}</td>
                   <td className="py-4 px-4 font-semibold text-red-400">
-                    {report.reason}
+                    <div className="flex items-center gap-2">
+                      {report.reason}
+                      {report.status === 'processed' && (
+                        <span className="bg-green-900/50 text-green-400 text-[10px] px-2 py-0.5 rounded-full border border-green-500/30 uppercase tracking-widest">
+                          Traité
+                        </span>
+                      )}
+                    </div>
                     {report.description && (
                       <p className="text-xs text-gray-400 max-w-xs truncate mt-1" title={report.description}>
                         {report.description}
@@ -81,9 +88,9 @@ const ConversationReports = ({ reports, handleDeleteReport, handleOpenSanctionMo
                           <FiMessageSquare size={20} />
                         </button>
                       )}
-                    {candidates.length > 0 && (
+                    {candidates.length > 0 && report.status !== 'processed' && (
                       <button
-                        onClick={() => handleOpenSanctionModal(candidates)}
+                        onClick={() => handleOpenSanctionModal(candidates, report.id)}
                         className="p-2 bg-red-900/20 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors flex items-center justify-center border border-red-900/50 hover:border-red-500"
                         title="Appliquer une sanction"
                       >

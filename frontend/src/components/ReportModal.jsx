@@ -111,11 +111,23 @@ const ReportModal = ({
               className="w-full bg-[#151515] border border-white/10 rounded-sm px-4 py-3 text-sm text-white focus:border-red-600 outline-none transition-colors"
             >
               <option value="">-- Sélectionnez une raison --</option>
-              <option value="spam">Spam ou publicité</option>
-              <option value="scam">Arnaque suspectée</option>
-              <option value="abuse">Harcèlement ou propos injurieux</option>
-              <option value="fake">Contrefaçon ou objet interdit</option>
-              <option value="other">Autre</option>
+              {targetType === "product" ? (
+                <>
+                  <option value="fake">Contrefaçon ou objet interdit</option>
+                  <option value="misleading">Description trompeuse ou mensongère</option>
+                  <option value="bad_condition">Mauvais état non signalé</option>
+                  <option value="dangerous">Produit dangereux ou non conforme</option>
+                  <option value="spam">Spam ou doublon</option>
+                  <option value="other">Autre</option>
+                </>
+              ) : (
+                <>
+                  <option value="spam">Spam ou publicité</option>
+                  <option value="scam">Arnaque suspectée</option>
+                  <option value="abuse">Harcèlement ou propos injurieux</option>
+                  <option value="other">Autre</option>
+                </>
+              )}
             </select>
           </div>
 

@@ -177,7 +177,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Sanction>
      */
     #[ORM\OneToMany(targetEntity: Sanction::class, mappedBy: 'targetUser')]
-    #[Groups(['admin:read'])]
+    #[Groups(['admin:read', 'user:read'])]
     private Collection $sanctions;
 
     #[ORM\Column]
