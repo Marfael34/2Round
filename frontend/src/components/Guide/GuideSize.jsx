@@ -165,7 +165,7 @@ const GuideSize = () => {
                         {currentData.headers.map((header, i) => (
                           <th
                             key={i}
-                            className={`p-4 ${i < currentData.headers.length - 1 ? "border-r border-gray-600" : ""} font-bold text-sm md:text-base uppercase tracking-wider`}
+                            className={`p-2 sm:p-4 ${i < currentData.headers.length - 1 ? "border-r border-gray-600" : ""} font-bold text-xs sm:text-sm md:text-base uppercase tracking-wider`}
                           >
                             {header}
                           </th>
@@ -176,15 +176,15 @@ const GuideSize = () => {
                       {currentData.homme.map((row, idx) => (
                         <tr
                           key={idx}
-                          className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors"
+                          className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors text-xs sm:text-sm md:text-base"
                         >
-                          <td className="p-4 border-r border-gray-600 font-semibold">
+                          <td className="p-2 sm:p-4 border-r border-gray-600 font-semibold">
                             {row[0]}
                           </td>
-                          <td className="p-4 border-r border-gray-600 text-gray-300">
+                          <td className="p-2 sm:p-4 border-r border-gray-600 text-gray-300">
                             {row[1]}
                           </td>
-                          <td className="p-4 text-gray-300">{row[2]}</td>
+                          <td className="p-2 sm:p-4 text-gray-300">{row[2]}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -236,7 +236,7 @@ const GuideSize = () => {
                         {currentData.headers.map((header, i) => (
                           <th
                             key={i}
-                            className={`p-4 ${i < currentData.headers.length - 1 ? "border-r border-gray-600" : ""} font-bold text-sm md:text-base uppercase tracking-wider`}
+                            className={`p-2 sm:p-4 ${i < currentData.headers.length - 1 ? "border-r border-gray-600" : ""} font-bold text-xs sm:text-sm md:text-base uppercase tracking-wider`}
                           >
                             {header}
                           </th>
@@ -247,15 +247,15 @@ const GuideSize = () => {
                       {currentData.femme.map((row, idx) => (
                         <tr
                           key={idx}
-                          className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors"
+                          className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors text-xs sm:text-sm md:text-base"
                         >
-                          <td className="p-4 border-r border-gray-600 font-semibold">
+                          <td className="p-2 sm:p-4 border-r border-gray-600 font-semibold">
                             {row[0]}
                           </td>
-                          <td className="p-4 border-r border-gray-600 text-gray-300">
+                          <td className="p-2 sm:p-4 border-r border-gray-600 text-gray-300">
                             {row[1]}
                           </td>
-                          <td className="p-4 text-gray-300">{row[2]}</td>
+                          <td className="p-2 sm:p-4 text-gray-300">{row[2]}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -280,7 +280,7 @@ const GuideSize = () => {
                       {currentData.headers.map((header, i) => (
                         <th
                           key={i}
-                          className={`p-4 ${i < currentData.headers.length - 1 ? "border-r border-gray-600" : ""} font-bold text-sm md:text-base uppercase tracking-wider`}
+                          className={`p-2 sm:p-4 ${i < currentData.headers.length - 1 ? "border-r border-gray-600" : ""} font-bold text-xs sm:text-sm md:text-base uppercase tracking-wider`}
                         >
                           {header}
                         </th>
@@ -291,15 +291,15 @@ const GuideSize = () => {
                     {currentData.data.map((row, idx) => (
                       <tr
                         key={idx}
-                        className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors"
+                        className="border-b border-l border-r border-gray-600 bg-black/30 hover:bg-black/60 transition-colors text-xs sm:text-sm md:text-base"
                       >
-                        <td className="p-4 border-r border-gray-600 font-semibold">
+                        <td className="p-2 sm:p-4 border-r border-gray-600 font-semibold">
                           {row[0]}
                         </td>
-                        <td className="p-4 border-r border-gray-600 text-gray-300">
+                        <td className="p-2 sm:p-4 border-r border-gray-600 text-gray-300">
                           {row[1]}
                         </td>
-                        <td className="p-4 text-gray-300">{row[2]}</td>
+                        <td className="p-2 sm:p-4 text-gray-300">{row[2]}</td>
                       </tr>
                     ))}
                   </tbody>
