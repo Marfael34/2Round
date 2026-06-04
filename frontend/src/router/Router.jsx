@@ -13,6 +13,7 @@ import Conversation from '../screens/Conversation'
 import App from '../App'
 import MyCustomised from '../screens/MyCustomised'
 import FormMarket from '../screens/FormMarket'
+import FormMarketEdit from '../screens/FormMarketEdit'
 import Resale from '../screens/Resale'
 import GuideSize from '../components/Guide/GuideSize'
 import GuideStuff from '../components/Guide/GuideStuff'
@@ -60,6 +61,10 @@ const Router = createBrowserRouter([
             {
                 path: "/product/:id",
                 element: <ProductDetail />,
+            },
+            {
+                path: "/product/:id/edit",
+                element: <FormMarketEdit />,
             },
             {
                 path: "/invoice/:id",

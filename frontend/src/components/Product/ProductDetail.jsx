@@ -526,12 +526,6 @@ const ProductDetail = () => {
                 <span className="text-gray-400 font-inter font-light">{getColors(product)}</span>
               </div>
 
-              {product.weight && (
-                <div className="flex items-center py-1 gap-1.5">
-                  <span className="font-bold text-white font-inter tracking-wider">Poids :</span>
-                  <span className="text-gray-400 font-inter font-light">{product.weight} g</span>
-                </div>
-              )}
             </div>
 
             {/* Description Text */}
@@ -545,8 +539,14 @@ const ProductDetail = () => {
                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               </div>
             ) : currentUserId && sellerId && Number(currentUserId) === Number(sellerId) ? (
-              <div className="bg-[#151515] border border-white/10 p-4 rounded-sm text-center mb-8">
+              <div className="bg-[#151515] border border-white/10 p-6 rounded-sm text-center mb-8 flex flex-col gap-4">
                 <span className="text-gray-400 font-inter text-sm font-extralight tracking-wider">C'est votre produit</span>
+                <button 
+                  onClick={() => navigate(`/product/${product.id}/edit`)}
+                  className="w-full bg-transparent hover:bg-white/5 border border-white/40 hover:border-white text-white font-inter font-bold py-3 text-center tracking-widest uppercase transition-all cursor-pointer rounded-sm text-sm"
+                >
+                  Modifier mon annonce
+                </button>
               </div>
             ) : (
               <div className="space-y-4 mb-8">

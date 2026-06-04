@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import CustomInput from "../components/UI/CustomInput";
 import { IMG_BGRAYURE } from "../constants/appConstante";
 import { API_URL } from "../constants/apiConstante";
 import { securedFetch } from "../utils/api";
 
-const FormMarket = () => {
+const FormMarketEdit = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const [title, setTitle] = useState("");
   const [brand, setBrand] = useState("");
@@ -16,20 +17,21 @@ const FormMarket = () => {
   const [price, setPrice] = useState("");
   const [weight, setWeight] = useState("");
   const [description, setDescription] = useState("");
-  const [photos, setPhotos] = useState([]);
+  
   const [etats, setEtats] = useState([]);
   const [colors, setColors] = useState([]);
   const [selectedColors, setSelectedColors] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  // Photos states
+  const [existingPhotos, setExistingPhotos] = useState([]); // [{id: 1, path: '/uploads/...'}]
+  const [deletedPhotosIds, setDeletedPhotosIds] = useState([]); // [1, 5, ...]
+  const [newPhotos, setNewPhotos] = useState([]); // [{file: File, preview: 'blob:...'}]
 
   // Submission states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
-
-  // Boost Modal states
-  const [showBoostModal, setShowBoostModal] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [walletBalance, setWalletBalance] = useState(0);
 
   // Guard routing: redirect to login if not authenticated
   useEffect(() => {
@@ -45,16 +47,7 @@ const FormMarket = () => {
         const response = await securedFetch(`${API_URL}/etats`);
         if (response.ok) {
           const data = await response.json();
-          let members = [];
-          if (Array.isArray(data)) {
-            members = data;
-          } else if (data && Array.isArray(data["hydra:member"])) {
-            members = data["hydra:member"];
-          } else if (data && Array.isArray(data["member"])) {
-            members = data["member"];
-          } else {
-            console.warn("Format de données d'états inconnu :", data);
-          }
+          let members = data.member || data["hydra:member"] || (Array.isArray(data) ? data : []);
           setEtats(members);
         }
       } catch (error) {
@@ -67,14 +60,7 @@ const FormMarket = () => {
         const response = await securedFetch(`${API_URL}/colors`);
         if (response.ok) {
           const data = await response.json();
-          let members = [];
-          if (Array.isArray(data)) {
-            members = data;
-          } else if (data && Array.isArray(data["hydra:member"])) {
-            members = data["hydra:member"];
-          } else if (data && Array.isArray(data["member"])) {
-            members = data["member"];
-          }
+          let members = data.member || data["hydra:member"] || (Array.isArray(data) ? data : []);
           setColors(members);
         }
       } catch (error) {
@@ -82,35 +68,52 @@ const FormMarket = () => {
       }
     };
 
-    fetchEtats();
-    fetchColors();
-  }, []);
-
-  useEffect(() => {
-    const fetchWalletInfo = async () => {
+    const fetchProduct = async () => {
       try {
-        const response = await securedFetch(`${API_URL}/wallet/info`);
-        if (response.ok) {
-          const data = await response.json();
-          setWalletBalance(data.availableFunds || 0);
+        const res = await securedFetch(`${API_URL}/products/${id}`);
+        if (res.ok) {
+          const prod = await res.json();
+          setTitle(prod.title || "");
+          setBrand(prod.brand || "");
+          setEquipementType(prod.type || "");
+          setSize(prod.size || "");
+          setCondition(prod.etat?.['@id'] || `/api/etats/${prod.etat?.id}`);
+          setPrice(prod.price || "");
+          setWeight(prod.weight || "");
+          setDescription(prod.description || "");
+          
+          if (prod.colors) {
+             const colIds = prod.colors.map(c => c['@id'] || `/api/colors/${c.id}`);
+             setSelectedColors(colIds);
+          }
+          if (prod.images) {
+             setExistingPhotos(prod.images);
+          }
+        } else {
+          setSubmitError("Produit introuvable ou accès refusé.");
         }
-      } catch (error) {
-        console.error("Erreur lors du chargement du porte-monnaie :", error);
+      } catch {
+        setSubmitError("Impossible de charger les données du produit.");
+      } finally {
+        setLoadingData(false);
       }
     };
-    fetchWalletInfo();
-  }, []);
+
+    fetchEtats();
+    fetchColors();
+    if (id) fetchProduct();
+  }, [id]);
 
   // Cleanup object URLs when component unmounts
   useEffect(() => {
     return () => {
-      photos.forEach((photo) => {
+      newPhotos.forEach((photo) => {
         if (photo.preview) {
           URL.revokeObjectURL(photo.preview);
         }
       });
     };
-  }, [photos]);
+  }, [newPhotos]);
 
   const handlePhotoChange = (e) => {
     if (e.target.files) {
@@ -133,27 +136,29 @@ const FormMarket = () => {
         setSubmitError("Un ou plusieurs fichiers ont une extension non valide (.jpg, .jpeg, .png, .webp, .gif, .avif attendues).");
       }
 
-      setPhotos((prev) => [...prev, ...validFiles]);
+      setNewPhotos((prev) => [...prev, ...validFiles]);
     }
   };
 
-  const removePhoto = (index) => {
-    setPhotos((prev) => {
+  const removeExistingPhoto = (photoId) => {
+    setExistingPhotos((prev) => prev.filter(p => p.id !== photoId));
+    setDeletedPhotosIds((prev) => [...prev, photoId]);
+  };
+
+  const removeNewPhoto = (index) => {
+    setNewPhotos((prev) => {
       URL.revokeObjectURL(prev[index].preview);
       return prev.filter((_, i) => i !== index);
     });
   };
 
-  const handleInitialSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !price || photos.length === 0) {
-      setSubmitError("Veuillez remplir tous les champs et ajouter au moins une photo.");
+    if (!title || !price || (existingPhotos.length === 0 && newPhotos.length === 0)) {
+      setSubmitError("Veuillez remplir tous les champs obligatoires et ajouter au moins une photo.");
       return;
     }
-    setShowBoostModal(true);
-  };
-
-  const submitProduct = async (highlighted) => {
+    
     setIsSubmitting(true);
     setSubmitError("");
     setSubmitSuccess(false);
@@ -162,145 +167,69 @@ const FormMarket = () => {
       const formDataToSend = new FormData();
       formDataToSend.append("title", title);
       formDataToSend.append("brand", brand);
-      formDataToSend.append("equipementType", equipementType);
-      formDataToSend.append("type", equipementType); // support both naming formats
-      formDataToSend.append("size", size);
-      formDataToSend.append("etat", condition);
-      formDataToSend.append("price", price);
-      formDataToSend.append("weight", weight);
-      formDataToSend.append("description", description);
-      
-      // IS HIGHLIGHTED
-      formDataToSend.append("isHighlighted", highlighted ? "1" : "0");
-      if (highlighted) {
-        formDataToSend.append("paymentMethod", "wallet");
-      }
-
-      // Append colors
-      selectedColors.forEach(colorId => {
-        formDataToSend.append("colors[]", colorId);
-      });
-
-      // Append files as array
-      photos.forEach((photoObj) => {
-        formDataToSend.append("photos[]", photoObj.file);
-      });
-
-      const response = await securedFetch(`${API_URL}/products-create`, {
-        method: "POST",
-        body: formDataToSend
-      });
-
-      if (response.ok) {
-        setSubmitSuccess(true);
-        // Clear form
-        setTitle("");
-        setBrand("");
-        setEquipementType("");
-        setSize("");
-        setCondition("");
-        setPrice("");
-        setWeight("");
-        setDescription("");
-        setPhotos([]);
-
-        // Redirect after 2s
-        setTimeout(() => {
-          navigate("/my-locker");
-        }, 2000);
-      } else {
-        const errData = await response.json();
-        setSubmitError(errData.message || "Une erreur est survenue lors de la création de l'annonce.");
-      }
-    } catch (error) {
-      console.error("Erreur lors de la soumission :", error);
-      setSubmitError("Impossible de se connecter au serveur.");
-    } finally {
-      setIsSubmitting(false);
-      setShowBoostModal(false);
-    }
-  };
-
-  const submitProductForStripe = async () => {
-    setIsSubmitting(true);
-    setSubmitError("");
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("title", title);
-      formDataToSend.append("brand", brand);
-      formDataToSend.append("equipementType", equipementType);
       formDataToSend.append("type", equipementType);
       formDataToSend.append("size", size);
       formDataToSend.append("etat", condition);
       formDataToSend.append("price", price);
       formDataToSend.append("weight", weight);
       formDataToSend.append("description", description);
-      formDataToSend.append("isHighlighted", "0");
-
+      
       selectedColors.forEach(colorId => {
         formDataToSend.append("colors[]", colorId);
       });
 
-      photos.forEach((photoObj) => {
+      deletedPhotosIds.forEach(photoId => {
+        formDataToSend.append("deletedImages[]", photoId);
+      });
+
+      newPhotos.forEach((photoObj) => {
         formDataToSend.append("photos[]", photoObj.file);
       });
 
-      const response = await securedFetch(`${API_URL}/products-create`, {
-        method: "POST",
+      const response = await securedFetch(`${API_URL}/products-update/${id}`, {
+        method: "POST", // We use POST for multipart/form-data
         body: formDataToSend
       });
 
       if (response.ok) {
-        const productData = await response.json();
-        
-        // Appeler la session Stripe
-        const stripeRes = await securedFetch(`${API_URL}/stripe/create-checkout-session`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            productName: `Boost - ${title}`,
-            amount: 500, // 5€
-            productId: productData.id,
-            type: "boost"
-          })
-        });
-
-        if (stripeRes.ok) {
-          const stripeData = await stripeRes.json();
-          window.location.href = stripeData.url;
-        } else {
-          setSubmitError("Erreur lors de la création de la session Stripe.");
-          setIsProcessingPayment(false);
-          setIsSubmitting(false);
-        }
+        setSubmitSuccess(true);
+        setTimeout(() => {
+          navigate(`/product/${id}`);
+        }, 2000);
       } else {
         const errData = await response.json();
-        setSubmitError(errData.message || "Erreur de création de l'annonce.");
-        setIsProcessingPayment(false);
-        setIsSubmitting(false);
+        setSubmitError(errData.message || "Une erreur est survenue lors de la modification de l'annonce.");
       }
     } catch (error) {
-      console.error(error);
+      console.error("Erreur lors de la modification :", error);
       setSubmitError("Impossible de se connecter au serveur.");
-      setIsProcessingPayment(false);
+    } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (loadingData) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white text-xl font-inter tracking-wider">
+        Chargement des données...
+      </div>
+    );
+  }
+
   return (
     <>
       <div
-        className="w-full min-h-screen bg-black text-white flex flex-col justify-center items-center px-4 py-12 bg-cover bg-left"
+        className="w-full min-h-screen bg-black text-white flex flex-col justify-center items-center px-4 py-12 bg-cover bg-left mt-[80px]"
         style={{ backgroundImage: `url(${IMG_BGRAYURE})` }}
       >
-        <div className="w-full max-w-5xl bg-black/60 backdrop-blur-lg border border-white/10 rounded-sm p-8 md:p-12 shadow-2xl my-4">
+        <div className="w-full max-w-5xl bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-sm p-8 md:p-12 shadow-2xl my-4">
           <h1 className="font-bebas text-5xl font-bold uppercase tracking-wide mb-10 text-center">
-            Revendre son matériel
+            Modifier mon annonce
           </h1>
 
           {submitSuccess && (
             <div className="mb-6 p-4 bg-emerald-600/20 border border-emerald-500 rounded-sm text-emerald-300 font-inter text-center">
-              Annonce publiée avec succès ! Redirection vers votre vestiaire...
+              Annonce modifiée avec succès ! Redirection en cours...
             </div>
           )}
 
@@ -310,11 +239,9 @@ const FormMarket = () => {
             </div>
           )}
 
-          <form onSubmit={handleInitialSubmit}>
+          <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-stretch">
-              {/* Colonne Gauche : Détails de l'équipement */}
               <div className="flex flex-col gap-6 justify-between">
-                {/* Titre de l'annonce */}
                 <CustomInput
                   label="Titre de l'annonce"
                   type="text"
@@ -326,7 +253,6 @@ const FormMarket = () => {
                   required
                 />
 
-                {/* Type d'équipement */}
                 <div className="flex flex-col gap-1 w-full">
                   <label className="font-inter text-xs uppercase text-gray-400">
                     Type d'équipement
@@ -372,7 +298,6 @@ const FormMarket = () => {
                   </select>
                 </div>
 
-                {/* Marque */}
                 <CustomInput
                   label="Marque"
                   type="text"
@@ -384,7 +309,6 @@ const FormMarket = () => {
                   required
                 />
 
-                {/* Taille */}
                 <div className="flex flex-col gap-1 w-full">
                   <label className="font-inter text-xs uppercase text-gray-400">
                     Taille
@@ -432,7 +356,6 @@ const FormMarket = () => {
                   </select>
                 </div>
 
-                {/* État */}
                 <div className="flex flex-col gap-1 w-full">
                   <label className="font-inter text-xs uppercase text-gray-400">
                     État
@@ -454,7 +377,6 @@ const FormMarket = () => {
                   </select>
                 </div>
 
-                {/* Couleurs */}
                 <div className="flex flex-col gap-1 w-full">
                   <label className="font-inter text-xs uppercase text-gray-400 mb-2">
                     Couleurs
@@ -483,7 +405,6 @@ const FormMarket = () => {
                   </div>
                 </div>
 
-                {/* Prix (€) */}
                 <CustomInput
                   label="Prix (€)"
                   type="number"
@@ -497,7 +418,6 @@ const FormMarket = () => {
                   required
                 />
 
-                {/* Poids estimé (g) */}
                 <CustomInput
                   label="Poids estimé (g)"
                   type="number"
@@ -512,10 +432,8 @@ const FormMarket = () => {
                 />
               </div>
 
-              {/* Colonne Droite : Description & Médias */}
               <div className="flex flex-col gap-6 justify-between h-full">
                 <div className="space-y-6">
-                  {/* Description */}
                   <div className="flex flex-col gap-1">
                     <label className="font-inter text-xs uppercase text-gray-400">
                       Description
@@ -531,7 +449,7 @@ const FormMarket = () => {
                     />
                   </div>
 
-                  {/* Photos */}
+                  {/* Photos Edition */}
                   <div className="flex flex-col gap-1">
                     <label className="font-inter text-xs uppercase text-gray-400">
                       Photos de l'équipement
@@ -568,38 +486,52 @@ const FormMarket = () => {
                       </div>
                     </div>
 
-                    {/* Aperçu des photos sélectionnées */}
-                    {photos.length > 0 && (
+                    {/* Aperçu des photos sélectionnées / existantes */}
+                    {(existingPhotos.length > 0 || newPhotos.length > 0) && (
                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mt-4">
-                        {photos.map((photo, index) => (
+                        {existingPhotos.map((photo) => (
                           <div
-                            key={index}
+                            key={`exist-${photo.id}`}
+                            className="relative group aspect-square bg-[#1A1A1A] border border-white/10 rounded-sm overflow-hidden"
+                          >
+                            <img
+                              src={`${API_URL.replace('/api', '')}${photo.path}`}
+                              alt="Photo existante"
+                              className="w-full h-full object-cover opacity-80"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeExistingPhoto(photo.id)}
+                              className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                            <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-center text-[10px] py-1 pointer-events-none">Existante</span>
+                          </div>
+                        ))}
+                        
+                        {newPhotos.map((photo, index) => (
+                          <div
+                            key={`new-${index}`}
                             className="relative group aspect-square bg-[#1A1A1A] border border-white/10 rounded-sm overflow-hidden"
                           >
                             <img
                               src={photo.preview}
-                              alt={`Aperçu ${index + 1}`}
+                              alt={`Nouvelle photo ${index + 1}`}
                               className="w-full h-full object-cover"
                             />
                             <button
                               type="button"
-                              onClick={() => removePhoto(index)}
-                              className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeNewPhoto(index)}
+                              className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                               </svg>
                             </button>
+                            <span className="absolute bottom-0 left-0 right-0 bg-emerald-600/60 text-center text-[10px] py-1 text-white pointer-events-none">Nouvelle</span>
                           </div>
                         ))}
                       </div>
@@ -607,85 +539,30 @@ const FormMarket = () => {
                   </div>
                 </div>
 
-                {/* Bouton de validation */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-red-600 text-white font-inter font-bold uppercase py-4 rounded-sm hover:bg-red-700 transition-colors text-base tracking-wider mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? "Publication en cours..." : "Publier l'annonce"}
-                </button>
+                <div className="flex flex-col gap-3 mt-4">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-red-600 text-white font-inter font-bold uppercase py-4 rounded-sm hover:bg-red-700 transition-colors text-base tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? "Enregistrement en cours..." : "Sauvegarder les modifications"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => navigate(`/product/${id}`)}
+                    className="w-full bg-transparent border border-white/20 text-gray-300 font-inter font-bold uppercase py-4 rounded-sm hover:bg-white/5 hover:text-white transition-colors text-base tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Annuler les modifications
+                  </button>
+                </div>
               </div>
             </div>
           </form>
         </div>
       </div>
-
-      {/* Modal Boost */}
-      {showBoostModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#1A1A1A] border border-white/10 rounded-lg p-6 max-w-md w-full shadow-2xl relative">
-            <h2 className="text-2xl font-bebas uppercase tracking-wide mb-4 text-white">Mettre en avant votre annonce ?</h2>
-            <p className="text-gray-400 text-sm font-inter mb-6">
-              Boostez la visibilité de votre article dans le catalogue pour le vendre plus vite ! Votre produit apparaîtra en tête des résultats de recherche pour seulement <strong className="text-white">5,00 €</strong>.
-            </p>
-
-            <div className="flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={async () => {
-                  setIsProcessingPayment(true);
-                  // Simulate Wallet payment logic then submit
-                  setTimeout(() => {
-                    submitProduct(true);
-                  }, 1500);
-                }}
-                disabled={isProcessingPayment || walletBalance < 5}
-                className="bg-[#2A2A2A] hover:bg-[#333] border border-white/10 text-white font-bold py-3 px-4 rounded-sm transition-colors text-sm uppercase flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isProcessingPayment 
-                  ? "Traitement..." 
-                  : (walletBalance < 5 
-                      ? `💰 Porte-monnaie (Solde: ${walletBalance.toFixed(2)}€ - Insuffisant)` 
-                      : `💰 Payer avec mon Porte-monnaie (Solde: ${walletBalance.toFixed(2)}€)`)}
-              </button>
-
-              <button
-                type="button"
-                onClick={async () => {
-                  setIsProcessingPayment(true);
-                  // We will create the product first without highlight, then redirect to Stripe
-                  await submitProductForStripe();
-                }}
-                disabled={isProcessingPayment}
-                className="bg-[#635BFF] hover:bg-[#5249e5] text-white font-bold py-3 px-4 rounded-sm transition-colors text-sm uppercase flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {isProcessingPayment ? "Redirection Stripe..." : "💳 Payer par Carte (Stripe)"}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => submitProduct(false)}
-                disabled={isProcessingPayment}
-                className="bg-transparent border border-white/20 hover:border-white/40 hover:bg-white/5 text-gray-300 font-bold py-3 px-4 mt-2 rounded-sm transition-colors text-sm uppercase disabled:opacity-50"
-              >
-                Non merci, publier normalement
-              </button>
-            </div>
-            {!isProcessingPayment && (
-              <button 
-                type="button"
-                onClick={() => setShowBoostModal(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-white"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 };
 
-export default FormMarket;
+export default FormMarketEdit;

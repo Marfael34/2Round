@@ -32,25 +32,26 @@ class Product
 
 
     #[ORM\Column(length: 150)]
-    #[Groups(['product:read', 'conversation:read'])]
+    #[Groups(['product:read', 'product:write', 'conversation:read'])]
     private ?string $title = null;
 
 
     #[ORM\Column(length: 100)]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private ?string $brand = null;
 
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 2)]
-    #[Groups(['product:read', 'conversation:read'])]
+    #[Groups(['product:read', 'product:write', 'conversation:read'])]
     private ?string $price = null;
 
 
     #[ORM\Column]
+    #[Groups(['product:read', 'product:write'])]
     private ?int $weight = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -60,7 +61,7 @@ class Product
 
     #[ORM\ManyToOne(targetEntity: Etat::class)]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private ?Etat $etat = null;
 
     /**
@@ -96,11 +97,11 @@ class Product
     private Collection $images;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private ?string $type = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private ?string $size = null;
 
     #[ORM\ManyToMany(targetEntity: Color::class)]
