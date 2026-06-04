@@ -6,7 +6,7 @@ import ReportModal from "../ReportModal";
 import { useConfirm } from "../../contexts/ConfirmContext";
 
 const ProductDetail = () => {
-  const { alert: customAlert } = useConfirm();
+  const { alert: customAlert, confirm } = useConfirm();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -229,6 +229,28 @@ const ProductDetail = () => {
       }
     } catch (err) {
       console.error("Error fetching suggestions:", err);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    const isConfirmed = await confirm("Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.");
+    if (!isConfirmed) return;
+
+    try {
+      const response = await securedFetch(`/api/products-delete/${product.id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        await customAlert("Annonce supprimée avec succès.");
+        navigate(`/my-locker/${currentUserId}`);
+      } else {
+        const errorData = await response.json();
+        await customAlert(errorData.message || "Erreur lors de la suppression de l'annonce.");
+      }
+    } catch (error) {
+      console.error("Erreur de suppression:", error);
+      await customAlert("Erreur lors de la connexion au serveur.");
     }
   };
 
@@ -546,6 +568,12 @@ const ProductDetail = () => {
                   className="w-full bg-transparent hover:bg-white/5 border border-white/40 hover:border-white text-white font-inter font-bold py-3 text-center tracking-widest uppercase transition-all cursor-pointer rounded-sm text-sm"
                 >
                   Modifier mon annonce
+                </button>
+                <button 
+                  onClick={handleDeleteProduct}
+                  className="w-full bg-transparent hover:bg-red-900/20 border border-red-500/40 hover:border-red-500 text-red-500 font-inter font-bold py-3 text-center tracking-widest uppercase transition-all cursor-pointer rounded-sm text-sm"
+                >
+                  Supprimer mon annonce
                 </button>
               </div>
             ) : (
