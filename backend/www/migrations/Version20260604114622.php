@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260603142531 extends AbstractMigration
+final class Version20260604114622 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,12 +20,12 @@ final class Version20260603142531 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE report ADD status VARCHAR(20) DEFAULT \'pending\' NOT NULL');
+        $this->addSql('ALTER TABLE user ADD banned_until DATETIME DEFAULT NULL');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE report DROP status');
+        $this->addSql('ALTER TABLE `user` DROP banned_until');
     }
 }

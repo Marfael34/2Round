@@ -2531,7 +2531,7 @@ const Conversation = () => {
                     <button
                       onClick={async () => {
                         if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.zip) {
-                          alert("Veuillez remplir votre adresse de livraison complète.");
+                          showAlert("Veuillez remplir votre adresse de livraison complète.", "error");
                           return;
                         }
                         
@@ -2558,7 +2558,7 @@ const Conversation = () => {
                           setCheckoutStep("success");
                         } catch (err) {
                           console.error(err);
-                          alert(err.message);
+                          showAlert(err.message, "error");
                         } finally {
                           setStripeLoading(false);
                         }

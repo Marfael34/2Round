@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { securedFetch } from "../../utils/api";
+import { useConfirm } from "../../contexts/ConfirmContext";
 
 const Wallet = ({ user }) => {
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [message, setMessage] = useState(null);
   const [walletInfo, setWalletInfo] = useState({ available: 0, pending: 0, transactions: [] });
   const [loading, setLoading] = useState(true);
+  const { confirm, alert: customAlert } = useConfirm();
 
   useEffect(() => {
     const fetchWalletInfo = async () => {
@@ -29,11 +31,12 @@ const Wallet = ({ user }) => {
 
   const handleWithdraw = async () => {
     if (availableBalance <= 0) {
-      alert("Votre porte-monnaie est vide.");
+      await customAlert("Votre porte-monnaie est vide.");
       return;
     }
 
-    if (!window.confirm("Voulez-vous transférer l'intégralité de vos fonds vers votre compte bancaire ?")) {
+    const isConfirmed = await confirm("Voulez-vous transférer l'intégralité de vos fonds vers votre compte bancaire ?");
+    if (!isConfirmed) {
       return;
     }
 

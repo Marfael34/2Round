@@ -1,6 +1,6 @@
-import { FiTrash2, FiTag, FiShield } from "react-icons/fi";
+import { FiTrash2, FiTag, FiShield, FiXCircle } from "react-icons/fi";
 
-const ProductReports = ({ reports, handleDeleteReport, handleOpenSanctionModal, handleOpenProductModal }) => {
+const ProductReports = ({ reports, handleDeleteReport, handleDismissReport, handleOpenSanctionModal, handleOpenProductModal }) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
@@ -83,6 +83,15 @@ const ProductReports = ({ reports, handleDeleteReport, handleOpenSanctionModal, 
                         title="Appliquer une sanction"
                       >
                         <FiShield size={20} />
+                      </button>
+                    )}
+                    {report.status !== 'processed' && (
+                      <button
+                        onClick={() => handleDismissReport(report.id)}
+                        className="p-2 bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 rounded-lg transition-colors border border-orange-500/20"
+                        title="Ignorer sans sanction"
+                      >
+                        <FiXCircle size={20} />
                       </button>
                     )}
                     <button

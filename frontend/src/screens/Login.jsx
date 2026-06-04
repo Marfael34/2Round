@@ -25,6 +25,8 @@ const Login = () => {
   );
   const [showPassword, setShowPassword] = useState(false);
 
+  const [banInfo, setBanInfo] = useState(null);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -33,6 +35,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setBanInfo(null);
 
     try {
       const response = await fetch(`${API_URL}/login_check`, {
@@ -54,7 +57,16 @@ const Login = () => {
       }
 
       if (!response.ok) {
-        throw new Error("Email ou mot de passe incorrect");
+        if (data?.message && data.message.startsWith('BAN_')) {
+          const parts = data.message.split('|||');
+          setBanInfo({
+            type: parts[0] === 'BAN_DEFINITIF' ? 'Bannissement Définitif' : 'Désactivation Temporaire',
+            date: parts[1] || null,
+            reason: parts[2] || 'Aucun motif précisé.'
+          });
+          return;
+        }
+        throw new Error(data?.message || "Email ou mot de passe incorrect");
       }
 
       // Stocker le token JWT et le Refresh Token
@@ -131,6 +143,50 @@ const Login = () => {
           </div>
         </form>
       </div>
+
+      {/* Modal de Bannissement */}
+      {banInfo && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#111] border border-red-900/50 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="bg-red-600 p-6 text-center">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                <span className="text-3xl">⚠️</span>
+              </div>
+              <h2 className="text-2xl font-bebas uppercase tracking-wider text-white mb-1">
+                Compte Suspendu
+              </h2>
+              <p className="text-red-100 font-inter text-sm">
+                {banInfo.type}
+              </p>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              {banInfo.date && banInfo.date !== "Aucun motif précisé." && (
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block">Fin de suspension</span>
+                  <p className="text-white font-medium text-lg">{banInfo.date}</p>
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block">Motif de la sanction</span>
+                <div className="bg-red-950/20 border border-red-900/30 rounded-xl p-4">
+                  <p className="text-gray-300 text-sm leading-relaxed italic">
+                    "{banInfo.reason}"
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setBanInfo(null)}
+                className="w-full mt-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-inter font-medium py-3 rounded-xl transition-colors"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

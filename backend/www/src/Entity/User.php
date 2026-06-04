@@ -40,11 +40,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['user:read', 'conversation:read', 'product:read', 'admin:read'])]
+    #[Groups(['user:read', 'conversation:read', 'product:read', 'admin:read', 'sanction:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(['user:read', 'user:write', 'admin:write', 'admin:read'])]
+    #[Groups(['user:read', 'user:write', 'admin:write', 'admin:read', 'sanction:read'])]
     private ?string $email = null;
 
     /**
@@ -70,7 +70,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $firstname = null;
 
     #[ORM\Column(length: 150)]
-    #[Groups(['user:read', 'user:write', 'product:read', 'conversation:read', 'admin:write', 'admin:read'])]
+    #[Groups(['user:read', 'user:write', 'product:read', 'conversation:read', 'admin:write', 'admin:read', 'sanction:read'])]
     private ?string $pseudo = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -195,6 +195,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $refreshTokenExpiredAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Groups(['admin:read', 'admin:write', 'user:read'])]
+    private ?\DateTimeInterface $bannedUntil = null;
 
     public function __construct()
     {
@@ -718,6 +722,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRefreshTokenExpiredAt(?\DateTimeInterface $refreshTokenExpiredAt): static
     {
         $this->refreshTokenExpiredAt = $refreshTokenExpiredAt;
+
+        return $this;
+    }
+
+    public function getBannedUntil(): ?\DateTimeInterface
+    {
+        return $this->bannedUntil;
+    }
+
+    #[Groups(['admin:write'])]
+    public function setBannedUntil(?\DateTimeInterface $bannedUntil): static
+    {
+        $this->bannedUntil = $bannedUntil;
 
         return $this;
     }

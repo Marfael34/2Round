@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { securedFetch } from '../../utils/api';
-import { FiAlertTriangle, FiClock } from 'react-icons/fi';
+import { FiAlertTriangle, FiClock, FiTrash2 } from 'react-icons/fi';
 
-const UserSanctions = ({ sanctionUris }) => {
+const UserSanctions = ({ sanctionUris, isAdmin, onDeleteSanction }) => {
   const [sanctions, setSanctions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,7 +53,7 @@ const UserSanctions = ({ sanctionUris }) => {
           <div className="p-2 md:p-3 bg-red-900/40 text-red-500 rounded-full flex-shrink-0">
             <FiAlertTriangle className="text-xl md:text-2xl" />
           </div>
-          <div className="flex-1 w-full">
+          <div className="flex-1 w-full pr-8">
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-2">
               <h4 className="text-lg md:text-xl font-bold text-red-500 uppercase tracking-wider leading-tight">
                 {sanction.type === 'WARNING' ? 'Avertissement' : sanction.type === 'MUTE' ? 'Désactivation Temporaire' : sanction.type === 'BAN' ? 'Bannissement' : sanction.type}
@@ -66,6 +66,15 @@ const UserSanctions = ({ sanctionUris }) => {
               {sanction.reason || "Aucun motif spécifique n'a été fourni par l'administration."}
             </p>
           </div>
+          {isAdmin && onDeleteSanction && (
+            <button
+              onClick={() => onDeleteSanction(sanction.id, sanction.type)}
+              className="absolute top-4 right-4 p-2 bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white rounded-lg transition-colors border border-red-500/20 hover:border-red-600"
+              title="Supprimer cette sanction et révoquer l'effet si applicable"
+            >
+              <FiTrash2 size={16} />
+            </button>
+          )}
         </div>
       ))}
     </div>

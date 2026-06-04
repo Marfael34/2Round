@@ -1,7 +1,9 @@
 import { FiEye } from "react-icons/fi";
 import { API_URL } from "../../constants/apiConstante";
+import { useConfirm } from "../../contexts/ConfirmContext";
 
 const OrdersTable = ({ transactions, handleUpdateTransactionStatus }) => {
+  const { alert: customAlert } = useConfirm();
   const getStatusColor = (status) => {
     switch (status) {
       case "CREATED":
@@ -100,7 +102,7 @@ const OrdersTable = ({ transactions, handleUpdateTransactionStatus }) => {
                     <button
                       className="p-2 rounded-lg bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
                       title="Voir les détails"
-                      onClick={() => alert("Fonctionnalité en cours de développement")}
+                      onClick={() => customAlert("Fonctionnalité en cours de développement")}
                     >
                       <FiEye size={18} />
                     </button>

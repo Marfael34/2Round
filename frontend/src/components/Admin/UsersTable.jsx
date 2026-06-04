@@ -1,6 +1,6 @@
 import { FiUserX, FiUserCheck, FiEdit2 } from "react-icons/fi";
 
-const UsersTable = ({ users, handleToggleUserStatus, handleEditClick }) => {
+const UsersTable = ({ users, handleToggleUserStatus, handleEditClick, handleViewSanctions }) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
@@ -36,36 +36,84 @@ const UsersTable = ({ users, handleToggleUserStatus, handleEditClick }) => {
                 </td>
                 <td className="py-4 px-4">
                   {user.sanctions && user.sanctions.length > 0 ? (
-                    <span className="px-2 py-1 rounded bg-red-900/40 text-red-400 text-xs font-bold border border-red-800/50">
+                    <button 
+                      onClick={() => handleViewSanctions(user)}
+                      className="px-3 py-1.5 rounded-lg bg-red-900/20 hover:bg-red-900/40 text-red-400 text-xs font-bold border border-red-800/30 hover:border-red-500/50 transition-colors flex items-center gap-2"
+                      title="Voir le détail des sanctions"
+                    >
                       {user.sanctions.length} {user.sanctions.length > 1 ? "Sanctions" : "Sanction"}
-                    </span>
+                    </button>
                   ) : (
                     <span className="text-gray-500 text-sm">Aucune</span>
                   )}
                 </td>
                 <td className="py-4 px-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      user.isActive
-                        ? "bg-green-500/10 text-green-500"
-                        : "bg-red-500/10 text-red-500"
-                    }`}
-                  >
-                    {user.isActive ? "ACTIF" : "BANNI"}
-                  </span>
+                  {(() => {
+                    const isTemporarilyBanned = user.bannedUntil && new Date(user.bannedUntil) > new Date();
+                    
+                    if (!user.isActive) {
+                      return (
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-500 whitespace-nowrap">
+                          BANNI DÉFINITIVEMENT
+                        </span>
+                      );
+                    } else if (isTemporarilyBanned) {
+                      const date = new Date(user.bannedUntil);
+                      return (
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-500/10 text-orange-500 whitespace-nowrap">
+                            SUSPENDU
+                          </span>
+                          <span className="text-[10px] text-gray-500 font-medium">
+                            Jusqu'au {date.toLocaleDateString('fr-FR')}
+                          </span>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-500/10 text-green-500 whitespace-nowrap">
+                          ACTIF
+                        </span>
+                      );
+                    }
+                  })()}
                 </td>
                 <td className="py-4 px-4 text-right">
-                  <button
-                    onClick={() => handleToggleUserStatus(user)}
-                    className={`p-2 rounded-lg transition-colors ${
-                      user.isActive
-                        ? "bg-red-500/10 text-red-500 hover:bg-red-500/20"
-                        : "bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                    }`}
-                    title={user.isActive ? "Bannir" : "Réactiver"}
-                  >
-                    {user.isActive ? <FiUserX size={20} /> : <FiUserCheck size={20} />}
-                  </button>
+                  {(() => {
+                    const isTemporarilyBanned = user.bannedUntil && new Date(user.bannedUntil) > new Date();
+
+                    if (!user.isActive) {
+                      return (
+                        <button
+                          onClick={() => handleToggleUserStatus(user)}
+                          className="p-2 rounded-lg transition-colors bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                          title="Réactiver le compte"
+                        >
+                          <FiUserCheck size={20} />
+                        </button>
+                      );
+                    } else if (isTemporarilyBanned) {
+                      return (
+                        <button
+                          onClick={() => handleToggleUserStatus(user)}
+                          className="p-2 rounded-lg transition-colors bg-orange-500/10 text-orange-500 hover:bg-orange-500/20"
+                          title="Annuler la suspension"
+                        >
+                          <FiUserCheck size={20} />
+                        </button>
+                      );
+                    } else {
+                      return (
+                        <button
+                          onClick={() => handleToggleUserStatus(user)}
+                          className="p-2 rounded-lg transition-colors bg-red-500/10 text-red-500 hover:bg-red-500/20"
+                          title="Bannir définitivement"
+                        >
+                          <FiUserX size={20} />
+                        </button>
+                      );
+                    }
+                  })()}
                   <button
                     onClick={() => handleEditClick(user)}
                     className="p-2 ml-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-colors"

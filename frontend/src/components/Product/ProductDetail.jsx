@@ -3,8 +3,10 @@ import { useParams, useNavigate, Link, useLocation, useSearchParams } from "reac
 import { FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaXmark, FaTag, FaShieldHalved, FaFlag, FaWallet, FaCircleCheck } from "react-icons/fa6";
 import { securedFetch } from "../../utils/api";
 import ReportModal from "../ReportModal";
+import { useConfirm } from "../../contexts/ConfirmContext";
 
 const ProductDetail = () => {
+  const { alert: customAlert } = useConfirm();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -193,7 +195,7 @@ const ProductDetail = () => {
       navigate(`/conversation?productId=${product.id}`);
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de l'envoi de l'offre.");
+      await customAlert("Erreur lors de l'envoi de l'offre.");
     } finally {
       setSendingOffer(false);
     }
@@ -549,9 +551,9 @@ const ProductDetail = () => {
                 </button>
 
                 <button 
-                  onClick={() => {
+                  onClick={async () => {
                     if (walletBalance < (parseFloat(product.price) + (0.7 + parseFloat(product.price) * 0.05) + 2.88)) {
-                      alert("Solde insuffisant dans votre porte-monnaie.");
+                      await customAlert("Solde insuffisant dans votre porte-monnaie.");
                       return;
                     }
                     navigate(`/conversation?productId=${product.id}&checkout=true`);

@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { securedFetch } from '../../utils/api';
 import { FiTrash2, FiAlertTriangle, FiUserX, FiVolumeX } from 'react-icons/fi';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 const AllSanctions = () => {
   const [sanctions, setSanctions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { confirm, alert: customAlert } = useConfirm();
 
   useEffect(() => {
     const fetchSanctions = async () => {
@@ -25,12 +28,28 @@ const AllSanctions = () => {
     fetchSanctions();
   }, []);
 
-  const handleDeleteSanction = async (id) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette sanction ? Cela ne révoquera pas automatiquement l'effet (ex: débannir).")) return;
+  const handleDeleteSanction = async (sanction) => {
+    const isConfirmed = await confirm("Êtes-vous sûr de vouloir supprimer cette trace de sanction du casier ?");
+    if (!isConfirmed) return;
     try {
-      const response = await securedFetch(`/api/sanctions/${id}`, { method: 'DELETE' });
+      const response = await securedFetch(`/api/sanctions/${sanction.id}`, { method: 'DELETE' });
       if (response.ok) {
-        setSanctions(sanctions.filter(s => s.id !== id));
+        setSanctions(sanctions.filter(s => s.id !== sanction.id));
+
+        if (sanction.type === 'BAN' || sanction.type === 'MUTE') {
+          const isRevokeConfirmed = await confirm("Voulez-vous également lever l'effet de cette sanction sur l'utilisateur (le débannir ou annuler sa suspension) ?");
+          if (isRevokeConfirmed) {
+            const userId = sanction.targetUser?.id || (typeof sanction.targetUser === 'string' ? sanction.targetUser.split('/').pop() : null);
+            if (userId) {
+              await securedFetch(`/api/users/${userId}`, {
+                method: 'PATCH',
+                headers: { "Content-Type": "application/merge-patch+json" },
+                body: JSON.stringify(sanction.type === 'BAN' ? { isActive: true } : { bannedUntil: null })
+              });
+              await customAlert("L'effet de la sanction a été révoqué avec succès.");
+            }
+          }
+        }
       }
     } catch (error) {
       console.error("Erreur de suppression", error);
@@ -41,9 +60,28 @@ const AllSanctions = () => {
     return <div className="text-gray-400 p-8 text-center">Chargement de l'historique des sanctions...</div>;
   }
 
+  const filteredSanctions = sanctions.filter(s => 
+    s.id?.toString().includes(searchQuery) ||
+    s.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.reason?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.targetUser?.pseudo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.targetUser?.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="w-full">
-      {sanctions.length === 0 ? (
+    <div className="w-full space-y-4">
+      <div className="flex items-center bg-[#151515] border border-gray-800 rounded-lg px-4 py-2 w-full max-w-md">
+        <span className="text-gray-500 mr-3">🔍</span>
+        <input
+          type="text"
+          placeholder="Rechercher par ID, utilisateur, motif, type..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="bg-transparent border-none outline-none text-sm text-white w-full placeholder-gray-600"
+        />
+      </div>
+
+      {filteredSanctions.length === 0 ? (
         <div className="py-8 text-center text-gray-500 bg-[#111] rounded-xl border border-gray-800">
           Aucune sanction enregistrée.
         </div>
@@ -51,7 +89,7 @@ const AllSanctions = () => {
         <>
           {/* Mobile View: Cards */}
           <div className="md:hidden space-y-4">
-            {sanctions.map((sanction) => (
+            {filteredSanctions.map((sanction) => (
               <div key={sanction.id} className="bg-[#151515] p-5 rounded-xl border border-gray-800 space-y-3 relative">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2 font-bold text-red-500 uppercase text-xs tracking-wider bg-red-500/10 px-3 py-1.5 rounded-lg">
@@ -79,7 +117,7 @@ const AllSanctions = () => {
                     <span>{new Date(sanction.createdAt).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</span>
                   </div>
                   <button
-                    onClick={() => handleDeleteSanction(sanction.id)}
+                    onClick={() => handleDeleteSanction(sanction)}
                     className="p-2.5 bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white rounded-lg transition-colors flex items-center justify-center border border-red-500/20 hover:border-red-600"
                     title="Supprimer la trace de la sanction"
                   >
@@ -104,7 +142,7 @@ const AllSanctions = () => {
                 </tr>
               </thead>
               <tbody>
-                {sanctions.map((sanction) => (
+                {filteredSanctions.map((sanction) => (
                   <tr key={sanction.id} className="border-b border-gray-800/50 hover:bg-[#1A1A1A] transition-colors">
                     <td className="py-4 px-6 text-gray-400">#{sanction.id}</td>
                     <td className="py-4 px-6">
@@ -126,7 +164,7 @@ const AllSanctions = () => {
                     </td>
                     <td className="py-4 px-6 text-right">
                       <button
-                        onClick={() => handleDeleteSanction(sanction.id)}
+                        onClick={() => handleDeleteSanction(sanction)}
                         className="p-2 bg-gray-800 text-gray-400 hover:bg-red-600 hover:text-white rounded-lg transition-colors border border-gray-700 hover:border-red-600 inline-flex items-center justify-center"
                         title="Supprimer la trace de la sanction"
                       >
