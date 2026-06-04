@@ -385,6 +385,19 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-black text-white px-4 md:px-12 lg:px-24 pt-[100px] lg:pt-[120px] pb-8 font-inter">
       <div className="max-w-[960px] mx-auto">
+        {(product.status === 'suspended_by_admin' || product.status === 'hidden_banned') && (
+          <div className="bg-orange-950/40 border border-orange-500/30 text-orange-400 p-4 mb-6 rounded-lg font-medium flex flex-col items-center justify-center text-center">
+            <span className="font-bold text-lg uppercase tracking-wider mb-1">Désactivé par l'administration</span>
+            <span className="text-sm mb-2">Cet article a été retiré de la vente et n'est plus visible publiquement.</span>
+            {product.suspensionReason && (
+              <div className="mt-2 bg-orange-950/80 p-3 rounded-md border border-orange-500/20 w-full max-w-lg text-left">
+                <span className="block text-xs uppercase text-orange-500/70 mb-1">Motif de la désactivation :</span>
+                <span className="text-sm italic text-gray-200">"{product.suspensionReason}"</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Back navigation */}
         <Link
           to="/marketplace"

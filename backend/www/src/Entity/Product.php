@@ -115,6 +115,10 @@ class Product
     #[Groups(['product:read', 'conversation:read'])]
     private ?string $status = 'active';
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['product:read', 'product:write'])]
+    private ?string $suspensionReason = null;
+
     public function __construct()
     {
         $this->favorites = new ArrayCollection();
@@ -439,6 +443,18 @@ class Product
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getSuspensionReason(): ?string
+    {
+        return $this->suspensionReason;
+    }
+
+    public function setSuspensionReason(?string $suspensionReason): static
+    {
+        $this->suspensionReason = $suspensionReason;
 
         return $this;
     }

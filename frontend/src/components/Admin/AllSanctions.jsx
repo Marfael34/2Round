@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { securedFetch } from '../../utils/api';
-import { FiTrash2, FiAlertTriangle, FiUserX, FiVolumeX } from 'react-icons/fi';
+import { FiTrash2, FiAlertTriangle, FiUserX, FiClock } from 'react-icons/fi';
 import { useConfirm } from '../../contexts/ConfirmContext';
 
 const AllSanctions = () => {
@@ -94,9 +94,9 @@ const AllSanctions = () => {
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2 font-bold text-red-500 uppercase text-xs tracking-wider bg-red-500/10 px-3 py-1.5 rounded-lg">
                     {sanction.type === 'WARNING' && <FiAlertTriangle size={16} />}
-                    {sanction.type === 'MUTE' && <FiVolumeX size={16} />}
+                    {sanction.type === 'MUTE' && <FiClock size={16} />}
                     {sanction.type === 'BAN' && <FiUserX size={16} />}
-                    {sanction.type}
+                    {sanction.type === 'WARNING' ? 'Avertissements' : sanction.type === 'MUTE' ? 'Bannissement temporaire' : sanction.type === 'BAN' ? 'Bannissement définitif' : sanction.type}
                   </div>
                   <span className="text-xs text-gray-500 font-medium bg-[#1A1A1A] px-2 py-1 rounded-md">#{sanction.id}</span>
                 </div>
@@ -148,9 +148,9 @@ const AllSanctions = () => {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2 font-bold text-red-500 uppercase text-xs tracking-wider">
                         {sanction.type === 'WARNING' && <FiAlertTriangle size={16} />}
-                        {sanction.type === 'MUTE' && <FiVolumeX size={16} />}
+                        {sanction.type === 'MUTE' && <FiClock size={16} />}
                         {sanction.type === 'BAN' && <FiUserX size={16} />}
-                        {sanction.type}
+                        {sanction.type === 'WARNING' ? 'Avertissements' : sanction.type === 'MUTE' ? 'Bannissement temporaire' : sanction.type === 'BAN' ? 'Bannissement définitif' : sanction.type}
                       </div>
                     </td>
                     <td className="py-4 px-6 text-gray-300">

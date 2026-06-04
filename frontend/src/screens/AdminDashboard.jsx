@@ -762,9 +762,9 @@ const AdminDashboard = () => {
                     onChange={(e) => setSanctionFormData({ ...sanctionFormData, type: e.target.value })}
                     className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded-lg px-4 py-2.5 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all"
                   >
-                    <option value="WARNING">Avertissement</option>
-                    <option value="MUTE">Mute (Désactivation temporaire)</option>
-                    <option value="BAN">Bannissement Définitif</option>
+                    <option value="WARNING">Avertissements</option>
+                    <option value="MUTE">Bannissement temporaire</option>
+                    <option value="BAN">Bannissement définitif</option>
                   </select>
                 </div>
                 

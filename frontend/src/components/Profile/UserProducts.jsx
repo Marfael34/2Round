@@ -45,9 +45,18 @@ const UserProducts = ({ products, loading }) => {
                       </div>
                     )}
                   </div>
+                  {/* Status Overlay if suspended */}
+                  {(product.status === 'suspended_by_admin' || product.status === 'hidden_banned') && (
+                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center p-4 text-center">
+                      <span className="text-orange-500 font-bold text-lg uppercase tracking-widest bg-orange-500/10 px-3 py-1 border border-orange-500/50 rounded-sm">
+                        Désactivé
+                      </span>
+                    </div>
+                  )}
+
                   {/* Checkmark icon if verified */}
                   {showCertification && (
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                    <div className="absolute top-2 right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center z-10">
                       <span className="text-black text-sm font-bold">✓</span>
                     </div>
                   )}

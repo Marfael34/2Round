@@ -106,7 +106,11 @@ const MyLocker = () => {
 
       setLoadingProducts(true);
       try {
-        const response = await securedFetch(`/api/products?seller=${encodeURIComponent(user['@id'])}&status=active`);
+        const url = isCurrentUser 
+          ? `/api/products?seller=${encodeURIComponent(user['@id'])}&status[]=active&status[]=suspended_by_admin&status[]=hidden_banned`
+          : `/api/products?seller=${encodeURIComponent(user['@id'])}&status=active`;
+          
+        const response = await securedFetch(url);
 
         if (response.ok) {
           const data = await response.json();
@@ -121,7 +125,7 @@ const MyLocker = () => {
     };
 
     fetchUserProducts();
-  }, [user, activeTab, products.length]);
+  }, [user, activeTab, products.length, isCurrentUser]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);

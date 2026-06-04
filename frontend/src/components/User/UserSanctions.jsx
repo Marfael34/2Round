@@ -50,13 +50,13 @@ const UserSanctions = ({ sanctionUris, isAdmin, onDeleteSanction }) => {
     <div className="mt-8 space-y-4">
       {sanctions.map((sanction, index) => (
         <div key={index} className="bg-red-950/20 border border-red-900/50 p-4 md:p-6 rounded-lg flex flex-col sm:flex-row items-start gap-3 md:gap-4 relative">
-          <div className="p-2 md:p-3 bg-red-900/40 text-red-500 rounded-full flex-shrink-0">
+          <div className="p-2 md:p-3 bg-red-900/40 text-red-500 rounded-full shrink-0">
             <FiAlertTriangle className="text-xl md:text-2xl" />
           </div>
           <div className="flex-1 w-full pr-8">
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-2">
               <h4 className="text-lg md:text-xl font-bold text-red-500 uppercase tracking-wider leading-tight">
-                {sanction.type === 'WARNING' ? 'Avertissement' : sanction.type === 'MUTE' ? 'Désactivation Temporaire' : sanction.type === 'BAN' ? 'Bannissement' : sanction.type}
+                {sanction.type === 'WARNING' ? 'Avertissements' : sanction.type === 'MUTE' ? 'Bannissement temporaire' : sanction.type === 'BAN' ? 'Bannissement définitif' : sanction.type}
               </h4>
               <span className="text-xs md:text-sm text-gray-500 whitespace-nowrap">
                 {new Date(sanction.createdAt).toLocaleDateString('fr-FR')}

@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 import { securedFetch } from "../../utils/api";
-import { FiX } from "react-icons/fi";
+import { FiX, FiPower } from "react-icons/fi";
+import { useConfirm } from "../../contexts/ConfirmContext";
 
 const AdminProductModal = ({ report, onClose }) => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showReasonInput, setShowReasonInput] = useState(false);
+  const [deactivationReason, setDeactivationReason] = useState("");
+  const { confirm, alert: customAlert } = useConfirm();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -27,6 +31,65 @@ const AdminProductModal = ({ report, onClose }) => {
   }, [report]);
 
   if (!report) return null;
+
+  const handleToggleProductStatus = async () => {
+    const isCurrentlySuspended = product.status === 'suspended_by_admin';
+
+    if (!isCurrentlySuspended) {
+      // Show reason input if we want to deactivate
+      setShowReasonInput(true);
+      return;
+    }
+
+    // Unsuspend logic
+    const isConfirmed = await confirm("Voulez-vous réactiver ce produit ?");
+    if (!isConfirmed) return;
+
+    try {
+      const res = await securedFetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/merge-patch+json" },
+        body: JSON.stringify({ status: 'active', suspensionReason: null })
+      });
+      
+      if (res.ok) {
+        setProduct({ ...product, status: 'active', suspensionReason: null });
+        await customAlert("Le produit a été réactivé avec succès.");
+      } else {
+        throw new Error("API responded with an error");
+      }
+    } catch (err) {
+      console.error(err);
+      await customAlert("Erreur lors de la modification du statut du produit.");
+    }
+  };
+
+  const handleConfirmDeactivate = async () => {
+    if (!deactivationReason.trim()) {
+      await customAlert("Veuillez renseigner un motif pour la désactivation.");
+      return;
+    }
+
+    try {
+      const res = await securedFetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/merge-patch+json" },
+        body: JSON.stringify({ status: 'suspended_by_admin', suspensionReason: deactivationReason })
+      });
+      
+      if (res.ok) {
+        setProduct({ ...product, status: 'suspended_by_admin', suspensionReason: deactivationReason });
+        setShowReasonInput(false);
+        setDeactivationReason("");
+        await customAlert("Le produit a été désactivé avec succès. L'utilisateur en sera informé.");
+      } else {
+        throw new Error("API responded with an error");
+      }
+    } catch (err) {
+      console.error(err);
+      await customAlert("Erreur lors de la modification du statut du produit.");
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -101,6 +164,11 @@ const AdminProductModal = ({ report, onClose }) => {
                       <span className="text-white font-medium">{product.seller?.pseudo || 'Inconnu'}</span>
                     </div>
                   </div>
+                  {product.status === 'suspended_by_admin' && (
+                    <div className="bg-orange-500/10 border border-orange-500/20 text-orange-500 px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center mt-2">
+                      Produit actuellement désactivé par l'administration
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
@@ -115,24 +183,71 @@ const AdminProductModal = ({ report, onClose }) => {
           )}
         </div>
 
-        <div className="p-6 border-t border-gray-800 bg-[#0A0A0A] shrink-0 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors font-medium text-sm"
-          >
-            Fermer
-          </button>
-          {product && (
-            <a
-              href={`/product/${product.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center"
-            >
-              Voir l'annonce
-            </a>
-          )}
-        </div>
+        {showReasonInput ? (
+          <div className="p-6 border-t border-gray-800 bg-[#0A0A0A] shrink-0 space-y-4">
+            <label className="block text-sm font-medium text-gray-400">Motif de la désactivation (visible par le vendeur) :</label>
+            <textarea 
+              value={deactivationReason}
+              onChange={(e) => setDeactivationReason(e.target.value)}
+              placeholder="Ex: Contrefaçon suspectée, annonce inappropriée..."
+              className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded-lg px-4 py-2.5 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all resize-none"
+              rows={2}
+            />
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => {
+                  setShowReasonInput(false);
+                  setDeactivationReason("");
+                }} 
+                className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+              >
+                Annuler
+              </button>
+              <button 
+                onClick={handleConfirmDeactivate} 
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm flex items-center justify-center transition-colors"
+              >
+                Confirmer la désactivation
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="p-6 border-t border-gray-800 bg-[#0A0A0A] shrink-0 flex justify-between items-center gap-3">
+            <div className="flex gap-3">
+              {product && (
+                <button
+                  onClick={handleToggleProductStatus}
+                  className={`px-4 py-2 rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2 ${
+                    product.status === 'suspended_by_admin' 
+                    ? 'bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20' 
+                    : 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 border border-orange-500/20'
+                  }`}
+                >
+                  <FiPower size={16} />
+                  {product.status === 'suspended_by_admin' ? 'Réactiver le produit' : 'Désactiver le produit'}
+                </button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors font-medium text-sm"
+              >
+                Fermer
+              </button>
+              {product && product.status !== 'suspended_by_admin' && (
+                <a
+                  href={`/product/${product.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center"
+                >
+                  Voir l'annonce
+                </a>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
