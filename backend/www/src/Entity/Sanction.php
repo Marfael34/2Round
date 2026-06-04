@@ -15,7 +15,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new \ApiPlatform\Metadata\GetCollection(security: "is_granted('ROLE_ADMIN')"),
         new \ApiPlatform\Metadata\Post(security: "is_granted('ROLE_ADMIN')"),
-        new \ApiPlatform\Metadata\Get(security: "is_granted('ROLE_ADMIN')"),
+        new \ApiPlatform\Metadata\Get(security: "is_granted('ROLE_ADMIN') or object.getTargetUser() == user"),
         new \ApiPlatform\Metadata\Delete(security: "is_granted('ROLE_ADMIN')")
     ]
 )]

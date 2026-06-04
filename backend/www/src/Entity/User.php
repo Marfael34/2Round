@@ -211,6 +211,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->is_onboarding_completed = false;
         $this->isActive = true;
         $this->roles = ['ROLE_USER'];
+        $this->sanctions = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection<int, Sanction>
+     */
+    public function getSanctions(): Collection
+    {
+        return $this->sanctions;
+    }
+
+    public function addSanction(Sanction $sanction): static
+    {
+        if (!$this->sanctions->contains($sanction)) {
+            $this->sanctions->add($sanction);
+            $sanction->setTargetUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSanction(Sanction $sanction): static
+    {
+        if ($this->sanctions->removeElement($sanction)) {
+            // set the owning side to null (unless already changed)
+            if ($sanction->getTargetUser() === $this) {
+                $sanction->setTargetUser(null);
+            }
+        }
+
+        return $this;
     }
 
     public function getId(): ?int

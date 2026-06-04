@@ -49,20 +49,20 @@ const UserSanctions = ({ sanctionUris }) => {
   return (
     <div className="mt-8 space-y-4">
       {sanctions.map((sanction, index) => (
-        <div key={index} className="bg-red-950/20 border border-red-900/50 p-6 rounded-lg flex items-start gap-4">
-          <div className="p-3 bg-red-900/40 text-red-500 rounded-full mt-1">
-            <FiAlertTriangle size={24} />
+        <div key={index} className="bg-red-950/20 border border-red-900/50 p-4 md:p-6 rounded-lg flex flex-col sm:flex-row items-start gap-3 md:gap-4 relative">
+          <div className="p-2 md:p-3 bg-red-900/40 text-red-500 rounded-full flex-shrink-0">
+            <FiAlertTriangle className="text-xl md:text-2xl" />
           </div>
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h4 className="text-xl font-bold text-red-500 uppercase tracking-wider">
+          <div className="flex-1 w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-2">
+              <h4 className="text-lg md:text-xl font-bold text-red-500 uppercase tracking-wider leading-tight">
                 {sanction.type === 'WARNING' ? 'Avertissement' : sanction.type === 'MUTE' ? 'Désactivation Temporaire' : sanction.type === 'BAN' ? 'Bannissement' : sanction.type}
               </h4>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs md:text-sm text-gray-500 whitespace-nowrap">
                 {new Date(sanction.createdAt).toLocaleDateString('fr-FR')}
               </span>
             </div>
-            <p className="text-gray-300">
+            <p className="text-sm md:text-base text-gray-300 leading-relaxed">
               {sanction.reason || "Aucun motif spécifique n'a été fourni par l'administration."}
             </p>
           </div>

@@ -66,7 +66,8 @@ const ProductReports = ({ reports, handleDeleteReport, handleOpenSanctionModal, 
                           if (handleOpenProductModal) {
                             handleOpenProductModal(report);
                           } else {
-                            window.location.href = `/product/${report.product.id}`;
+                            const productId = typeof report.product === 'object' ? (report.product.id || report.product['@id']?.split('/').pop()) : report.product.split('/').pop();
+                            window.location.href = `/product/${productId}`;
                           }
                         }}
                         className="p-2 bg-green-500/10 text-green-500 hover:bg-green-500/20 rounded-lg transition-colors"

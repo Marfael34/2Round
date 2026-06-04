@@ -269,28 +269,35 @@ const MyLocker = () => {
         {/* Bottom Section: Solid Black Background */}
         <div className="bg-black flex-1 p-8 pt-16 relative">
           {/* Tabs straddling the border */}
-          <div className="absolute top-0 left-0 w-full px-4 md:px-12 lg:px-24 -translate-y-9 md:-translate-y-11">
-            <div className="flex gap-6 text-sm uppercase font-inter font-bold">
-              <button 
-                className={`${activeTab === 'articles' ? 'text-white border-b-2 border-red-600' : 'text-gray-500 hover:text-white'} pb-2`}
-                onClick={() => setActiveTab('articles')}
-              >
-               <span className="font-inter font-extralight uppercase text-xl md:text-3xl">Articles</span> 
-              </button>
-              <button 
-                className={`${activeTab === 'evaluations' ? 'text-white border-b-2 border-red-600' : 'text-gray-500 hover:text-white'} pb-2`}
-                onClick={() => setActiveTab('evaluations')}
-              >
-                <span className="font-inter font-extralight uppercase text-xl md:text-3xl">Évaluations</span>
-              </button>
-              {isCurrentUser && (
+          <div className="absolute top-0 left-0 w-full px-4 md:px-12 lg:px-24 -translate-y-8 md:-translate-y-11">
+            <div className="flex gap-4 md:gap-6 text-sm uppercase font-inter font-bold overflow-x-auto whitespace-nowrap w-full" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <style>{`
+                .no-scrollbar::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
+              <div className="flex gap-4 md:gap-6 w-max no-scrollbar pb-2">
                 <button 
-                  className={`${activeTab === 'sanctions' ? 'text-white border-b-2 border-red-600' : 'text-gray-500 hover:text-white'} pb-2`}
-                  onClick={() => setActiveTab('sanctions')}
+                  className={`${activeTab === 'articles' ? 'text-white border-b-2 border-red-600' : 'text-gray-500 hover:text-white'} pb-1`}
+                  onClick={() => setActiveTab('articles')}
                 >
-                  <span className="font-inter font-extralight uppercase text-xl md:text-3xl text-red-500/80 hover:text-red-500 transition-colors">Mes Sanctions</span>
+                 <span className="font-inter font-extralight uppercase text-lg md:text-3xl">Articles</span> 
                 </button>
-              )}
+                <button 
+                  className={`${activeTab === 'evaluations' ? 'text-white border-b-2 border-red-600' : 'text-gray-500 hover:text-white'} pb-1`}
+                  onClick={() => setActiveTab('evaluations')}
+                >
+                  <span className="font-inter font-extralight uppercase text-lg md:text-3xl">Évaluations</span>
+                </button>
+                {isCurrentUser && (
+                  <button 
+                    className={`${activeTab === 'sanctions' ? 'text-white border-b-2 border-red-600' : 'text-gray-500 hover:text-white'} pb-1`}
+                    onClick={() => setActiveTab('sanctions')}
+                  >
+                    <span className="font-inter font-extralight uppercase text-lg md:text-3xl text-red-500/80 hover:text-red-500 transition-colors">Mes Sanctions</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           <div className="w-full px-4 md:px-12 lg:px-24">

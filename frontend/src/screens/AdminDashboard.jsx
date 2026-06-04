@@ -10,6 +10,7 @@ import UsersTable from "../components/Admin/UsersTable";
 import AllReports from "../components/Admin/AllReports";
 import TransactionsTable from "../components/Admin/TransactionsTable";
 import OrdersTable from "../components/Admin/OrdersTable";
+import AdminProductModal from "../components/Admin/AdminProductModal";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -22,7 +23,14 @@ const AdminDashboard = () => {
   const [reportFilter, setReportFilter] = useState("all");
   const [sanctionModalOpen, setSanctionModalOpen] = useState(false);
   const [sanctionTargetCandidates, setSanctionTargetCandidates] = useState([]);
-  const [sanctionFormData, setSanctionFormData] = useState({ targetUserId: "", targetUserPseudo: "", type: "WARNING", reason: "" });
+  const [sanctionFormData, setSanctionFormData] = useState({ targetUserId: "", targetUserPseudo: "", type: "WARNING", reason: "", reportId: null });
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [selectedReportForProduct, setSelectedReportForProduct] = useState(null);
+
+  const handleOpenProductModal = (report) => {
+    setSelectedReportForProduct(report);
+    setProductModalOpen(true);
+  };
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -156,15 +164,18 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleOpenSanctionModal = (candidates) => {
+  const handleOpenSanctionModal = (candidates, reportId = null) => {
     const validCandidates = candidates.filter(c => c && c.id);
     setSanctionTargetCandidates(validCandidates);
     if (validCandidates.length > 0) {
       setSanctionFormData({ 
         ...sanctionFormData, 
         targetUserId: validCandidates[0].id, 
-        targetUserPseudo: validCandidates[0].pseudo 
+        targetUserPseudo: validCandidates[0].pseudo,
+        reportId: reportId
       });
+    } else {
+      setSanctionFormData({ ...sanctionFormData, reportId: reportId });
     }
     setSanctionModalOpen(true);
   };
@@ -190,10 +201,19 @@ const AdminDashboard = () => {
         });
       }
 
+      if (sanctionFormData.reportId) {
+        await securedFetch(`/api/reports/${sanctionFormData.reportId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/merge-patch+json" },
+          body: JSON.stringify({ status: "processed" }),
+        });
+      }
+
       alert(`Sanction appliquée avec succès à ${sanctionFormData.targetUserPseudo || sanctionFormData.targetUserId}`);
       setSanctionModalOpen(false);
-      setSanctionFormData({ targetUserId: "", targetUserPseudo: "", type: "WARNING", reason: "" });
+      setSanctionFormData({ targetUserId: "", targetUserPseudo: "", type: "WARNING", reason: "", reportId: null });
       fetchUsers();
+      fetchReports();
     } catch (error) {
       console.error("Erreur lors de l'application de la sanction", error);
       alert("Erreur lors de l'application de la sanction");
@@ -382,13 +402,13 @@ const AdminDashboard = () => {
                 {reportFilter === "user" ? (
                   <UserReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} />
                 ) : reportFilter === "product" ? (
-                  <ProductReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} />
+                  <ProductReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} handleOpenProductModal={handleOpenProductModal} />
                 ) : reportFilter === "conversation" ? (
                   <ConversationReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} />
                 ) : reportFilter === "message" ? (
                   <MessageReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} />
                 ) : (
-                  <AllReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} />
+                  <AllReports reports={filteredReports} handleDeleteReport={handleDeleteReport} handleOpenSanctionModal={handleOpenSanctionModal} handleOpenProductModal={handleOpenProductModal} />
               )}
             </div>
             ) : activeTab === "sanctions" ? (
@@ -565,6 +585,17 @@ const AdminDashboard = () => {
               </form>
             </div>
           </div>
+        )}
+
+        {/* Modal Produit (Signalement) */}
+        {productModalOpen && (
+          <AdminProductModal 
+            report={selectedReportForProduct} 
+            onClose={() => {
+              setProductModalOpen(false);
+              setSelectedReportForProduct(null);
+            }} 
+          />
         )}
       </div>
     </div>
