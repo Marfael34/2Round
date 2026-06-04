@@ -95,7 +95,7 @@ const AdminDashboard = () => {
         }),
       });
       if (response.ok) {
-        fetchTransactions();
+        refreshAll();
       } else {
         await customAlert("Erreur lors de la mise à jour du statut.");
       }
@@ -115,7 +115,7 @@ const AdminDashboard = () => {
       });
       if (response.ok) {
         await customAlert("Fonds libérés avec succès !");
-        fetchTransactions();
+        refreshAll();
       } else {
         await customAlert("Erreur lors de la libération des fonds.");
       }
@@ -135,7 +135,7 @@ const AdminDashboard = () => {
       });
       if (response.ok) {
         await customAlert("Commande remboursée avec succès !");
-        fetchTransactions();
+        refreshAll();
       } else {
         await customAlert("Erreur lors du remboursement.");
       }
@@ -145,9 +145,17 @@ const AdminDashboard = () => {
     }
   };
 
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const refreshAll = useCallback(() => {
+    fetchUsers();
+    fetchReports();
+    fetchTransactions();
+    setRefreshTrigger(prev => prev + 1);
+  }, [fetchUsers, fetchReports, fetchTransactions]);
+
   useEffect(() => {
     const loadData = async () => {
-      // loading est déjà à true initialement
       await Promise.all([fetchUsers(), fetchReports(), fetchTransactions()]);
       setLoading(false);
     };
@@ -181,7 +189,7 @@ const AdminDashboard = () => {
         await customAlert(user.isActive ? "L'utilisateur a été banni définitivement." : "L'utilisateur a été réactivé.");
       }
 
-      fetchUsers();
+      refreshAll();
     } catch (error) {
       console.error("Erreur lors de la modification de l'utilisateur", error);
       await customAlert("Erreur lors de la modification du statut de l'utilisateur.");
@@ -297,8 +305,7 @@ const AdminDashboard = () => {
 
       setSanctionModalOpen(false);
       setSanctionFormData({ targetUserId: "", targetUserPseudo: "", type: "WARNING", reason: "", reportId: null, durationDays: "3" });
-      fetchUsers();
-      fetchReports();
+      refreshAll();
     } catch (error) {
       console.error("Erreur lors de l'application de la sanction", error);
       await customAlert("Erreur lors de l'application de la sanction");
@@ -333,7 +340,7 @@ const AdminDashboard = () => {
            setViewingUserSanctions(updatedUser);
         }
         if (needsUserRefresh) {
-           fetchUsers();
+           refreshAll();
         }
       }
     } catch (error) {
@@ -385,7 +392,7 @@ const AdminDashboard = () => {
         }),
       });
       setEditingUser(null);
-      fetchUsers();
+      refreshAll();
     } catch (error) {
       console.error("Erreur lors de la sauvegarde", error);
     }
@@ -397,7 +404,7 @@ const AdminDashboard = () => {
         method: "DELETE",
       });
       // Refresh
-      fetchReports();
+      refreshAll();
     } catch (error) {
       console.error("Erreur lors de la suppression du signalement", error);
     }
@@ -413,7 +420,7 @@ const AdminDashboard = () => {
         headers: { "Content-Type": "application/merge-patch+json" },
         body: JSON.stringify({ status: "processed" })
       });
-      fetchReports();
+      refreshAll();
       await customAlert("Signalement classé sans suite avec succès.");
     } catch (error) {
       console.error("Erreur lors de l'ignorance du signalement", error);
@@ -623,7 +630,7 @@ const AdminDashboard = () => {
               )}
             </div>
             ) : activeTab === "sanctions" ? (
-              <AllSanctions />
+              <AllSanctions refreshTrigger={refreshTrigger} onUpdate={refreshAll} />
             ) : null}
           </div>
         )}
@@ -819,6 +826,7 @@ const AdminDashboard = () => {
         {productModalOpen && (
           <AdminProductModal 
             report={selectedReportForProduct} 
+            onUpdate={refreshAll}
             onClose={() => {
               setProductModalOpen(false);
               setSelectedReportForProduct(null);

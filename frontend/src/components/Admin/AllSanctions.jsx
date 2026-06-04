@@ -3,7 +3,7 @@ import { securedFetch } from '../../utils/api';
 import { FiTrash2, FiAlertTriangle, FiUserX, FiClock } from 'react-icons/fi';
 import { useConfirm } from '../../contexts/ConfirmContext';
 
-const AllSanctions = () => {
+const AllSanctions = ({ refreshTrigger, onUpdate }) => {
   const [sanctions, setSanctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,7 +26,7 @@ const AllSanctions = () => {
     };
 
     fetchSanctions();
-  }, []);
+  }, [refreshTrigger]);
 
   const handleDeleteSanction = async (sanction) => {
     const isConfirmed = await confirm("Êtes-vous sûr de vouloir supprimer cette trace de sanction du casier ?");
@@ -50,6 +50,7 @@ const AllSanctions = () => {
             }
           }
         }
+        onUpdate?.();
       }
     } catch (error) {
       console.error("Erreur de suppression", error);

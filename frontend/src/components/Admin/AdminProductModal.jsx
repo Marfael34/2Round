@@ -3,7 +3,7 @@ import { securedFetch } from "../../utils/api";
 import { FiX, FiPower } from "react-icons/fi";
 import { useConfirm } from "../../contexts/ConfirmContext";
 
-const AdminProductModal = ({ report, onClose }) => {
+const AdminProductModal = ({ report, onClose, onUpdate }) => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showReasonInput, setShowReasonInput] = useState(false);
@@ -55,6 +55,7 @@ const AdminProductModal = ({ report, onClose }) => {
       if (res.ok) {
         setProduct({ ...product, status: 'active', suspensionReason: null });
         await customAlert("Le produit a été réactivé avec succès.");
+        onUpdate?.();
       } else {
         throw new Error("API responded with an error");
       }
@@ -82,6 +83,7 @@ const AdminProductModal = ({ report, onClose }) => {
         setShowReasonInput(false);
         setDeactivationReason("");
         await customAlert("Le produit a été désactivé avec succès. L'utilisateur en sera informé.");
+        onUpdate?.();
       } else {
         throw new Error("API responded with an error");
       }
