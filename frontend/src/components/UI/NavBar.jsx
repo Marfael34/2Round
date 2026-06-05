@@ -14,7 +14,8 @@ import { MdFavoriteBorder } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 import { IMG_LOGO } from "../../constants/appConstante";
 import { FaWallet } from "react-icons/fa6";
-import NotificationBell from "./NotificationBell";
+import NotificationCenter from "../Notifications/NotificationCenter";
+
 
 const NavBar = ({ user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -179,6 +180,9 @@ const NavBar = ({ user, onLogout }) => {
           )}
         </div>
 
+        {/* Notifications */}
+        {user && <NotificationCenter />}
+
         {/* Messages / Send */}
         <div className="cursor-pointer hover:text-gray-300 transition-colors">
           <Link to="/conversation">
@@ -186,8 +190,6 @@ const NavBar = ({ user, onLogout }) => {
           </Link>
         </div>
 
-        {/* Notifications */}
-        {user && <NotificationBell userId={decodedUser?.id || decodedUser?.sub} />}
 
         {/* Cart */}
         <div className="cursor-pointer hover:text-gray-300 transition-colors">
@@ -345,11 +347,6 @@ const NavBar = ({ user, onLogout }) => {
             </div>
             </Link>
 
-            {user && (
-              <div className="flex p-3 hover:bg-[#1A1A1A] rounded-lg transition-colors">
-                <NotificationBell isMobile={true} userId={decodedUser?.id || decodedUser?.sub} />
-              </div>
-            )}
 
             <div className="flex items-center space-x-3 p-3 hover:bg-[#1A1A1A] rounded-lg cursor-pointer transition-colors">
               <FiShoppingCart className="h-6 w-6" />

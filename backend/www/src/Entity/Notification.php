@@ -2,33 +2,26 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use App\Repository\NotificationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\ApiFilter;
-use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 
 #[ORM\Entity(repositoryClass: NotificationRepository::class)]
-#[ORM\HasLifecycleCallbacks]
-#[ApiFilter(OrderFilter::class, properties: ['createdAt' => 'DESC'])]
-#[ApiFilter(SearchFilter::class, properties: ['user' => 'exact', 'isRead' => 'exact'])]
 #[ApiResource(
-    mercure: true,
-    normalizationContext: ['groups' => ['notification:read']],
     operations: [
-        new GetCollection(
-            security: "is_granted('ROLE_USER')"
-        ),
+        new Get(),
+        new GetCollection(),
         new Patch(
-            security: "is_granted('ROLE_USER') and object.getUser() == user",
             denormalizationContext: ['groups' => ['notification:write']]
-        )
-    ]
+        ),
+    ],
+    normalizationContext: ['groups' => ['notification:read']],
+    order: ['createdAt' => 'DESC']
 )]
 class Notification
 {
@@ -39,38 +32,37 @@ class Notification
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'notifications')]
-    #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['notification:read'])]
-    private ?User $user = null;
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?User $recipient = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['notification:read'])]
-    private ?string $type = null;
+    private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Groups(['notification:read'])]
-    private ?string $content = null;
+    private ?string $message = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['notification:read'])]
-    private ?int $relatedId = null;
-
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    #[Groups(['notification:read'])]
-    private ?array $metadata = [];
+    private ?string $link = null;
 
     #[ORM\Column]
     #[Groups(['notification:read', 'notification:write'])]
-    private ?bool $isRead = false;
+    private ?bool $isRead = null;
 
     #[ORM\Column]
     #[Groups(['notification:read'])]
-    private ?\DateTimeImmutable $createdAt = null;
+    private ?\DateTime $createdAt = null;
 
-    #[ORM\PrePersist]
-    public function setCreatedAtValue(): void
+    #[ORM\Column(length: 50)]
+    #[Groups(['notification:read'])]
+    private ?string $type = null;
+
+    public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTime();
+        $this->isRead = false;
     }
 
     public function getId(): ?int
@@ -78,14 +70,74 @@ class Notification
         return $this->id;
     }
 
-    public function getUser(): ?User
+    public function getRecipient(): ?User
     {
-        return $this->user;
+        return $this->recipient;
     }
 
-    public function setUser(?User $user): static
+    public function setRecipient(?User $recipient): static
     {
-        $this->user = $user;
+        $this->recipient = $recipient;
+
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getMessage(): ?string
+    {
+        return $this->message;
+    }
+
+    public function setMessage(string $message): static
+    {
+        $this->message = $message;
+
+        return $this;
+    }
+
+    public function getLink(): ?string
+    {
+        return $this->link;
+    }
+
+    public function setLink(?string $link): static
+    {
+        $this->link = $link;
+
+        return $this;
+    }
+
+    public function isRead(): ?bool
+    {
+        return $this->isRead;
+    }
+
+    public function setIsRead(bool $isRead): static
+    {
+        $this->isRead = $isRead;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTime $createdAt): static
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -98,66 +150,6 @@ class Notification
     public function setType(string $type): static
     {
         $this->type = $type;
-
-        return $this;
-    }
-
-    public function getContent(): ?string
-    {
-        return $this->content;
-    }
-
-    public function setContent(string $content): static
-    {
-        $this->content = $content;
-
-        return $this;
-    }
-
-    public function getRelatedId(): ?int
-    {
-        return $this->relatedId;
-    }
-
-    public function setRelatedId(?int $relatedId): static
-    {
-        $this->relatedId = $relatedId;
-
-        return $this;
-    }
-
-    public function getMetadata(): ?array
-    {
-        return $this->metadata;
-    }
-
-    public function setMetadata(?array $metadata): static
-    {
-        $this->metadata = $metadata;
-
-        return $this;
-    }
-
-    public function getIsRead(): ?bool
-    {
-        return $this->isRead;
-    }
-
-    public function setIsRead(bool $isRead): static
-    {
-        $this->isRead = $isRead;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
 
         return $this;
     }

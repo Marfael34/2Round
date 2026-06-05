@@ -103,7 +103,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Favorite>
      */
     #[ORM\OneToMany(targetEntity: Favorite::class, mappedBy: 'users')]
-    #[Groups(['user:read'])]
     private Collection $favorites;
 
     /**
@@ -170,7 +169,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Adress>
      */
     #[ORM\OneToMany(targetEntity: Adress::class, mappedBy: 'user')]
-    #[Groups(['user:read'])]
     private Collection $adresses;
 
     /**
@@ -183,9 +181,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Notification>
      */
-    #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'user', cascade: ['remove'])]
-    #[Groups(['user:read'])]
+    #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'recipient', orphanRemoval: true)]
     private Collection $notifications;
+
+    /**
+     */
 
     #[ORM\Column]
     private ?bool $is_onboarding_completed = null;
@@ -256,12 +256,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getNotifications(): Collection
+    {
+        return $this->notifications;
+    }
+
+    public function addNotification(Notification $notification): static
+    {
+        if (!$this->notifications->contains($notification)) {
+            $this->notifications->add($notification);
+            $notification->setRecipient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNotification(Notification $notification): static
+    {
+        if ($this->notifications->removeElement($notification)) {
+            // set the owning side to null (unless already changed)
+            if ($notification->getRecipient() === $this) {
+                $notification->setRecipient(null);
+            }
+        }
+
+        return $this;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    #[Groups(['user:read'])]
     public function getEmail(): ?string
     {
         return $this->email;
@@ -348,7 +377,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['user:read'])]
     public function getPseudo(): ?string
     {
         return $this->pseudo;
@@ -361,7 +389,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['user:read'])]
     public function getAvatar(): ?string
     {
         return $this->avatar;
@@ -387,7 +414,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['user:read'])]
     public function getWeight(): ?string
     {
         return $this->weight;
@@ -570,7 +596,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['user:read'])]
     public function getBoxeId(): ?Boxe
     {
         return $this->boxe;
@@ -584,7 +609,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['user:read'])]
     public function getLevelId(): ?Level
     {
         return $this->level;
@@ -598,7 +622,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['user:read'])]
     public function getGenderId(): ?Gender
     {
         return $this->gender;
@@ -696,7 +719,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['user:read'])]
     public function getSize(): ?int
     {
         return $this->size;
@@ -861,32 +883,5 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, Notification>
      */
-    public function getNotifications(): Collection
-    {
-        return $this->notifications;
-    }
-
-    public function addNotification(Notification $notification): static
-    {
-        if (!$this->notifications->contains($notification)) {
-            $this->notifications->add($notification);
-            $notification->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeNotification(Notification $notification): static
-    {
-        if ($this->notifications->removeElement($notification)) {
-            // set the owning side to null (unless already changed)
-            if ($notification->getUser() === $this) {
-                $notification->setUser(null);
-            }
-        }
-
-        return $this;
-    }
 }

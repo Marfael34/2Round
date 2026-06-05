@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import NavBar from "./components/UI/NavBar";
 import Footer from "./components/UI/Footer";
 
+
 const App = () => {
   const location = useLocation();
   const navigate = useNavigate();

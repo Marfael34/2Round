@@ -18,7 +18,7 @@ class CurrentUserExtension implements QueryCollectionExtensionInterface
         $this->security = $security;
     }
 
-    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, Operation $operation = null, array $context = []): void
+    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         $this->addWhere($queryBuilder, $resourceClass);
     }
@@ -31,12 +31,24 @@ class CurrentUserExtension implements QueryCollectionExtensionInterface
 
         $user = $this->security->getUser();
 
+        $rootAlias = $queryBuilder->getRootAliases()[0];
+
         if (null === $user) {
+            // Utilisateur non connecté : aucune notification
+            $queryBuilder->andWhere(sprintf('%s.recipient IS NULL', $rootAlias))
+                         ->andWhere('1 = 0'); // Retourne vide
             return;
         }
 
-        $rootAlias = $queryBuilder->getRootAliases()[0];
-        $queryBuilder->andWhere(sprintf('%s.user = :current_user', $rootAlias));
-        $queryBuilder->setParameter('current_user', $user);
+        if ($this->security->isGranted('ROLE_ADMIN')) {
+            // L'admin voit les siennes ET les notifications globales (recipient = null)
+            $queryBuilder->andWhere(sprintf('%s.recipient = :current_user OR %s.recipient IS NULL', $rootAlias, $rootAlias))
+                         ->setParameter('current_user', $user);
+            return;
+        }
+
+        // Utilisateur normal : voit uniquement ses notifications
+        $queryBuilder->andWhere(sprintf('%s.recipient = :current_user', $rootAlias))
+                     ->setParameter('current_user', $user);
     }
 }

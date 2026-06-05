@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 export const useAuth = () => {
   const [userId, setUserId] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -28,11 +29,15 @@ export const useAuth = () => {
                 setUserId(storedUserId);
             }
         }
+        
+        if (payload.roles && payload.roles.includes('ROLE_ADMIN')) {
+            setIsAdmin(true);
+        }
       } catch (e) {
         console.error('Invalid token', e);
       }
     }
   }, []);
 
-  return { userId };
+  return { userId, isAdmin };
 };

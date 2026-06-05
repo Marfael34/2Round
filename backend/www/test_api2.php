@@ -7,4 +7,12 @@ $userRepository = $container->get('doctrine')->getRepository(App\Entity\User::cl
 $user = $userRepository->find(72);
 $jwtManager = $container->get('lexik_jwt_authentication.jwt_manager');
 $token = $jwtManager->create($user);
-echo "TOKEN: " . $token . "\n";
+
+$ch = curl_init('http://localhost:80/api/notifications');
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Authorization: Bearer ' . $token,
+    'Accept: application/ld+json'
+]);
+$result = curl_exec($ch);
+echo "API RESPONSE:\n" . $result . "\n";

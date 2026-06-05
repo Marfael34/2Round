@@ -22,26 +22,37 @@ class NotificationService
         $this->serializer = $serializer;
     }
 
-    public function sendNotification(User $user, string $type, string $content, ?int $relatedId = null): void
+    /**
+     * @param User|null $recipient Si null, notification globale (admin)
+     */
+    public function sendNotification(?User $recipient, string $title, string $message, ?string $link, string $type): void
     {
         $notification = new Notification();
-        $notification->setUser($user);
+        $notification->setRecipient($recipient);
+        $notification->setTitle($title);
+        $notification->setMessage($message);
+        $notification->setLink($link);
         $notification->setType($type);
-        $notification->setContent($content);
-        $notification->setRelatedId($relatedId);
-
+        
         $this->em->persist($notification);
         $this->em->flush();
 
-        // The API Platform mercure integration might trigger automatically,
-        // but if it doesn't, or we want a custom topic:
-        // We can publish to a custom topic for the user's notifications.
-        // E.g., http://localhost:8000/users/{id}/notifications
-        // or just rely on API platform if mercure: true is set on Entity.
-        // Actually, it's safer to just rely on API Platform or push explicitly here
-        // as a fallback. Let's let API Platform handle it via `mercure: true` on the entity!
-        // But wait, API Platform only listens to Doctrine events if it's configured to do so.
-        // Let's manually push just in case, or we can see if it double-pushes.
-        // To avoid double push, we will let ApiPlatform handle it. If it fails, we add it back.
+        // Topic de la notification (ex: pour un utilisateur précis ou 'admin')
+        $topic = $recipient ? sprintf('https://2round.com/users/%d/notifications', $recipient->getId()) : 'https://2round.com/admin/notifications';
+
+        // Sérialisation pour l'envoi Mercure (même format que API Platform)
+        $data = $this->serializer->serialize($notification, 'json', ['groups' => 'notification:read']);
+
+        $update = new Update(
+            $topic,
+            $data,
+            false // Rendu public pour éviter le 401 en frontend
+        );
+
+        try {
+            $this->hub->publish($update);
+        } catch (\Exception $e) {
+            // Ignorer si Mercure n'est pas dispo en local pour ne pas bloquer l'action métier
+        }
     }
 }

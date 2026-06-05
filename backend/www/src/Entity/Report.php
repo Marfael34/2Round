@@ -17,7 +17,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new \ApiPlatform\Metadata\GetCollection(security: "is_granted('ROLE_ADMIN')"),
         new \ApiPlatform\Metadata\Get(security: "is_granted('ROLE_ADMIN')"),
-        new \ApiPlatform\Metadata\Post(security: "is_granted('IS_AUTHENTICATED_FULLY')"),
+        new \ApiPlatform\Metadata\Post(
+            security: "is_granted('IS_AUTHENTICATED_FULLY')",
+            denormalizationContext: ['groups' => ['report:write']]
+        ),
         new \ApiPlatform\Metadata\Delete(security: "is_granted('ROLE_ADMIN')"),
         new \ApiPlatform\Metadata\Patch(security: "is_granted('ROLE_ADMIN')")
     ]
@@ -31,15 +34,15 @@ class Report
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['admin:read'])]
+    #[Groups(['admin:read', 'report:write'])]
     private ?string $reason = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['admin:read'])]
+    #[Groups(['admin:read', 'report:write'])]
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups(['admin:read'])]
+    #[Groups(['admin:read', 'report:write'])]
     private ?\DateTime $createdAt = null;
 
     #[ORM\Column(length: 20, options: ["default" => "pending"])]
@@ -48,32 +51,32 @@ class Report
 
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['admin:read'])]
+    #[Groups(['admin:read', 'report:write'])]
     private ?User $sender = null;
 
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['admin:read'])]
+    #[Groups(['admin:read', 'report:write'])]
     private ?Order $orderid = null;
 
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['admin:read'])]
+    #[Groups(['admin:read', 'report:write'])]
     private ?Conversation $conversation = null;
 
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['admin:read'])]
+    #[Groups(['admin:read', 'report:write'])]
     private ?Message $message = null;
 
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['admin:read'])]
+    #[Groups(['admin:read', 'report:write'])]
     private ?Product $product = null;
 
     #[ORM\ManyToOne(inversedBy: 'reportsReceived')]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['admin:read'])]
+    #[Groups(['admin:read', 'report:write'])]
     private ?User $reportedUser = null;
 
     /**
