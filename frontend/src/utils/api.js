@@ -36,7 +36,7 @@ export const getCurrentUserId = () => {
     
     lastDecodedToken = token;
     return cachedUserId;
-  } catch (e) {
+  } catch {
     return null;
   }
 };
@@ -128,6 +128,12 @@ export async function securedFetch(url, options = {}) {
       
       // Rejouer la requête d'origine de manière transparente pour l'utilisateur
       response = await fetch(url, { ...options, headers });
+      
+      // Si la requête rejouée échoue TOUJOURS en 401 (ex: compte suspendu/banni),
+      // on force la déconnexion pour éviter que l'utilisateur ne reste bloqué avec une session invalide.
+      if (response.status === 401) {
+        throw new Error('Le nouveau token a été rejeté (compte peut-être suspendu).');
+      }
     } catch {
       // Le refresh token a lui aussi expiré ou est invalide -> déconnexion et redirection
       localStorage.removeItem('token');

@@ -76,9 +76,12 @@ services:
       MERCURE_SUBSCRIBER_JWT_KEY: '!ChangeThisMercureHubSubscriberJWTKey!'
       # Autoriser les requêtes provenant de votre app Symfony
       MERCURE_EXTRA_DIRECTIVES: |
-        cors_origins http://localhost:8000
+        cors_origins http://localhost:5179 http://localhost:5173 http://localhost:8000 http://localhost:3000
+        anonymous
     ports:
       - "8080:80"
+    networks:
+      - app_network
 
 networks:
   app_network:
