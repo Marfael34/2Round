@@ -49,10 +49,29 @@ class Product
     #[Groups(['product:read', 'product:write', 'conversation:read'])]
     private ?string $price = null;
 
-
     #[ORM\Column]
     #[Groups(['product:read', 'product:write'])]
     private ?int $weight = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(['product:read', 'product:write'])]
+    private ?string $type = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(['product:read', 'product:write'])]
+    private ?string $size = null;
+
+    #[ORM\Column]
+    #[Groups(['product:read'])]
+    private ?bool $isHighlighted = null;
+
+    #[ORM\Column(length: 20, options: ["default" => "active"])]
+    #[Groups(['product:read', 'conversation:read'])]
+    private ?string $status = 'active';
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['product:read', 'product:write'])]
+    private ?string $suspensionReason = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -96,29 +115,10 @@ class Product
     #[Groups(['product:read', 'conversation:read'])]
     private Collection $images;
 
-    #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['product:read', 'product:write'])]
-    private ?string $type = null;
-
-    #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['product:read', 'product:write'])]
-    private ?string $size = null;
 
     #[ORM\ManyToMany(targetEntity: Color::class)]
     #[Groups(['product:read', 'product:write'])]
     private Collection $colors;
-
-    #[ORM\Column]
-    #[Groups(['product:read'])]
-    private ?bool $isHighlighted = null;
-
-    #[ORM\Column(length: 20, options: ["default" => "active"])]
-    #[Groups(['product:read', 'conversation:read'])]
-    private ?string $status = 'active';
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['product:read', 'product:write'])]
-    private ?string $suspensionReason = null;
 
     public function __construct()
     {

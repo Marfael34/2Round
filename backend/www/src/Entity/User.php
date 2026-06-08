@@ -99,6 +99,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $stripe_customer_id = null;
 
+     #[ORM\Column]
+    private ?bool $is_onboarding_completed = null;
+
+    #[ORM\Column]
+    private ?\DateTime $createdAt = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['user:read', 'user:write', 'admin:write'])]
+    private ?int $size = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $refreshToken = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTime $refreshTokenExpiredAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Groups(['admin:read', 'admin:write', 'user:read'])]
+    private ?\DateTime $bannedUntil = null;
+
     /**
      * @var Collection<int, Favorite>
      */
@@ -184,28 +204,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'recipient', orphanRemoval: true)]
     private Collection $notifications;
 
-    /**
-     */
-
-    #[ORM\Column]
-    private ?bool $is_onboarding_completed = null;
-
-    #[ORM\Column]
-    private ?\DateTime $createdAt = null;
-
-    #[ORM\Column(nullable: true)]
-    #[Groups(['user:read', 'user:write', 'admin:write'])]
-    private ?int $size = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $refreshToken = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $refreshTokenExpiredAt = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['admin:read', 'admin:write', 'user:read'])]
-    private ?\DateTimeInterface $bannedUntil = null;
 
     public function __construct()
     {

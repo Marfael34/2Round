@@ -37,11 +37,11 @@ class Order
     #[ORM\Column]
     private ?\DateTime $createdAt = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $stripe_payment_intent_id = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $stripe_payment_intent_id = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $stripe_tansfer_id = null;
+    #[ORM\Column(length:255, nullable: true)]
+    private ?string $stripe_tansfer_id = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true)]
     private ?string $weight_total = null;
