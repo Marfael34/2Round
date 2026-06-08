@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx concurrently -k \"vite\" \"npx untun@latest tunnel http://127.0.0.1:5179\"",
+    "dev": "npx concurrently \"vite\" \"curl -s -L -o cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 && chmod +x cloudflared && ./cloudflared tunnel --url http://127.0.0.1:5179\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

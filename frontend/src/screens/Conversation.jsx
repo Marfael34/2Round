@@ -2836,11 +2836,11 @@ const Conversation = () => {
                   className="w-full bg-[#151515] border border-white/10 rounded-sm px-4 py-3 text-sm text-white focus:border-red-600 outline-none transition-colors"
                 >
                   <option value="">-- Sélectionnez une raison --</option>
-                  <option value="spam">Spam ou publicité</option>
-                  <option value="scam">Arnaque suspectée</option>
-                  <option value="abuse">Harcèlement ou propos injurieux</option>
-                  <option value="fake">Contrefaçon ou objet interdit</option>
-                  <option value="other">Autre</option>
+                  <option value="Spam ou publicité">Spam ou publicité</option>
+                  <option value="Arnaque suspectée">Arnaque suspectée</option>
+                  <option value="Harcèlement ou propos injurieux">Harcèlement ou propos injurieux</option>
+                  <option value="Contrefaçon ou objet interdit">Contrefaçon ou objet interdit</option>
+                  <option value="Autre">Autre</option>
                 </select>
               </div>
 

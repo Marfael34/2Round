@@ -49,6 +49,7 @@ class Notification
 
     #[ORM\Column]
     #[Groups(['notification:read', 'notification:write'])]
+    #[\Symfony\Component\Serializer\Attribute\SerializedName('isRead')]
     private ?bool $isRead = null;
 
     #[ORM\Column]
@@ -118,7 +119,7 @@ class Notification
         return $this;
     }
 
-    public function isRead(): ?bool
+    public function getIsRead(): ?bool
     {
         return $this->isRead;
     }

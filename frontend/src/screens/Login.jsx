@@ -66,7 +66,11 @@ const Login = () => {
           });
           return;
         }
-        throw new Error(data?.message || "Email ou mot de passe incorrect");
+        let errorMessage = data?.message;
+        if (errorMessage === 'Invalid credentials.' || errorMessage === 'Invalid credentials') {
+          errorMessage = 'Mail ou mot de passe incorrect';
+        }
+        throw new Error(errorMessage || "Mail ou mot de passe incorrect");
       }
 
       // Stocker le token JWT et le Refresh Token

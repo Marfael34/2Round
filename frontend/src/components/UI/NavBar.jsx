@@ -197,16 +197,19 @@ const NavBar = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Burger Menu Icon (Mobile Only) */}
-      <div
-        className="md:hidden cursor-pointer hover:text-gray-300 transition-colors"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-      >
-        {isMenuOpen ? (
-          <FiX className="h-6 w-6" />
-        ) : (
-          <FiMenu className="h-6 w-6" />
-        )}
+      {/* Mobile Right Icons (Notifications + Burger Menu) */}
+      <div className="flex md:hidden items-center space-x-4">
+        {user && <NotificationCenter />}
+        <div
+          className="cursor-pointer hover:text-gray-300 transition-colors"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? (
+            <FiX className="h-6 w-6" />
+          ) : (
+            <FiMenu className="h-6 w-6" />
+          )}
+        </div>
       </div>
 
       {/* Mobile Menu Dropdown */}

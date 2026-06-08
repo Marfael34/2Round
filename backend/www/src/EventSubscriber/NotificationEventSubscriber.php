@@ -15,9 +15,11 @@ use Doctrine\ORM\Events;
 
 #[AsDoctrineListener(event: Events::postPersist)]
 #[AsDoctrineListener(event: Events::preUpdate)]
+#[AsDoctrineListener(event: Events::postFlush)]
 class NotificationEventSubscriber
 {
     private NotificationService $notificationService;
+    private array $pendingNotifications = [];
 
     public function __construct(NotificationService $notificationService)
     {
@@ -28,14 +30,9 @@ class NotificationEventSubscriber
     {
         $entity = $args->getObject();
 
-        // Nouveau Message
         if ($entity instanceof Message) {
-            // Dans votre entité Message, assurez-vous d'avoir accès au destinataire
-            // Si la conversation a un acheteur et que le message vient du vendeur, notifier l'acheteur.
-            // Ici, par exemple, on suppose getConversation()
             if (method_exists($entity, 'getConversation') && $entity->getConversation()) {
                 $conversation = $entity->getConversation();
-                // Si l'expéditeur est l'acheteur, le destinataire est le vendeur (propriétaire du produit)
                 $product = $conversation->getProductId();
                 $productOwner = $product ? $product->getSeller() : null;
                 $buyer = $conversation->getBuyerid();
@@ -43,43 +40,35 @@ class NotificationEventSubscriber
                 $recipient = ($entity->getUsers() === $buyer) ? $productOwner : $buyer;
                 
                 if ($recipient) {
-                    $this->notificationService->sendNotification(
+                    $this->pendingNotifications[] = [
                         $recipient,
                         'Nouveau message reçu',
                         'Vous avez reçu un nouveau message de ' . $entity->getUsers()->getPseudo(),
-                        '/conversation', // URL frontend corrigée
+                        '/conversation',
                         'NEW_MESSAGE'
-                    );
+                    ];
                 }
             }
         }
 
-        // Nouvelle Offre
-        // (Il faut lier l'Offer au Product ou Message correctement selon votre logique métier.
-        // Si l'Offer n'a pas accès au Product, ce bloc est à adapter.)
-        // if ($entity instanceof Offer) { ... }
-
-        // Nouveau Signalement (Report)
         if ($entity instanceof Report) {
-            // Notifier les administrateurs (recipient = null)
-            $this->notificationService->sendNotification(
+            $this->pendingNotifications[] = [
                 null,
                 'Nouveau signalement',
                 'Un nouveau signalement a été soumis par ' . $entity->getSender()->getPseudo(),
-                '/admin/dashboard', // URL frontend corrigée
+                '/admin/dashboard',
                 'NEW_REPORT'
-            );
+            ];
         }
 
-        // Nouvelle Sanction (Avertissement)
         if ($entity instanceof Sanction) {
-            $this->notificationService->sendNotification(
+            $this->pendingNotifications[] = [
                 $entity->getTargetUser(),
                 'Avertissement',
                 'Vous avez reçu un avertissement de l\'administration.',
-                '/my-locker', // URL frontend corrigée
+                '/my-locker',
                 'WARNING'
-            );
+            ];
         }
     }
 
@@ -87,17 +76,32 @@ class NotificationEventSubscriber
     {
         $entity = $args->getObject();
 
-        // Modification d'un produit (désactivation/blocage)
         if ($entity instanceof Product) {
             if ($args->hasChangedField('status') && $args->getNewValue('status') !== 'active') {
-                $this->notificationService->sendNotification(
+                $this->pendingNotifications[] = [
                     $entity->getSeller(),
                     'Produit désactivé',
                     'Votre produit "' . $entity->getTitle() . '" a été désactivé.',
-                    '/product/' . $entity->getId(), // URL frontend corrigée
+                    '/product/' . $entity->getId(),
                     'PRODUCT_DEACTIVATED'
-                );
+                ];
             }
+        }
+    }
+
+    public function postFlush(): void
+    {
+        if (empty($this->pendingNotifications)) {
+            return;
+        }
+
+        // On copie et on vide le tableau AVANT d'envoyer,
+        // car sendNotification appelle flush() ce qui redéclenche postFlush !
+        $notifications = $this->pendingNotifications;
+        $this->pendingNotifications = [];
+
+        foreach ($notifications as $n) {
+            $this->notificationService->sendNotification($n[0], $n[1], $n[2], $n[3], $n[4]);
         }
     }
 }

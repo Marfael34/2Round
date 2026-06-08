@@ -22,7 +22,11 @@ export const useNotifications = () => {
       const items = data['hydra:member'] || data.member || data;
       if (Array.isArray(items)) {
         setNotifications(items);
-        setUnreadCount(items.filter(n => !n.isRead).length);
+        setUnreadCount(items.filter(n => {
+          const val = n.isRead !== undefined ? n.isRead : (n.read !== undefined ? n.read : n.is_read);
+          const isRead = val === true || val === 1 || val === '1' || val === 'true' || val === 'TRUE' || val === '1.0';
+          return !isRead;
+        }).length);
       }
     } catch (e) {
       console.error('Error fetching notifications', e);
@@ -36,7 +40,7 @@ export const useNotifications = () => {
 
     const token = localStorage.getItem('token');
     const topic = `https://2round.com/users/${userId}/notifications`;
-    const url = new URL('http://127.0.0.1:8080/.well-known/mercure');
+    const url = new URL('/.well-known/mercure', window.location.origin);
     url.searchParams.append('topic', topic);
     
     // Si l'utilisateur est admin, il écoute aussi le topic global admin

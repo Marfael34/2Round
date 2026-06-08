@@ -39,6 +39,10 @@ export default defineConfig({
         target: 'http://localhost:8090/invoice',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/pdf/, '')
+      },
+      '/.well-known/mercure': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
       }
     }
   }
