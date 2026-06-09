@@ -27,9 +27,9 @@ const Register = () => {
     const fetchReferences = async () => {
       try {
         const [boxesRes, levelsRes, gendersRes] = await Promise.all([
-          fetch(`${API_URL}/boxes`),
-          fetch(`${API_URL}/levels`),
-          fetch(`${API_URL}/genders`),
+          fetch(`${API_URL}/dictionaries?type=boxe`),
+          fetch(`${API_URL}/dictionaries?type=level`),
+          fetch(`${API_URL}/dictionaries?type=gender`),
         ]);
         if (boxesRes.ok) {
           const bData = await boxesRes.json();
@@ -61,9 +61,9 @@ const Register = () => {
     weight: "",
     size: "",
     budget: "",
-    boxeId: "",
-    levelId: "",
-    genderId: "",
+    boxe: "",
+    level: "",
+    gender: "",
   });
 
   const [error, setError] = useState("");
@@ -106,22 +106,22 @@ const Register = () => {
       delete dataToSend.birthday;
     }
 
-    if (dataToSend.boxeId) {
-      dataToSend.boxeId = `/api/boxes/${dataToSend.boxeId}`;
+    if (dataToSend.boxe) {
+      dataToSend.boxe = `/api/dictionaries/${dataToSend.boxe}`;
     } else {
-      delete dataToSend.boxeId;
+      delete dataToSend.boxe;
     }
 
-    if (dataToSend.levelId) {
-      dataToSend.levelId = `/api/levels/${dataToSend.levelId}`;
+    if (dataToSend.level) {
+      dataToSend.level = `/api/dictionaries/${dataToSend.level}`;
     } else {
-      delete dataToSend.levelId;
+      delete dataToSend.level;
     }
 
-    if (dataToSend.genderId) {
-      dataToSend.genderId = `/api/genders/${dataToSend.genderId}`;
+    if (dataToSend.gender) {
+      dataToSend.gender = `/api/dictionaries/${dataToSend.gender}`;
     } else {
-      delete dataToSend.genderId;
+      delete dataToSend.gender;
     }
 
     // Sanitize optional fields
@@ -186,9 +186,9 @@ const Register = () => {
         weight: "",
         size: "",
         budget: "",
-        boxeId: "",
-        levelId: "",
-        genderId: "",
+        boxe: "",
+        level: "",
+        gender: "",
       });
 
       // Rediriger vers la page de connexion
@@ -259,6 +259,7 @@ const Register = () => {
               setShowPassword={setShowPassword}
               showConfirmPassword={showConfirmPassword}
               setShowConfirmPassword={setShowConfirmPassword}
+              genders={genders}
             />
           )}
 

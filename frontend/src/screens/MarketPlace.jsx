@@ -42,7 +42,7 @@ const MarketPlace = () => {
       try {
         const [productsRes, colorsRes] = await Promise.all([
           securedFetch(`${API_URL}/products?status=active`),
-          securedFetch(`${API_URL}/colors`)
+          securedFetch(`${API_URL}/dictionaries?type=color`)
         ]);
 
         if (!productsRes.ok) throw new Error("Impossible de charger les articles de la marketplace.");

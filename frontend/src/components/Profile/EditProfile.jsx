@@ -89,9 +89,9 @@ const EditProfile = () => {
 
         // Fetch reference data
         const [boxesRes, levelsRes, gendersRes] = await Promise.all([
-          securedFetch("/api/boxes"),
-          securedFetch("/api/levels"),
-          securedFetch("/api/genders"),
+          securedFetch("/api/dictionaries?type=boxe"),
+          securedFetch("/api/dictionaries?type=level"),
+          securedFetch("/api/dictionaries?type=gender"),
         ]);
 
         if (boxesRes.ok) {
@@ -137,9 +137,9 @@ const EditProfile = () => {
           size: userData.size || "",
           budget: userData.budget ?? "",
           avatar: userData.avatar || "",
-          boxe: extractId(userData.boxeId),
-          level: extractId(userData.levelId),
-          gender: extractId(userData.genderId),
+          boxe: extractId(userData.boxe),
+          level: extractId(userData.level),
+          gender: extractId(userData.gender),
         });
 
         const userId = userData.id || userData["@id"]?.split("/").pop();
@@ -287,9 +287,9 @@ const EditProfile = () => {
           size: formData.size ? parseInt(formData.size, 10) : null,
           budget: formData.budget !== "" ? parseInt(formData.budget, 10) : null,
           avatar: finalAvatarPath,
-          boxeId: formData.boxe ? `/api/boxes/${formData.boxe}` : null,
-          levelId: formData.level ? `/api/levels/${formData.level}` : null,
-          genderId: formData.gender ? `/api/genders/${formData.gender}` : null,
+          boxe: formData.boxe ? `/api/dictionaries/${formData.boxe}` : null,
+          level: formData.level ? `/api/dictionaries/${formData.level}` : null,
+          gender: formData.gender ? `/api/dictionaries/${formData.gender}` : null,
         }),
       });
 

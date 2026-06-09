@@ -4,8 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Entity\Image;
-use App\Entity\Etat;
-use App\Entity\Color;
+use App\Entity\Dictionary;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -54,11 +53,11 @@ class ProductUpdateController extends AbstractController
             $etatId = null;
             if (is_numeric($etatIdOrIri)) {
                 $etatId = (int)$etatIdOrIri;
-            } elseif (preg_match('/\/api\/etats\/(\d+)/', $etatIdOrIri, $matches)) {
-                $etatId = (int)$matches[1];
+            } elseif (preg_match('/\/api\/(etats|dictionaries)\/(\d+)/', $etatIdOrIri, $matches)) {
+                $etatId = (int)$matches[2];
             }
             if ($etatId) {
-                $etat = $em->getRepository(Etat::class)->find($etatId);
+                $etat = $em->getRepository(Dictionary::class)->find($etatId);
                 if ($etat) {
                     $product->setEtat($etat);
                 }
@@ -82,11 +81,11 @@ class ProductUpdateController extends AbstractController
                 $colorId = null;
                 if (is_numeric($colorIdOrIri)) {
                     $colorId = (int)$colorIdOrIri;
-                } elseif (preg_match('/\/api\/colors\/(\d+)/', $colorIdOrIri, $matches)) {
-                    $colorId = (int)$matches[1];
+                } elseif (preg_match('/\/api\/(colors|dictionaries)\/(\d+)/', $colorIdOrIri, $matches)) {
+                    $colorId = (int)$matches[2];
                 }
                 if ($colorId) {
-                    $color = $em->getRepository(Color::class)->find($colorId);
+                    $color = $em->getRepository(Dictionary::class)->find($colorId);
                     if ($color) {
                         $product->addColor($color);
                     }

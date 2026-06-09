@@ -8,7 +8,7 @@ use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 
 use App\Repository\ProductRepository;
-use App\Entity\Color;
+
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -78,10 +78,10 @@ class Product
     #[Groups(['product:read'])]
     private ?User $seller = null;
 
-    #[ORM\ManyToOne(targetEntity: Etat::class)]
+    #[ORM\ManyToOne(targetEntity: Dictionary::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['product:read', 'product:write'])]
-    private ?Etat $etat = null;
+    private ?Dictionary $etat = null;
 
     /**
      * @var Collection<int, Favorite>
@@ -116,7 +116,7 @@ class Product
     private Collection $images;
 
 
-    #[ORM\ManyToMany(targetEntity: Color::class)]
+    #[ORM\ManyToMany(targetEntity: Dictionary::class)]
     #[Groups(['product:read', 'product:write'])]
     private Collection $colors;
 
@@ -357,12 +357,12 @@ class Product
         return $this;
     }
 
-    public function getEtat(): ?Etat
+    public function getEtat(): ?Dictionary
     {
         return $this->etat;
     }
 
-    public function setEtat(?Etat $etat): static
+    public function setEtat(?Dictionary $etat): static
     {
         $this->etat = $etat;
 
@@ -413,14 +413,14 @@ class Product
     }
 
     /**
-     * @return Collection<int, Color>
+     * @return Collection<int, Dictionary>
      */
     public function getColors(): Collection
     {
         return $this->colors;
     }
 
-    public function addColor(Color $color): static
+    public function addColor(Dictionary $color): static
     {
         if (!$this->colors->contains($color)) {
             $this->colors->add($color);
@@ -429,7 +429,7 @@ class Product
         return $this;
     }
 
-    public function removeColor(Color $color): static
+    public function removeColor(Dictionary $color): static
     {
         $this->colors->removeElement($color);
 

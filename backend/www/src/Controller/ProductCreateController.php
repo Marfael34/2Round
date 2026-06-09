@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Entity\Image;
-use App\Entity\Etat;
+use App\Entity\Dictionary;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -44,8 +44,8 @@ class ProductCreateController extends AbstractController
             $etatId = (int)$etatIdOrIri;
         } else {
             // It might be an IRI like /api/etats/1
-            if (preg_match('/\/api\/etats\/(\d+)/', $etatIdOrIri, $matches)) {
-                $etatId = (int)$matches[1];
+            if (preg_match('/\/api\/(etats|dictionaries)\/(\d+)/', $etatIdOrIri, $matches)) {
+                $etatId = (int)$matches[2];
             }
         }
 
@@ -53,7 +53,7 @@ class ProductCreateController extends AbstractController
             return new JsonResponse(['message' => 'État invalide'], Response::HTTP_BAD_REQUEST);
         }
 
-        $etat = $em->getRepository(Etat::class)->find($etatId);
+        $etat = $em->getRepository(Dictionary::class)->find($etatId);
         if (!$etat) {
             return new JsonResponse(['message' => 'État introuvable dans la base de données'], Response::HTTP_BAD_REQUEST);
         }
@@ -85,12 +85,12 @@ class ProductCreateController extends AbstractController
                 if (is_numeric($colorIdOrIri)) {
                     $colorId = (int)$colorIdOrIri;
                 } else {
-                    if (preg_match('/\/api\/colors\/(\d+)/', $colorIdOrIri, $matches)) {
-                        $colorId = (int)$matches[1];
+                    if (preg_match('/\/api\/(colors|dictionaries)\/(\d+)/', $colorIdOrIri, $matches)) {
+                        $colorId = (int)$matches[2];
                     }
                 }
                 if ($colorId) {
-                    $color = $em->getRepository(\App\Entity\Color::class)->find($colorId);
+                    $color = $em->getRepository(Dictionary::class)->find($colorId);
                     if ($color) {
                         $product->addColor($color);
                     }
@@ -151,7 +151,7 @@ class ProductCreateController extends AbstractController
                 
                 $tx = new \App\Entity\WalletTransaction();
                 $tx->setAmount('-5.00');
-                $tx->setCreatedAt(new \DateTimeImmutable());
+                $tx->setCreatedAt(new \DateTime());
                 $tx->setType('Boost');
                 $tx->setStatus('completed');
                 $tx->setUser($user);

@@ -112,10 +112,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $refreshToken = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTime $refreshTokenExpiredAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     #[Groups(['admin:read', 'admin:write', 'user:read'])]
     private ?\DateTime $bannedUntil = null;
 
@@ -146,13 +146,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Conversation::class, mappedBy: 'buyer')]
     private Collection $conversations;
 
-    #[ORM\ManyToOne(inversedBy: 'users')]
+    #[ORM\ManyToOne(targetEntity: Dictionary::class)]
     #[Groups(['user:read', 'user:write', 'admin:write'])]
-    private ?Boxe $boxe = null;
+    private ?Dictionary $boxe = null;
 
-    #[ORM\ManyToOne(inversedBy: 'users')]
+    #[ORM\ManyToOne(targetEntity: Dictionary::class)]
     #[Groups(['user:read', 'user:write', 'admin:write'])]
-    private ?Level $level = null;
+    private ?Dictionary $level = null;
 
     /**
      * @var Collection<int, Evaluation>
@@ -169,9 +169,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[MaxDepth(1)]
     private Collection $sentEvaluations;
 
-    #[ORM\ManyToOne(inversedBy: 'users')]
+    #[ORM\ManyToOne(targetEntity: Dictionary::class)]
     #[Groups(['user:read', 'user:write', 'admin:write'])]
-    private ?Gender $gender = null;
+    private ?Dictionary $gender = null;
 
     /**
      * @var Collection<int, Report>
@@ -594,39 +594,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getBoxeId(): ?Boxe
+    public function getBoxe(): ?Dictionary
     {
         return $this->boxe;
     }
 
-    #[Groups(['user:write', 'admin:write'])]
-    public function setBoxeId(?Boxe $boxe): static
+    public function setBoxe(?Dictionary $boxe): static
     {
         $this->boxe = $boxe;
 
         return $this;
     }
 
-    public function getLevelId(): ?Level
+    public function getLevel(): ?Dictionary
     {
         return $this->level;
     }
 
-    #[Groups(['user:write', 'admin:write'])]
-    public function setLevelId(?Level $level): static
+    public function setLevel(?Dictionary $level): static
     {
         $this->level = $level;
 
         return $this;
     }
 
-    public function getGenderId(): ?Gender
+    public function getGender(): ?Dictionary
     {
         return $this->gender;
     }
 
-    #[Groups(['user:write', 'admin:write'])]
-    public function setGenderId(?Gender $gender): static
+    public function setGender(?Dictionary $gender): static
     {
         $this->gender = $gender;
 

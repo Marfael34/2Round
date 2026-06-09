@@ -8,9 +8,29 @@ const ShortRegisterForm = ({
   setShowPassword,
   showConfirmPassword,
   setShowConfirmPassword,
+  genders = [],
 }) => {
   return (
     <>
+      <div className="mb-6">
+        <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+          Genre
+        </label>
+        <select
+          name="gender"
+          value={formData.gender}
+          onChange={handleChange}
+          className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-colors"
+          required
+        >
+          <option value="">Sélectionnez un genre</option>
+          {genders.map((g) => (
+            <option key={g.id || g["@id"]} value={g.id || g["@id"]?.split("/").pop()}>
+              {g.label}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <CustomInput
           label="Prénom"

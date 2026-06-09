@@ -42,7 +42,7 @@ const FormMarket = () => {
   useEffect(() => {
     const fetchEtats = async () => {
       try {
-        const response = await securedFetch(`${API_URL}/etats`);
+        const response = await securedFetch(`${API_URL}/dictionaries?type=etat`);
         if (response.ok) {
           const data = await response.json();
           let members = [];
@@ -64,7 +64,7 @@ const FormMarket = () => {
 
     const fetchColors = async () => {
       try {
-        const response = await securedFetch(`${API_URL}/colors`);
+        const response = await securedFetch(`${API_URL}/dictionaries?type=color`);
         if (response.ok) {
           const data = await response.json();
           let members = [];
@@ -447,7 +447,7 @@ const FormMarket = () => {
                   >
                     <option value="">Sélectionnez l'état</option>
                     {Array.isArray(etats) && etats.map((etat) => (
-                      <option key={etat.id} value={etat["@id"] || `/api/etats/${etat.id}`}>
+                      <option key={etat.id} value={etat["@id"] || `/api/dictionaries/${etat.id}`}>
                         {etat.label}
                       </option>
                     ))}
@@ -461,7 +461,7 @@ const FormMarket = () => {
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {Array.isArray(colors) && colors.map((col) => {
-                      const colorId = col["@id"] || `/api/colors/${col.id}`;
+                      const colorId = col["@id"] || `/api/dictionaries/${col.id}`;
                       const isSelected = selectedColors.includes(colorId);
                       return (
                         <button

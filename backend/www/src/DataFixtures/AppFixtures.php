@@ -2,15 +2,11 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Boxe;
-use App\Entity\Etat;
-use App\Entity\Gender;
-use App\Entity\Level;
+use App\Entity\Dictionary;
 use App\Entity\Image;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Entity\SizeGuide;
-use App\Entity\Color;
 use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -44,7 +40,8 @@ class AppFixtures extends Fixture
         ];
 
         foreach ($colors as $key => $colorLabel) {
-            $color = new Color();
+            $color = new Dictionary();
+            $color->setType('color');
             $color->setLabel($colorLabel);
             $manager->persist($color);
             $this->addReference('color_' . $colorLabel, $color);
@@ -60,7 +57,8 @@ class AppFixtures extends Fixture
         ];
 
         foreach ($genders as $key => $label) {
-            $gender = new Gender();
+            $gender = new Dictionary();
+            $gender->setType('gender');
             $gender->setLabel($label);
             
             $manager->persist($gender);
@@ -78,7 +76,8 @@ class AppFixtures extends Fixture
         ];
 
         foreach ($levels as $key => $label) {
-            $level = new Level();
+            $level = new Dictionary();
+            $level->setType('level');
             $level->setLabel($label);
             
             $manager->persist($level);
@@ -97,7 +96,8 @@ class AppFixtures extends Fixture
         ];
 
         foreach ($boxes as $key => $label) {
-            $boxe = new Boxe();
+            $boxe = new Dictionary();
+            $boxe->setType('boxe');
             $boxe->setLabel($label);
             
             $manager->persist($boxe);
@@ -123,9 +123,9 @@ class AppFixtures extends Fixture
         $admin->setBudget(0);
         $admin->setIsOnboardingCompleted(true);
         $admin->setAvatar('/images/Logo.png');
-        $admin->setBoxeId($this->getReference('boxe_0', Boxe::class));
-        $admin->setLevelId($this->getReference('level_3', Level::class));
-        $admin->setGenderId($this->getReference('gender_0', Gender::class));
+        $admin->setBoxe($this->getReference('boxe_0', Dictionary::class));
+        $admin->setLevel($this->getReference('level_3', Dictionary::class));
+        $admin->setGender($this->getReference('gender_0', Dictionary::class));
 
         $manager->persist($admin);
 
@@ -160,9 +160,9 @@ class AppFixtures extends Fixture
             $user->setIsOnboardingCompleted(true);
             $avatarId = ($key % 5) + 1;
             $user->setAvatar('/images/Profile/pdp_' . $avatarId . '.webp');
-            $user->setBoxeId($this->getReference('boxe_' . rand(0, 4), Boxe::class));
-            $user->setLevelId($this->getReference('level_' . rand(0, 3), Level::class));
-            $user->setGenderId($this->getReference('gender_' . $value['gender'], Gender::class));
+            $user->setBoxe($this->getReference('boxe_' . rand(0, 4), Dictionary::class));
+            $user->setLevel($this->getReference('level_' . rand(0, 3), Dictionary::class));
+            $user->setGender($this->getReference('gender_' . $value['gender'], Dictionary::class));
 
             $manager->persist($user);
 
@@ -182,7 +182,8 @@ class AppFixtures extends Fixture
         ];
 
         foreach ($etats as $key => $label) {
-            $etat = new Etat();
+            $etat = new Dictionary();
+            $etat->setType('etat');
             $etat->setLabel($label);
             
             $manager->persist($etat);
@@ -775,8 +776,8 @@ class AppFixtures extends Fixture
             if (isset($data['colors'])) {
                 foreach ($data['colors'] as $colorLabel) {
                     $colorRefName = 'color_' . $colorLabel;
-                    if ($this->hasReference($colorRefName, Color::class)) {
-                        $color = $this->getReference($colorRefName, Color::class);
+                    if ($this->hasReference($colorRefName, Dictionary::class)) {
+                        $color = $this->getReference($colorRefName, Dictionary::class);
                         $product->addColor($color);
                     }
                 }
@@ -789,7 +790,7 @@ class AppFixtures extends Fixture
 
             // Liaison avec un État aléatoire
             $randomEtatId = rand(0, 4);
-            $product->setEtat($this->getReference('etat_' . $randomEtatId, Etat::class));
+            $product->setEtat($this->getReference('etat_' . $randomEtatId, Dictionary::class));
 
             // Ajout des images pour ce produit
             foreach ($data['images'] as $imageName) {
