@@ -254,12 +254,8 @@ const EditProfile = () => {
         const fileFormData = new FormData();
         fileFormData.append("avatar", avatarFile);
 
-        const token = localStorage.getItem("token");
-        const uploadRes = await fetch(`/api/users/avatar`, {
+        const uploadRes = await securedFetch(`/api/users/avatar`, {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           body: fileFormData,
         });
 

@@ -621,11 +621,8 @@ const Conversation = () => {
       const formData = new FormData();
       formData.append("photo", selectedImage);
       try {
-        const uploadRes = await fetch(`${API_URL}/message-images`, {
+        const uploadRes = await securedFetch(`${API_URL}/message-images`, {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
           body: formData,
         });
         if (!uploadRes.ok) {

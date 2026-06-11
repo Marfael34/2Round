@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ChevronDown, ChevronUp } from "lucide-react";
 import { API_URL } from "../../constants/apiConstante";
+import { securedFetch } from "../../utils/api";
 import {
   IMG_ILLU_GLOVES1,
   IMG_ILLU_GLOVES2,
@@ -35,7 +36,7 @@ const GuideSize = () => {
   const categories = ["GANTS", "BANDES", "CASQUE", "CHAUSSURES"];
 
   useEffect(() => {
-    fetch(`${API_URL}/size_guides`)
+    securedFetch(`${API_URL}/size_guides`)
       .then((res) => res.json())
       .then((data) => {
         const formattedData = {};
