@@ -135,6 +135,26 @@ class WalletCheckoutController extends AbstractController
                 $order->setStatus('paid');
                 $product->setStatus('sold');
 
+                // Annuler les offres en cours sur les autres conversations
+                foreach ($product->getConversations() as $otherConv) {
+                    if ($otherConv->getId() !== $conversation->getId()) {
+                        foreach ($otherConv->getMessages() as $msg) {
+                            if ($msg->getOffer() && in_array($msg->getOffer()->getStatus(), ['pending', 'accepted'])) {
+                                $msg->getOffer()->setStatus('cancelled');
+                                
+                                // Notifier que l'offre est annulée car l'article a été vendu
+                                $cancelMsg = new Message();
+                                $cancelMsg->setConversation($otherConv);
+                                $cancelMsg->setUsers($product->getSeller()); // Vendeur système
+                                $cancelMsg->setContent("Désolé, l'article a été vendu à un autre acheteur via le porte-monnaie. Votre offre a été automatiquement annulée.");
+                                $cancelMsg->setIsRead(false);
+                                $cancelMsg->setCreatedAt(new \DateTime());
+                                $em->persist($cancelMsg);
+                            }
+                        }
+                    }
+                }
+
                 // Générer le bon Mondial Relay
                 $labelData = $mondialRelayService->generateShippingLabel($order, $userEntity);
                 $order->setTrackingNumber($labelData['trackingNumber']);

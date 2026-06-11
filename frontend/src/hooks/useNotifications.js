@@ -34,11 +34,11 @@ export const useNotifications = () => {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifications();
 
     if (!userId) return;
 
-    const token = localStorage.getItem('token');
     const topic = `https://2round.com/users/${userId}/notifications`;
     const url = new URL('/.well-known/mercure', window.location.origin);
     url.searchParams.append('topic', topic);
@@ -68,7 +68,7 @@ export const useNotifications = () => {
     return () => {
       controller.abort();
     };
-  }, [userId, fetchNotifications]);
+  }, [userId, isAdmin, fetchNotifications]);
 
   const markAsRead = async (id) => {
     const token = localStorage.getItem('token');
@@ -90,5 +90,38 @@ export const useNotifications = () => {
     }
   };
 
-  return { notifications, unreadCount, markAsRead };
+  const markAllAsRead = async () => {
+    const unreadNotifs = notifications.filter(n => {
+      const val = n.isRead !== undefined ? n.isRead : (n.read !== undefined ? n.read : n.is_read);
+      const isRead = val === true || val === 1 || val === '1' || val === 'true' || val === 'TRUE' || val === '1.0';
+      return !isRead;
+    });
+
+    if (unreadNotifs.length === 0) return;
+
+    const token = localStorage.getItem('token');
+    
+    // Mettre à jour l'état local immédiatement (Optimistic UI)
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setUnreadCount(0);
+
+    try {
+      await Promise.all(unreadNotifs.map(n => 
+        fetch(`/api/notifications/${n.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/merge-patch+json',
+            'Accept': 'application/ld+json'
+          },
+          body: JSON.stringify({ isRead: true })
+        })
+      ));
+    } catch (e) {
+      console.error('Error marking all as read', e);
+      fetchNotifications(); // Rollback en cas d'erreur
+    }
+  };
+
+  return { notifications, unreadCount, markAsRead, markAllAsRead };
 };

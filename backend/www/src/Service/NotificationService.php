@@ -8,18 +8,21 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Serializer\SerializerInterface;
+use Psr\Log\LoggerInterface;
 
 class NotificationService
 {
     private EntityManagerInterface $em;
     private HubInterface $hub;
     private SerializerInterface $serializer;
+    private LoggerInterface $logger;
 
-    public function __construct(EntityManagerInterface $em, HubInterface $hub, SerializerInterface $serializer)
+    public function __construct(EntityManagerInterface $em, HubInterface $hub, SerializerInterface $serializer, LoggerInterface $logger)
     {
         $this->em = $em;
         $this->hub = $hub;
         $this->serializer = $serializer;
+        $this->logger = $logger;
     }
 
     /**
@@ -52,7 +55,7 @@ class NotificationService
         try {
             $this->hub->publish($update);
         } catch (\Exception $e) {
-            // Ignorer si Mercure n'est pas dispo en local pour ne pas bloquer l'action métier
+            $this->logger->error("MERCURE PUBLISH ERROR: " . $e->getMessage());
         }
     }
 }

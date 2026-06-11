@@ -100,15 +100,35 @@ class PaymentSuccessController extends AbstractController
             $order->addOrderItem($orderItem);
             $em->persist($orderItem);
 
-            // Mettre à jour le statut
-            if ($order->getStatus() !== 'paid') {
-                $order->setStatus('paid');
-                $product->setStatus('sold');
+                // Mettre à jour le statut
+                if ($order->getStatus() !== 'paid') {
+                    $order->setStatus('paid');
+                    $product->setStatus('sold');
 
-                // Générer le bon Mondial Relay
-                $labelData = $mondialRelayService->generateShippingLabel($order, $conversation->getBuyer());
-                $order->setTrackingNumber($labelData['trackingNumber']);
-                $order->setShippingLabelUrl($labelData['shipping_label_url']);
+                    // Annuler les offres en cours sur les autres conversations
+                    foreach ($product->getConversations() as $otherConv) {
+                        if ($otherConv->getId() !== $conversation->getId()) {
+                            foreach ($otherConv->getMessages() as $msg) {
+                                if ($msg->getOffer() && in_array($msg->getOffer()->getStatus(), ['pending', 'accepted'])) {
+                                    $msg->getOffer()->setStatus('cancelled');
+                                    
+                                    // Optionnel : Notifier que l'offre est annulée car l'article a été vendu
+                                    $cancelMsg = new Message();
+                                    $cancelMsg->setConversation($otherConv);
+                                    $cancelMsg->setUsers($product->getSeller()); // Vendeur système
+                                    $cancelMsg->setContent("Désolé, l'article a été vendu à un autre acheteur. Votre offre a été automatiquement annulée.");
+                                    $cancelMsg->setIsRead(false);
+                                    $cancelMsg->setCreatedAt(new \DateTime());
+                                    $em->persist($cancelMsg);
+                                }
+                            }
+                        }
+                    }
+
+                    // Générer le bon Mondial Relay
+                    $labelData = $mondialRelayService->generateShippingLabel($order, $conversation->getBuyer());
+                    $order->setTrackingNumber($labelData['trackingNumber']);
+                    $order->setShippingLabelUrl($labelData['shipping_label_url']);
 
                 // Générer les factures
                 $buyer = $conversation->getBuyer();

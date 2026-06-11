@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationList from './NotificationList';
 import { Bell } from 'lucide-react';
 
 const NotificationCenter = () => {
-  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -43,7 +43,15 @@ const NotificationCenter = () => {
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-[#1A1A1A]">
             <h3 className="text-sm font-semibold text-white">Notifications</h3>
             {unreadCount > 0 && (
-              <span className="text-xs text-blue-400 font-medium">{unreadCount} non lue(s)</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-blue-400 font-medium">{unreadCount} non lue(s)</span>
+                <button 
+                  onClick={markAllAsRead} 
+                  className="text-xs text-gray-400 hover:text-white transition-colors underline"
+                >
+                  Tout lu
+                </button>
+              </div>
             )}
           </div>
           
@@ -56,9 +64,9 @@ const NotificationCenter = () => {
           </div>
           
           {notifications.length > 0 && (
-            <div className="px-4 py-2 border-t border-gray-700 bg-[#1A1A1A] text-center">
+            <div className="border-t border-gray-700 bg-[#1A1A1A]">
               <button 
-                className="text-xs font-medium text-gray-400 hover:text-white transition-colors"
+                className="w-full block py-3 text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 Fermer
