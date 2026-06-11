@@ -102,10 +102,18 @@ class WalletCheckoutController extends AbstractController
                 } else {
                     $newAddress = new \App\Entity\Adress();
                     $newAddress->setLabel($shippingAddress['name'] ?? 'Mon adresse');
-                    $newAddress->setStreetName($shippingAddress['street'] ?? '');
+                    $street = $shippingAddress['street'] ?? '';
+                    preg_match('/^(\d+[a-zA-Z]*)\s+(.*)$/', $street, $matches);
+                    $streetNumber = !empty($matches) ? substr($matches[1], 0, 10) : '-';
+                    $streetName = !empty($matches) ? $matches[2] : $street;
+
+                    $newAddress->setStreetNumber($streetNumber);
+                    $newAddress->setStreetName($streetName);
                     $newAddress->setCity($shippingAddress['city'] ?? '');
                     $newAddress->setPostalCode($shippingAddress['zip'] ?? '');
                     $newAddress->setCountry($shippingAddress['country'] ?? 'France');
+                    $newAddress->setLatitude($shippingAddress['latitude'] ?? '0.00000000');
+                    $newAddress->setLongitude($shippingAddress['longitude'] ?? '0.00000000');
                     $newAddress->setUser($userEntity);
                     $newAddress->setIsActive(true);
                     $em->persist($newAddress);
@@ -135,21 +143,26 @@ class WalletCheckoutController extends AbstractController
                 $order->setStatus('paid');
                 $product->setStatus('sold');
 
-                // Annuler les offres en cours sur les autres conversations
+                // Annuler les offres obsolètes
                 foreach ($product->getConversations() as $otherConv) {
-                    if ($otherConv->getId() !== $conversation->getId()) {
-                        foreach ($otherConv->getMessages() as $msg) {
-                            if ($msg->getOffer() && in_array($msg->getOffer()->getStatus(), ['pending', 'accepted'])) {
+                    foreach ($otherConv->getMessages() as $msg) {
+                        if ($msg->getOffer()) {
+                            $status = $msg->getOffer()->getStatus();
+                            $isOtherConv = $otherConv->getId() !== $conversation->getId();
+
+                            if ($status === 'pending' || ($status === 'accepted' && $isOtherConv)) {
                                 $msg->getOffer()->setStatus('cancelled');
                                 
-                                // Notifier que l'offre est annulée car l'article a été vendu
-                                $cancelMsg = new Message();
-                                $cancelMsg->setConversation($otherConv);
-                                $cancelMsg->setUsers($product->getSeller()); // Vendeur système
-                                $cancelMsg->setContent("Désolé, l'article a été vendu à un autre acheteur via le porte-monnaie. Votre offre a été automatiquement annulée.");
-                                $cancelMsg->setIsRead(false);
-                                $cancelMsg->setCreatedAt(new \DateTime());
-                                $em->persist($cancelMsg);
+                                if ($isOtherConv) {
+                                    // Notifier que l'offre est annulée car l'article a été vendu
+                                    $cancelMsg = new Message();
+                                    $cancelMsg->setConversation($otherConv);
+                                    $cancelMsg->setUsers($product->getSeller()); // Vendeur système
+                                    $cancelMsg->setContent("Désolé, l'article a été vendu à un autre acheteur via le porte-monnaie. Votre offre a été automatiquement annulée.");
+                                    $cancelMsg->setIsRead(false);
+                                    $cancelMsg->setCreatedAt(new \DateTime());
+                                    $em->persist($cancelMsg);
+                                }
                             }
                         }
                     }

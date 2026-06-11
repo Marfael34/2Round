@@ -2421,10 +2421,10 @@ const Conversation = () => {
                         </select>
                       </div>
                     )}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3">
                       <input
                         type="text"
-                        placeholder="Nom & Prénom"
+                        placeholder="Nom & Prénom (Destinataire)"
                         required
                         value={shippingAddress.name}
                         onChange={(e) =>
@@ -2433,86 +2433,58 @@ const Conversation = () => {
                             name: e.target.value,
                           })
                         }
-                        className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-2.5 text-xs text-white"
+                        className="w-full bg-[#1A1A1A] border border-gray-700 focus:border-red-600 outline-none rounded-lg p-3 text-sm text-white"
                       />
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Rue (Tapez pour rechercher)"
-                          required
-                          value={shippingAddress.street}
-                          onChange={(e) => {
-                            setShippingAddress({
-                              ...shippingAddress,
-                              street: e.target.value,
-                            });
-                            fetchAddressSuggestions(e.target.value);
-                          }}
-                          className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-2.5 text-xs text-white"
-                        />
-                        {showAddressSuggestions && addressSuggestions.length > 0 && (
-                          <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                            {addressSuggestions.map((suggestion) => (
-                              <div
-                                key={suggestion.properties.id}
-                                className="px-3 py-2 text-xs text-gray-300 hover:bg-white/10 cursor-pointer"
-                                onClick={() => {
-                                  setShippingAddress({
-                                    ...shippingAddress,
-                                    street: suggestion.properties.name,
-                                    city: suggestion.properties.city,
-                                    zip: suggestion.properties.postcode,
-                                  });
-                                  setShowAddressSuggestions(false);
-                                }}
-                              >
-                                {suggestion.properties.label}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Ville"
-                        required
-                        value={shippingAddress.city}
-                        onChange={(e) =>
-                          setShippingAddress({
-                            ...shippingAddress,
-                            city: e.target.value,
-                          })
-                        }
-                        className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-2.5 text-xs text-white"
-                      />
-                      <div className="grid grid-cols-2 gap-2">
-                        <input
-                          type="text"
-                          placeholder="Code Postal"
-                          required
-                          value={shippingAddress.zip}
-                          onChange={(e) =>
-                            setShippingAddress({
-                              ...shippingAddress,
-                              zip: e.target.value,
-                            })
-                          }
-                          className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-2.5 text-xs text-white"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Pays"
-                          required
-                          value={shippingAddress.country}
-                          onChange={(e) =>
-                            setShippingAddress({
-                              ...shippingAddress,
-                              country: e.target.value,
-                            })
-                          }
-                          className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-2.5 text-xs text-white"
-                        />
-                      </div>
+                      
+                      {(!shippingAddress.street || !shippingAddress.city) ? (
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Rechercher mon adresse (France)"
+                            onChange={(e) => {
+                              fetchAddressSuggestions(e.target.value);
+                            }}
+                            className="w-full bg-[#1A1A1A] border border-gray-700 focus:border-red-600 outline-none rounded-lg p-3 text-sm text-white"
+                          />
+                          {showAddressSuggestions && addressSuggestions.length > 0 && (
+                            <ul className="absolute z-10 w-full mt-1 bg-[#1A1A1A] border border-gray-700 rounded-lg shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+                              {addressSuggestions.map((suggestion) => (
+                                <li
+                                  key={suggestion.properties.id}
+                                  className="px-4 py-3 hover:bg-[#252525] cursor-pointer text-sm text-white border-b border-gray-800 last:border-b-0"
+                                  onClick={() => {
+                                    setShippingAddress({
+                                      ...shippingAddress,
+                                      street: suggestion.properties.name,
+                                      city: suggestion.properties.city,
+                                      zip: suggestion.properties.postcode,
+                                      country: "France",
+                                      latitude: suggestion.geometry.coordinates[1].toString(),
+                                      longitude: suggestion.geometry.coordinates[0].toString()
+                                    });
+                                    setShowAddressSuggestions(false);
+                                  }}
+                                >
+                                  {suggestion.properties.label}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-[#151515] border border-gray-700 rounded-lg relative">
+                          <button 
+                            type="button"
+                            onClick={() => setShippingAddress({ ...shippingAddress, street: "", city: "", zip: "" })}
+                            className="absolute top-4 right-4 text-[10px] text-gray-500 hover:text-red-500 uppercase tracking-widest font-bold"
+                          >
+                            Modifier
+                          </button>
+                          <p className="text-[10px] text-gray-400 mb-1 uppercase tracking-widest font-bold">Adresse sélectionnée :</p>
+                          <p className="font-bold text-white text-sm">{shippingAddress.street}</p>
+                          <p className="text-gray-300 text-sm">{shippingAddress.zip} {shippingAddress.city}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 

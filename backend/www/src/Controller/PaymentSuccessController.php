@@ -105,21 +105,26 @@ class PaymentSuccessController extends AbstractController
                     $order->setStatus('paid');
                     $product->setStatus('sold');
 
-                    // Annuler les offres en cours sur les autres conversations
+                    // Annuler les offres obsolètes
                     foreach ($product->getConversations() as $otherConv) {
-                        if ($otherConv->getId() !== $conversation->getId()) {
-                            foreach ($otherConv->getMessages() as $msg) {
-                                if ($msg->getOffer() && in_array($msg->getOffer()->getStatus(), ['pending', 'accepted'])) {
+                        foreach ($otherConv->getMessages() as $msg) {
+                            if ($msg->getOffer()) {
+                                $status = $msg->getOffer()->getStatus();
+                                $isOtherConv = $otherConv->getId() !== $conversation->getId();
+
+                                if ($status === 'pending' || ($status === 'accepted' && $isOtherConv)) {
                                     $msg->getOffer()->setStatus('cancelled');
                                     
-                                    // Optionnel : Notifier que l'offre est annulée car l'article a été vendu
-                                    $cancelMsg = new Message();
-                                    $cancelMsg->setConversation($otherConv);
-                                    $cancelMsg->setUsers($product->getSeller()); // Vendeur système
-                                    $cancelMsg->setContent("Désolé, l'article a été vendu à un autre acheteur. Votre offre a été automatiquement annulée.");
-                                    $cancelMsg->setIsRead(false);
-                                    $cancelMsg->setCreatedAt(new \DateTime());
-                                    $em->persist($cancelMsg);
+                                    if ($isOtherConv) {
+                                        // Optionnel : Notifier que l'offre est annulée car l'article a été vendu
+                                        $cancelMsg = new Message();
+                                        $cancelMsg->setConversation($otherConv);
+                                        $cancelMsg->setUsers($product->getSeller()); // Vendeur système
+                                        $cancelMsg->setContent("Désolé, l'article a été vendu à un autre acheteur. Votre offre a été automatiquement annulée.");
+                                        $cancelMsg->setIsRead(false);
+                                        $cancelMsg->setCreatedAt(new \DateTime());
+                                        $em->persist($cancelMsg);
+                                    }
                                 }
                             }
                         }

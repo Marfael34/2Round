@@ -62,10 +62,18 @@ class StripeCheckoutController extends AbstractController
                         if ($buyer) {
                             $newAddress = new \App\Entity\Adress();
                             $newAddress->setLabel($shippingAddress['name'] ?? 'Mon adresse');
-                            $newAddress->setStreetName($shippingAddress['street'] ?? '');
+                            $street = $shippingAddress['street'] ?? '';
+                            preg_match('/^(\d+[a-zA-Z]*)\s+(.*)$/', $street, $matches);
+                            $streetNumber = !empty($matches) ? substr($matches[1], 0, 10) : '-';
+                            $streetName = !empty($matches) ? $matches[2] : $street;
+
+                            $newAddress->setStreetNumber($streetNumber);
+                            $newAddress->setStreetName($streetName);
                             $newAddress->setCity($shippingAddress['city'] ?? '');
                             $newAddress->setPostalCode($shippingAddress['zip'] ?? '');
                             $newAddress->setCountry($shippingAddress['country'] ?? 'France');
+                            $newAddress->setLatitude($shippingAddress['latitude'] ?? '0.00000000');
+                            $newAddress->setLongitude($shippingAddress['longitude'] ?? '0.00000000');
                             $newAddress->setUser($buyer);
                             $newAddress->setIsActive(true);
                             $this->em->persist($newAddress);
