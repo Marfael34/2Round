@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { useAuth } from './useAuth';
+import { securedFetch } from '../utils/api';
 
 export const useNotifications = () => {
   const { userId, isAdmin } = useAuth();
@@ -9,15 +10,13 @@ export const useNotifications = () => {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const res = await fetch('/api/notifications', {
+      const res = await securedFetch('/api/notifications', {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Accept': 'application/ld+json'
         }
       });
+      
+      if (!res || !res.ok) return;
       const data = await res.json();
       const items = data['hydra:member'] || data.member || data;
       if (Array.isArray(items)) {
@@ -71,14 +70,11 @@ export const useNotifications = () => {
   }, [userId, isAdmin, fetchNotifications]);
 
   const markAsRead = async (id) => {
-    const token = localStorage.getItem('token');
     try {
-      await fetch(`/api/notifications/${id}`, {
+      await securedFetch(`/api/notifications/${id}`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/merge-patch+json',
-          'Accept': 'application/ld+json'
+          'Content-Type': 'application/merge-patch+json'
         },
         body: JSON.stringify({ isRead: true })
       });
@@ -99,20 +95,16 @@ export const useNotifications = () => {
 
     if (unreadNotifs.length === 0) return;
 
-    const token = localStorage.getItem('token');
-    
     // Mettre à jour l'état local immédiatement (Optimistic UI)
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     setUnreadCount(0);
 
     try {
       await Promise.all(unreadNotifs.map(n => 
-        fetch(`/api/notifications/${n.id}`, {
+        securedFetch(`/api/notifications/${n.id}`, {
           method: 'PATCH',
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/merge-patch+json',
-            'Accept': 'application/ld+json'
+            'Content-Type': 'application/merge-patch+json'
           },
           body: JSON.stringify({ isRead: true })
         })
