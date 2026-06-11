@@ -37,13 +37,13 @@ class InvoiceService
                 'firstname' => $buyer->getFirstname(),
                 'lastname' => $buyer->getLastname(),
                 'email' => $buyer->getEmail(),
-                'address' => $buyer->getAdresses()->first() ? $buyer->getAdresses()->first()->getStreetName() . ' ' . $buyer->getAdresses()->first()->getCity() . ' ' . $buyer->getAdresses()->first()->getPostalCode() : null
+                'address' => $buyer->getAdresses()->first() ? $buyer->getAdresses()->first()->getStreetNumber() . ' ' . $buyer->getAdresses()->first()->getStreetName() . ' ' . $buyer->getAdresses()->first()->getCity() . ' ' . $buyer->getAdresses()->first()->getPostalCode() : null
             ],
             'seller' => $seller ? [
                 'firstname' => $seller->getFirstname(),
                 'lastname' => $seller->getLastname(),
                 'email' => $seller->getEmail(),
-                'address' => $seller->getAdresses()->first() ? $seller->getAdresses()->first()->getStreetName() . ' ' . $seller->getAdresses()->first()->getCity() . ' ' . $seller->getAdresses()->first()->getPostalCode() : null
+                'address' => $seller->getAdresses()->first() ? $seller->getAdresses()->first()->getStreetNumber() . ' ' . $seller->getAdresses()->first()->getStreetName() . ' ' . $seller->getAdresses()->first()->getCity() . ' ' . $seller->getAdresses()->first()->getPostalCode() : null
             ] : null,
             'product' => $product ? [
                 'name' => $product->getTitle(),
@@ -254,7 +254,7 @@ class InvoiceService
         $title = "Facture de Service - Boost";
         $productName = $product->getTitle();
         $dateFormatted = $invoice->getCreatedAt()->format('d/m/Y');
-        $address = $userTarget->getAdresses()->first() ? $userTarget->getAdresses()->first()->getStreetName() . ' ' . $userTarget->getAdresses()->first()->getCity() : 'Adresse enregistrée sur le profil';
+        $address = $userTarget->getAdresses()->first() ? $userTarget->getAdresses()->first()->getStreetNumber() . ' ' . $userTarget->getAdresses()->first()->getStreetName() . ' ' . $userTarget->getAdresses()->first()->getCity() : 'Adresse enregistrée sur le profil';
         
         $sellerName = $userTarget->getFirstname() . ' ' . $userTarget->getLastname();
         $sellerEmail = $userTarget->getEmail();

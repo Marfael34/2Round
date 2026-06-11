@@ -37,6 +37,7 @@ const Conversation = () => {
   const paymentCancelledParam = searchParams.get("paymentCancelled");
   const paymentConvId = searchParams.get("conversationId");
   const paymentAmountParam = searchParams.get("amount");
+  const addressIdParam = searchParams.get("addressId");
   const adminTargetConv = (!paymentSuccessParam && !paymentCancelledParam) ? searchParams.get("conversationId") : null;
 
   // State
@@ -183,6 +184,11 @@ const Conversation = () => {
               ? data[0]
               : data;
         if (!userObj) throw new Error("Utilisateur introuvable.");
+        
+        if (userObj.adresses) {
+          userObj.adresses = userObj.adresses.filter((a) => a.isActive !== false);
+        }
+        
         setCurrentUser(userObj);
         
         try {
@@ -195,13 +201,25 @@ const Conversation = () => {
           console.error("Erreur chargement portefeuille", we);
         }
 
-        setShippingAddress({
+        let initialAddress = {
+          addressId: null,
           name: `${userObj.firstname || ""} ${userObj.lastname || ""}`.trim(),
           street: "",
           city: "",
           zip: "",
           country: "France",
-        });
+        };
+
+        if (userObj.adresses && userObj.adresses.length > 0) {
+          const addr = userObj.adresses[0];
+          initialAddress.addressId = addr.id;
+          initialAddress.street = addr.street_number ? `${addr.street_number} ${addr.street_name}` : addr.street_name;
+          initialAddress.city = addr.city;
+          initialAddress.zip = addr.postal_code;
+          initialAddress.country = addr.country || "France";
+        }
+
+        setShippingAddress(initialAddress);
       } catch (err) {
         console.error(err);
         setError("Erreur d'authentification.");
@@ -889,6 +907,7 @@ const Conversation = () => {
               activeConversation.product?.id ||
               activeConversation.product?.split("/").pop(),
             buyerId: currentUser.id,
+            shippingAddress: shippingAddress,
           }),
         },
       );
@@ -1151,6 +1170,7 @@ const Conversation = () => {
           body: JSON.stringify({
             conversationId: Number(paymentConvId),
             amount: Number(paymentAmountParam),
+            addressId: addressIdParam ? Number(addressIdParam) : null,
           }),
         });
 
@@ -2373,13 +2393,15 @@ const Conversation = () => {
                       <div className="mb-3">
                         <select
                           className="w-full bg-black border border-white/10 focus:border-red-600 outline-none rounded-md p-3 text-xs text-white"
+                          defaultValue={currentUser.adresses[0].id}
                           onChange={(e) => {
                             if (e.target.value === "new") {
-                              setShippingAddress({ name: "", street: "", city: "", zip: "", country: "France" });
+                              setShippingAddress({ addressId: null, name: "", street: "", city: "", zip: "", country: "France" });
                             } else {
                               const addr = currentUser.adresses.find(a => a.id.toString() === e.target.value);
                               if (addr) {
                                 setShippingAddress({
+                                  addressId: addr.id,
                                   name: `${currentUser.firstname || ""} ${currentUser.lastname || ""}`.trim(),
                                   street: addr.street_number ? `${addr.street_number} ${addr.street_name}` : addr.street_name,
                                   city: addr.city,
@@ -2544,7 +2566,8 @@ const Conversation = () => {
                             body: JSON.stringify({
                               conversationId: activeConversation.id,
                               amount: Math.round(total * 100),
-                              relayId: selectedRelay
+                              relayId: selectedRelay,
+                              shippingAddress: shippingAddress
                             })
                           });
                           

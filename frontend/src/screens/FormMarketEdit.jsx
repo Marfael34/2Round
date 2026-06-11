@@ -298,16 +298,39 @@ const FormMarketEdit = () => {
                   </select>
                 </div>
 
-                <CustomInput
-                  label="Marque"
-                  type="text"
-                  name="brand"
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                  placeholder="Ex: Venum, Adidas..."
-                  className="py-4! text-base"
-                  required
-                />
+                <div className="flex flex-col gap-1 w-full">
+                  <label className="font-inter text-xs uppercase text-gray-400">
+                    Marque
+                  </label>
+                  <select
+                    name="brand"
+                    id="brand"
+                    value={brand}
+                    onChange={(e) => setBrand(e.target.value)}
+                    className="w-full bg-[#1A1A1A] border border-white/10 rounded-sm py-4 px-3 text-white focus:border-red-600 focus:outline-none font-inter text-base cursor-pointer pr-10"
+                    required
+                  >
+                    <option value="">Sélectionnez une marque</option>
+                    <option value="Venum">Venum</option>
+                    <option value="Adidas">Adidas</option>
+                    <option value="Everlast">Everlast</option>
+                    <option value="Cleto Reyes">Cleto Reyes</option>
+                    <option value="Twins Special">Twins Special</option>
+                    <option value="Fairtex">Fairtex</option>
+                    <option value="Hayabusa">Hayabusa</option>
+                    <option value="Rival">Rival</option>
+                    <option value="Title Boxing">Title Boxing</option>
+                    <option value="Ringhorns">Ringhorns</option>
+                    <option value="Leone 1947">Leone 1947</option>
+                    <option value="RDX Sports">RDX Sports</option>
+                    <option value="Phantom Athletics">Phantom Athletics</option>
+                    <option value="Metal Boxe">Metal Boxe</option>
+                    <option value="Century">Century</option>
+                    <option value="Nike">Nike</option>
+                    <option value="Under Armour">Under Armour</option>
+                    <option value="Autre">Autre</option>
+                  </select>
+                </div>
 
                 <div className="flex flex-col gap-1 w-full">
                   <label className="font-inter text-xs uppercase text-gray-400">

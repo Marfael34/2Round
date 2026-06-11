@@ -70,6 +70,13 @@ class Order
     #[ORM\OneToMany(targetEntity: Report::class, mappedBy: 'orderid')]
     private Collection $reports;
 
+    #[ORM\ManyToOne(inversedBy: 'ordersAsBuyer')]
+    private ?User $buyer = null;
+
+    #[ORM\ManyToOne(inversedBy: 'orders')]
+    private ?Adress $address = null;
+
+
     public function __construct()
     {
         $this->invoices = new ArrayCollection();
@@ -303,4 +310,29 @@ class Order
 
         return $this;
     }
+
+    public function getBuyer(): ?User
+    {
+        return $this->buyer;
+    }
+
+    public function setBuyer(?User $buyer): static
+    {
+        $this->buyer = $buyer;
+
+        return $this;
+    }
+
+    public function getAddress(): ?Adress
+    {
+        return $this->address;
+    }
+
+    public function setAddress(?Adress $address): static
+    {
+        $this->address = $address;
+
+        return $this;
+    }
 }
+

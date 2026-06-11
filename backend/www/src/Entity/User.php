@@ -189,6 +189,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Adress>
      */
     #[ORM\OneToMany(targetEntity: Adress::class, mappedBy: 'user')]
+    #[Groups(['user:read'])]
     private Collection $adresses;
 
     /**
@@ -203,6 +204,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'recipient', orphanRemoval: true)]
     private Collection $notifications;
+
+    /**
+     * @var Collection<int, Order>
+     */
+    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'buyer')]
+    private Collection $ordersAsBuyer;
 
 
     public function __construct()
@@ -222,6 +229,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->roles = ['ROLE_USER'];
         $this->sanctions = new ArrayCollection();
         $this->notifications = new ArrayCollection();
+        $this->ordersAsBuyer = new ArrayCollection();
     }
 
     /**
@@ -278,6 +286,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($notification->getRecipient() === $this) {
                 $notification->setRecipient(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Order>
+     */
+    public function getOrdersAsBuyer(): Collection
+    {
+        return $this->ordersAsBuyer;
+    }
+
+    public function addOrdersAsBuyer(Order $order): static
+    {
+        if (!$this->ordersAsBuyer->contains($order)) {
+            $this->ordersAsBuyer->add($order);
+            $order->setBuyer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrdersAsBuyer(Order $order): static
+    {
+        if ($this->ordersAsBuyer->removeElement($order)) {
+            // set the owning side to null (unless already changed)
+            if ($order->getBuyer() === $this) {
+                $order->setBuyer(null);
             }
         }
 

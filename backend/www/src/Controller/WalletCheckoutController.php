@@ -93,6 +93,34 @@ class WalletCheckoutController extends AbstractController
             $protectionFeesCents = $amountCents - (int)round($product->getPrice() * 100) - $shippingFeesCents;
             $order->setServicesFees($protectionFeesCents > 0 ? $protectionFeesCents : 70);
             $order->setShippingFees($shippingFeesCents);
+            
+            $addressId = null;
+            if (isset($data['shippingAddress'])) {
+                $shippingAddress = $data['shippingAddress'];
+                if (isset($shippingAddress['addressId']) && $shippingAddress['addressId']) {
+                    $addressId = $shippingAddress['addressId'];
+                } else {
+                    $newAddress = new \App\Entity\Adress();
+                    $newAddress->setLabel($shippingAddress['name'] ?? 'Mon adresse');
+                    $newAddress->setStreetName($shippingAddress['street'] ?? '');
+                    $newAddress->setCity($shippingAddress['city'] ?? '');
+                    $newAddress->setPostalCode($shippingAddress['zip'] ?? '');
+                    $newAddress->setCountry($shippingAddress['country'] ?? 'France');
+                    $newAddress->setUser($userEntity);
+                    $newAddress->setIsActive(true);
+                    $em->persist($newAddress);
+                    $em->flush();
+                    $addressId = $newAddress->getId();
+                }
+            }
+
+            if ($addressId) {
+                $address = $em->getRepository(\App\Entity\Adress::class)->find($addressId);
+                if ($address) {
+                    $order->setAddress($address);
+                }
+            }
+
             $em->persist($order);
 
             $orderItem = new OrderItem();

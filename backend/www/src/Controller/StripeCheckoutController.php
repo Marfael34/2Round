@@ -17,7 +17,9 @@ class StripeCheckoutController extends AbstractController
         private string $stripeSecretKey,
 
         #[Autowire(env: 'FRONTEND_URL')]
-        private string $frontendUrl
+        private string $frontendUrl,
+
+        private \Doctrine\ORM\EntityManagerInterface $em
     ) {}
 
     #[Route('/api/stripe/create-checkout-session', name: 'api_stripe_checkout', methods: ['POST'])]
@@ -50,7 +52,29 @@ class StripeCheckoutController extends AbstractController
                 $successUrl = $origin . '/my-locker?boostSuccess=true&productId=' . ($productId ?? '');
                 $cancelUrl = $origin . '/my-locker';
             } else {
-                $successUrl = $origin . '/conversation?paymentSuccess=true&conversationId=' . ($conversationId ?? '') . '&productId=' . ($productId ?? '') . '&amount=' . $amount;
+                $addressId = null;
+                if (isset($data['shippingAddress'])) {
+                    $shippingAddress = $data['shippingAddress'];
+                    if (isset($shippingAddress['addressId']) && $shippingAddress['addressId']) {
+                        $addressId = $shippingAddress['addressId'];
+                    } else if ($buyerId) {
+                        $buyer = $this->em->getRepository(\App\Entity\User::class)->find($buyerId);
+                        if ($buyer) {
+                            $newAddress = new \App\Entity\Adress();
+                            $newAddress->setLabel($shippingAddress['name'] ?? 'Mon adresse');
+                            $newAddress->setStreetName($shippingAddress['street'] ?? '');
+                            $newAddress->setCity($shippingAddress['city'] ?? '');
+                            $newAddress->setPostalCode($shippingAddress['zip'] ?? '');
+                            $newAddress->setCountry($shippingAddress['country'] ?? 'France');
+                            $newAddress->setUser($buyer);
+                            $newAddress->setIsActive(true);
+                            $this->em->persist($newAddress);
+                            $this->em->flush();
+                            $addressId = $newAddress->getId();
+                        }
+                    }
+                }
+                $successUrl = $origin . '/conversation?paymentSuccess=true&conversationId=' . ($conversationId ?? '') . '&productId=' . ($productId ?? '') . '&amount=' . $amount . ($addressId ? '&addressId=' . $addressId : '');
                 $cancelUrl = $conversationId 
                     ? $origin . '/conversation?paymentCancelled=true&conversationId=' . $conversationId 
                     : $origin . '/product/' . $productId;

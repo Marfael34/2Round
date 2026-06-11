@@ -37,17 +37,22 @@ Le cycle de vie d'une transaction est géré par un automate fini :
 Le modèle doit supporter la notion de "Pack" qui est une collection d'items liés à une seule transaction financière et logistique.
 
 ### Entités Clés :
-* **User :** Gère les rôles, les adresses et le `stripe_account_id`.
-* **Product :** Description, prix, poids, état, et lien vers un Pack.
-* **Pack :** Regroupe 1 à N produits. Porte le `weight_total` calculé et le `mondial_relay_expedition_number`.
-* **Offer :** Liée à une Conversation. Contient `amount` et `status` (pending, accepted, rejected).
-* **Transaction :** Référence le Pack, le PaymentIntent Stripe et le statut du workflow.
+* **User :** Gère les rôles, le profil, le `stripe_account_id` et est lié à un `Wallet`.
+* **Adress :** Gère les adresses de livraison/facturation avec un système de "Soft Delete" (`isActive`) pour garantir l'immutabilité des adresses sur les anciennes commandes.
+* **Product :** Description, prix, poids, type, et caractéristiques (liées au `Dictionary`). Gère le "Soft Delete" (désactivation au lieu de suppression).
+* **Order & OrderItem :** Remplace la notion de "Pack". Regroupe les articles d'une même commande. Porte le `weight_total` et les identifiants de suivi logistique/Stripe.
+* **Wallet & WalletTransaction :** Gestion granulaire des flux financiers (entrées/sorties/séquestre) de chaque utilisateur.
+* **Dictionary :** Entité centralisée unifiée remplaçant les tables multiples (Gender, Level, Etat, Boxe, Color) pour optimiser les performances et la maintenance.
+* **Offer :** Liée à une Conversation et un Message. Contient le prix négocié.
+* **Report & Sanction :** Outils de modération permettant le signalement de produits/utilisateurs et l'historisation des sanctions appliquées par l'administration.
+* **Notification :** Système d'alertes internes pour informer les utilisateurs des événements importants (offres, signalements, commandes).
 
 ## 4. Logique Métier & Workflows Spécifiques
 
-### Messagerie Temps Réel & Négociation
-L'intégration de Symfony Mercure permet de pousser des updates UI instantanés.
-Lorsqu'un vendeur clique sur "Accepter" sur une Offer, le backend met à jour l'offre, crée le Pack et envoie un event Mercure au React frontend pour afficher le bouton "Payer" à l'acheteur.
+### Messagerie Temps Réel & Notifications
+L'intégration de Symfony Mercure permet de pousser des updates UI instantanés (WebSockets/SSE).
+* **Négociation :** Lorsqu'un vendeur clique sur "Accepter" sur une Offer, le backend met à jour l'état et le React frontend affiche le bouton "Payer" à l'acheteur.
+* **Centre de Notifications :** Une cloche de notifications en temps réel informe les utilisateurs des actions de modération (sanctions) ou transactionnelles. Les requêtes non autorisées (401) sont gérées proprement avec déconnexion automatique.
 
 ### Algorithme de Calcul des Packs
 Lors de l'ajout d'un article au pack :
@@ -77,10 +82,16 @@ Lors de l'ajout d'un article au pack :
 ### Frontend (React + Tailwind)
 * **Guide Interactif :** Utilisation de `react-simple-maps` ou d'un SVG mappé. Chaque zone (Gants, Protège-tibias, Casque) déclenche une modale filtrant dynamiquement les produits de cette catégorie sur l'API.
 
-## 7. Gestion des Litiges (Logique de Médiation)
+## 7. Gestion des Litiges & Modération
 
-* **Ouverture :** L'acheteur soumet un formulaire via React (Texte + 3 photos max).
+### Litiges Logistiques & Financiers
+* **Ouverture :** L'acheteur soumet un formulaire via React (Texte + 3 photos max liées via une entité `Image` polymorphe).
 * **Gel :** L'API Platform déclenche une transition de workflow qui bloque l'ordre de transfert Stripe.
 * **Résolution :** L'admin possède deux boutons :
   * **Refund Buyer :** Déclenche `Stripe\Refund`.
   * **Pay Seller :** Force le `Stripe\Transfer`.
+
+### Outils de Modération
+* **Signalements (Reports) :** Les utilisateurs peuvent signaler un contenu ou un autre utilisateur. Les rapports sont traités depuis un Dashboard Admin.
+* **Sanctions :** Les administrateurs peuvent appliquer des sanctions historisées. Les boutons d'action sont désactivés une fois le rapport traité pour éviter les doubles sanctions.
+* **Visibilité :** Les utilisateurs peuvent consulter l'historique de leurs sanctions depuis leur espace "Mon Vestiaire".

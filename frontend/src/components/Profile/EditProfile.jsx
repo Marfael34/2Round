@@ -149,7 +149,8 @@ const EditProfile = () => {
           );
           if (adressesRes.ok) {
             const aData = await adressesRes.json();
-            setUserAddresses(aData["hydra:member"] || aData.member || []);
+            const allAdresses = aData["hydra:member"] || aData.member || [];
+            setUserAddresses(allAdresses.filter(a => a.isActive !== false));
           }
         }
       } catch (err) {
@@ -356,16 +357,10 @@ const EditProfile = () => {
     if (!selectedAddress || !user) return;
     setAddressSaving(true);
     try {
-      const isUpdating = userAddresses.length > 0;
-      const addressId = isUpdating
-        ? userAddresses[0].id || userAddresses[0]["@id"]?.split("/").pop()
-        : null;
-      const url = isUpdating ? `/api/adresses/${addressId}` : "/api/adresses";
-      const method = isUpdating ? "PATCH" : "POST";
+      const url = "/api/adresses";
+      const method = "POST";
       const headers = {
-        "Content-Type": isUpdating
-          ? "application/merge-patch+json"
-          : "application/ld+json",
+        "Content-Type": "application/ld+json",
       };
 
       const response = await securedFetch(url, {
@@ -378,14 +373,9 @@ const EditProfile = () => {
       });
 
       if (!response.ok)
-        throw new Error(
-          `Erreur lors de ${isUpdating ? "la modification" : "l'ajout"} de l'adresse`,
-        );
+        throw new Error("Erreur lors de l'ajout de l'adresse");
 
-      showPopup(
-        `Adresse ${isUpdating ? "modifiée" : "ajoutée"} avec succès !`,
-        "success",
-      );
+      showPopup("Adresse ajoutée avec succès !", "success");
       setAddressQuery("");
       setSelectedAddress(null);
 
@@ -395,7 +385,8 @@ const EditProfile = () => {
       );
       if (adressesRes.ok) {
         const aData = await adressesRes.json();
-        setUserAddresses(aData["hydra:member"] || aData.member || []);
+        const allAdresses = aData["hydra:member"] || aData.member || [];
+        setUserAddresses(allAdresses.filter(a => a.isActive !== false));
       }
     } catch (err) {
       showPopup(err.message, "error");
@@ -413,7 +404,9 @@ const EditProfile = () => {
 
     try {
       const response = await securedFetch(`/api/adresses/${addressToDelete}`, {
-        method: "DELETE",
+        method: "PATCH",
+        headers: { "Content-Type": "application/merge-patch+json" },
+        body: JSON.stringify({ isActive: false })
       });
 
       if (!response.ok)
@@ -830,9 +823,7 @@ const EditProfile = () => {
           )}
 
           <h3 className="text-2xl font-bebas uppercase mb-6 text-white border-b-2 border-red-600 inline-block pb-1">
-            {userAddresses.length > 0
-              ? "Modifier mon adresse"
-              : "Ajouter une nouvelle adresse"}
+            Ajouter une nouvelle adresse
           </h3>
           <div className="relative mb-4">
             <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
@@ -862,6 +853,18 @@ const EditProfile = () => {
 
           {selectedAddress && (
             <div className="mb-6 p-4 bg-[#151515] border border-gray-700 rounded-lg">
+              <div className="mb-4">
+                <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                  Nom de l'adresse (ex: Domicile, Travail)
+                </label>
+                <input
+                  type="text"
+                  value={selectedAddress.label}
+                  onChange={(e) => setSelectedAddress({...selectedAddress, label: e.target.value})}
+                  className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-colors"
+                  placeholder="Mon adresse"
+                />
+              </div>
               <p className="text-sm text-gray-400 mb-1 uppercase font-bold">
                 Adresse sélectionnée :
               </p>
@@ -880,11 +883,7 @@ const EditProfile = () => {
             disabled={!selectedAddress || addressSaving}
             className="w-full md:w-auto px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bebas uppercase tracking-widest text-xl transition-colors rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {addressSaving
-              ? "Enregistrement en cours..."
-              : userAddresses.length > 0
-                ? "Mettre à jour l'adresse"
-                : "Ajouter cette adresse"}
+            {addressSaving ? "Enregistrement en cours..." : "Ajouter cette adresse"}
           </button>
         </div>
       </div>

@@ -6,53 +6,76 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use App\Repository\AdressRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: AdressRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['adress:read']],
+    denormalizationContext: ['groups' => ['adress:write']]
+)]
 #[ApiFilter(SearchFilter::class, properties: ['user' => 'exact'])]
 class Adress
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'adress:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'adress:read', 'adress:write'])]
     private ?string $label = null;
 
     #[ORM\Column(length: 10)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'adress:read', 'adress:write'])]
     private ?string $street_number = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'adress:read', 'adress:write'])]
     private ?string $street_name = null;
 
     #[ORM\Column(length: 5)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'adress:read', 'adress:write'])]
     private ?string $postal_code = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'adress:read', 'adress:write'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'adress:read', 'adress:write'])]
     private ?string $country = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 8)]
+    #[Groups(['user:read', 'adress:read', 'adress:write'])]
     private ?string $latitude = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 11, scale: 8)]
+    #[Groups(['user:read', 'adress:read', 'adress:write'])]
     private ?string $longitude = null;
 
     #[ORM\ManyToOne(inversedBy: 'adresses')]
+    #[Groups(['adress:read', 'adress:write'])]
     private ?User $user = null;
+
+    #[ORM\Column(options: ['default' => true])]
+    #[Groups(['user:read', 'adress:read', 'adress:write'])]
+    private ?bool $isActive = true;
+
+    /**
+     * @var Collection<int, Order>
+     */
+    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'address')]
+    private Collection $orders;
+
+    public function __construct()
+    {
+        $this->orders = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -163,6 +186,48 @@ class Adress
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function isIsActive(): ?bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): static
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Order>
+     */
+    public function getOrders(): Collection
+    {
+        return $this->orders;
+    }
+
+    public function addOrder(Order $order): static
+    {
+        if (!$this->orders->contains($order)) {
+            $this->orders->add($order);
+            $order->setAddress($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrder(Order $order): static
+    {
+        if ($this->orders->removeElement($order)) {
+            // set the owning side to null (unless already changed)
+            if ($order->getAddress() === $this) {
+                $order->setAddress(null);
+            }
+        }
 
         return $this;
     }

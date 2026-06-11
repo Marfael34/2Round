@@ -27,6 +27,7 @@ class PaymentSuccessController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $conversationId = $data['conversationId'] ?? null;
         $amount = $data['amount'] ?? null; // in cents
+        $addressId = $data['addressId'] ?? null;
         
         if (!$conversationId || !$amount) {
             return $this->json(['error' => 'Missing data'], 400);
@@ -82,6 +83,14 @@ class PaymentSuccessController extends AbstractController
             $order->setCreatedAt(new \DateTime());
             $order->setServicesFees($protectionFeesCents);
             $order->setShippingFees($shippingFeesCents);
+            
+            if ($addressId) {
+                $address = $em->getRepository(\App\Entity\Adress::class)->find($addressId);
+                if ($address) {
+                    $order->setAddress($address);
+                }
+            }
+            
             $em->persist($order);
 
             $orderItem = new OrderItem();
