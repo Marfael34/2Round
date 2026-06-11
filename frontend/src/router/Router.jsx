@@ -21,6 +21,9 @@ import Advice from '../components/Guide/Advice'
 import AdminRoute from './Admin/AdminRoute'
 import AdminDashboard from '../screens/AdminDashboard'
 import EditProfile from '../components/Profile/EditProfile'
+import CGV from '../screens/Legal/CGV'
+import MentionsLegales from '../screens/Legal/MentionsLegales'
+import Confidentialite from '../screens/Legal/Confidentialite'
 
 const Router = createBrowserRouter([
     {
@@ -113,6 +116,18 @@ const Router = createBrowserRouter([
                         <AdminDashboard />
                     </AdminRoute>
                 ),
+            },
+            {
+                path: "/cgv",
+                element: <CGV />,
+            },
+            {
+                path: "/mentions-legales",
+                element: <MentionsLegales />,
+            },
+            {
+                path: "/confidentialite",
+                element: <Confidentialite />,
             }
         ]
     }

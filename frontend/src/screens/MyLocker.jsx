@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { IMG_BGRAYURE } from "../constants/appConstante"
-import { useNavigate, Link, useParams } from "react-router-dom";
+import { useNavigate, Link, useParams, useSearchParams } from "react-router-dom";
 import UserProducts from "../components/Profile/UserProducts";
 import UserEvaluations from "../components/Profile/UserEvaluations";
 import { FaChevronLeft, FaStar, FaFlag, FaCircleCheck } from "react-icons/fa6";
@@ -14,7 +14,9 @@ const MyLocker = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('articles');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'articles';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
@@ -283,20 +285,20 @@ const MyLocker = () => {
               <div className="flex gap-4 md:gap-6 w-max no-scrollbar pb-2">
                 <button 
                   className={`${activeTab === 'articles' ? 'text-white border-b-2 border-red-600' : 'text-gray-500 hover:text-white'} pb-1`}
-                  onClick={() => setActiveTab('articles')}
+                  onClick={() => { setActiveTab('articles'); setSearchParams({ tab: 'articles' }); }}
                 >
                  <span className="font-inter font-extralight uppercase text-lg md:text-3xl">Articles</span> 
                 </button>
                 <button 
                   className={`${activeTab === 'evaluations' ? 'text-white border-b-2 border-red-600' : 'text-gray-500 hover:text-white'} pb-1`}
-                  onClick={() => setActiveTab('evaluations')}
+                  onClick={() => { setActiveTab('evaluations'); setSearchParams({ tab: 'evaluations' }); }}
                 >
                   <span className="font-inter font-extralight uppercase text-lg md:text-3xl">Évaluations</span>
                 </button>
                 {isCurrentUser && (
                   <button 
                     className={`${activeTab === 'sanctions' ? 'text-white border-b-2 border-red-600' : 'text-gray-500 hover:text-white'} pb-1`}
-                    onClick={() => setActiveTab('sanctions')}
+                    onClick={() => { setActiveTab('sanctions'); setSearchParams({ tab: 'sanctions' }); }}
                   >
                     <span className="font-inter font-extralight uppercase text-lg md:text-3xl text-red-500/80 hover:text-red-500 transition-colors">Mes Sanctions</span>
                   </button>
