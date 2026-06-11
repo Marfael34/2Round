@@ -123,6 +123,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Favorite>
      */
     #[ORM\OneToMany(targetEntity: Favorite::class, mappedBy: 'users')]
+    #[Groups(['user:read'])]
     private Collection $favorites;
 
     /**
