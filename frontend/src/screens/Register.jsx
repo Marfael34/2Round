@@ -79,6 +79,37 @@ const Register = () => {
     e.preventDefault();
     setError("");
 
+    if (formType === "short" || currentStep === 1) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(formData.email)) {
+        setError("Veuillez renseigner une adresse email au format valide.");
+        return;
+      }
+
+      // Vérification des domaines autorisés (boîtes mail classiques)
+      const allowedDomains = [
+        "gmail.com", "yahoo.com", "yahoo.fr", "hotmail.com", "hotmail.fr", 
+        "outlook.com", "outlook.fr", "live.com", "live.fr", 
+        "orange.fr", "sfr.fr", "free.fr", "laposte.net", "icloud.com", "protonmail.com"
+      ];
+      const emailDomain = formData.email.split('@')[1].toLowerCase();
+      if (!allowedDomains.includes(emailDomain)) {
+        setError("Veuillez utiliser une adresse email valide (ex: @gmail.com, @hotmail.com, @orange.fr, etc).");
+        return;
+      }
+
+      const passwordSpecialRegex = /[^a-zA-Z0-9]/;
+      const passwordNumberRegex = /\d/;
+      if (
+        formData.password.length < 6 || 
+        !passwordSpecialRegex.test(formData.password) ||
+        !passwordNumberRegex.test(formData.password)
+      ) {
+        setError("Le mot de passe doit faire au moins 6 caractères, contenir au moins un chiffre et un caractère spécial.");
+        return;
+      }
+    }
+
     if (formType === "short" || currentStep >= 2) {
       if (formData.password !== formData.confirmPassword) {
         setError("Les mots de passe ne correspondent pas");
