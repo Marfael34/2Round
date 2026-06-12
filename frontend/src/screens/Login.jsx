@@ -143,7 +143,7 @@ const Login = () => {
           </button>
 
           <div className="text-center text-xs text-gray-500 font-inter mt-4">
-            Pas encore inscrit ? <Link to="/register" className="text-white hover:text-red-600 transition-colors">Créer un compte</Link>
+            Pas encore inscrit ? <Link to="/register" state={{ from: location.state?.from }} className="text-white hover:text-red-600 transition-colors">Créer un compte</Link>
           </div>
         </form>
       </div>

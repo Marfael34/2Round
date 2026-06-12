@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaShieldHalved } from "react-icons/fa6";
 import { securedFetch, getCurrentUserId } from '../../utils/api';
 import { API_URL } from '../../constants/apiConstante';
 
 const ProductCard = ({ product }) => {
+  const navigate = useNavigate();
   // Calculer l'état initial des favoris
   const initialFavorite = product.isFavorite !== undefined 
     ? product.isFavorite 
@@ -43,6 +44,13 @@ const ProductCard = ({ product }) => {
   const handleFavoriteClick = async (e) => {
     e.preventDefault(); // Empêche la redirection du Link
     e.stopPropagation(); // Empêche la propagation du clic pour ne pas ouvrir le produit
+    
+    const productId = product.id || product['@id']?.split('/').pop();
+
+    if (!localStorage.getItem("token")) {
+      navigate("/login", { state: { from: `/product/${productId}` } });
+      return;
+    }
     
     // Toggle optimiste
     setIsFavorite(!isFavorite);

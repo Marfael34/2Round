@@ -79,7 +79,9 @@ const Register = () => {
     e.preventDefault();
     setError("");
 
-    if (formType === "short" || currentStep === 1) {
+    const isFinalSubmission = formType === "short" || (formType === "long" && currentStep === 4);
+
+    if (isFinalSubmission) {
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(formData.email)) {
         setError("Veuillez renseigner une adresse email au format valide.");
@@ -92,10 +94,12 @@ const Register = () => {
         "outlook.com", "outlook.fr", "live.com", "live.fr", 
         "orange.fr", "sfr.fr", "free.fr", "laposte.net", "icloud.com", "protonmail.com"
       ];
-      const emailDomain = formData.email.split('@')[1].toLowerCase();
-      if (!allowedDomains.includes(emailDomain)) {
-        setError("Veuillez utiliser une adresse email valide (ex: @gmail.com, @hotmail.com, @orange.fr, etc).");
-        return;
+      if (formData.email && formData.email.includes('@')) {
+        const emailDomain = formData.email.split('@')[1].toLowerCase();
+        if (!allowedDomains.includes(emailDomain)) {
+          setError("Veuillez utiliser une adresse email valide (ex: @gmail.com, @hotmail.com, @orange.fr, etc).");
+          return;
+        }
       }
 
       const passwordSpecialRegex = /[^a-zA-Z0-9]/;
@@ -108,9 +112,7 @@ const Register = () => {
         setError("Le mot de passe doit faire au moins 6 caractères, contenir au moins un chiffre et un caractère spécial.");
         return;
       }
-    }
 
-    if (formType === "short" || currentStep >= 2) {
       if (formData.password !== formData.confirmPassword) {
         setError("Les mots de passe ne correspondent pas");
         return;
@@ -223,7 +225,7 @@ const Register = () => {
       });
 
       // Rediriger vers la page de connexion
-      navigate("/login");
+      navigate("/login", { state: { from: location.state?.from } });
     } catch (err) {
       setError(err.message);
     }
@@ -338,6 +340,7 @@ const Register = () => {
             Déjà inscrit ?{" "}
             <Link
               to="/login"
+              state={{ from: location.state?.from }}
               className="text-white hover:text-red-600 transition-colors"
             >
               Se connecter

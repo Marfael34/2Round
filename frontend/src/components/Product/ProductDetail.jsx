@@ -307,6 +307,11 @@ const ProductDetail = () => {
     e.stopPropagation();
     
     if (!product) return;
+
+    if (!localStorage.getItem("token")) {
+      navigate("/login", { state: { from: `/product/${product.id}` } });
+      return;
+    }
     
     // Toggle optimiste
     setIsFavorite(!isFavorite);
