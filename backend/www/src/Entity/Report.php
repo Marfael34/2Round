@@ -57,7 +57,7 @@ class Report
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(['admin:read', 'report:write'])]
-    private ?Order $orderid = null;
+    private ?Order $order = null;
 
     #[ORM\ManyToOne(inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: true)]
@@ -155,14 +155,14 @@ class Report
         return $this;
     }
 
-    public function getOrderid(): ?Order
+    public function getOrder(): ?Order
     {
-        return $this->orderid;
+        return $this->order;
     }
 
-    public function setOrderid(?Order $orderid): static
+    public function setOrder(?Order $order): static
     {
-        $this->orderid = $orderid;
+        $this->order = $order;
 
         return $this;
     }

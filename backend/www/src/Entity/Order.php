@@ -67,7 +67,7 @@ class Order
     /**
      * @var Collection<int, Report>
      */
-    #[ORM\OneToMany(targetEntity: Report::class, mappedBy: 'orderid')]
+    #[ORM\OneToMany(targetEntity: Report::class, mappedBy: 'order')]
     private Collection $reports;
 
     #[ORM\ManyToOne(inversedBy: 'ordersAsBuyer')]
@@ -293,7 +293,7 @@ class Order
     {
         if (!$this->reports->contains($report)) {
             $this->reports->add($report);
-            $report->setOrderid($this);
+            $report->setOrder($this);
         }
 
         return $this;
@@ -303,8 +303,8 @@ class Order
     {
         if ($this->reports->removeElement($report)) {
             // set the owning side to null (unless already changed)
-            if ($report->getOrderid() === $this) {
-                $report->setOrderid(null);
+            if ($report->getOrder() === $this) {
+                $report->setOrder(null);
             }
         }
 
